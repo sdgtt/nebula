@@ -1,0 +1,15 @@
+uenvcmd=run adi_sdboot
+adi_sdboot=echo Network Booting ADI Board... && \
+echo Running... && \
+dhcp && \
+echo board IP ${ipaddr} && \
+setenv serverip 192.168.86.39 && \
+saveenv && \
+setenv ncip ${serverip} && \
+setenv stdout nc;setenv stdin nc && \
+tftpboot 0x1000000 ${serverip}:system_top.bit && \
+fpga loadb 0 0x1000000 0x1 && \
+tftpboot 0x2A00000 ${serverip}:devicetree.dtb && \
+tftpboot 0x3000000 ${serverip}:uImage && \
+setenv bootargs console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon rootfstype=ext4 rootwait debug ignore_loglevel netconsole=6665@${ipaddr}/eth0,6669@${serverip}/ && \
+bootm 0x3000000 - 0x2A00000
