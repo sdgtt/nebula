@@ -1,6 +1,7 @@
 import fabric
 import subprocess
 import time
+import yaml
 
 
 class network:
@@ -40,7 +41,7 @@ class network:
         result = fabric.Connection(
             self.dutusername + "@" + self.dutip,
             connect_kwargs={"password": self.dutpassword},
-        ).run("uname -a", hide=False)
+        ).run("uname -a", hide=True)
         return result.failed
 
     def check_board_booted(self):
@@ -53,7 +54,6 @@ class network:
             raise Exception("SSH failing")
         else:
             print("SSH PASSED")
-        pass
 
     def reboot_board(self):
         # Try to reboot board with SSH if possible
