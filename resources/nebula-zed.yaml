@@ -8,3 +8,5 @@ uart-config:
   - address: /dev/ttyACM0
   - baudrate: 115200
   - logfilename: zedboard-fmcomms2-3.log
+network-config:
+  - dutip: 192.168.86.35
