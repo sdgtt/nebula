@@ -7,10 +7,11 @@ import yaml
 
 class uart:
     def __init__(self, address='/dev/ttyACM0', fmc="fmcomms2"):
-        self.ip = "192.168.86.220"
+        self.tftpserverip = "192.168.86.220"
         self.address = address
         self.fmc = fmc
-        self.com = serial.Serial(address, 115200, timeout=0.5)
+        #self.com = serial.Serial(address, 115200, timeout=0.5)
+        self.com = serial.Serial(address, 115200)
         self.com.reset_input_buffer()
 
     def __del__(self):
@@ -31,7 +32,10 @@ class uart:
         buffer = []
         while self.com.in_waiting > 0:
             data = self.com.readline()
-            data = str(data[:-1].decode('ASCII'))
+            try:
+                data = str(data[:-1].decode('ASCII'))
+            except:
+                continue
             print(data)
             buffer.append(data)
         return buffer
@@ -46,7 +50,7 @@ class uart:
         time.sleep(4)
 
     def update_fpga(self):
-        cmd = "tftpboot 0x1000000 "+self.ip+":system_top.bit"
+        cmd = "tftpboot 0x1000000 "+self.tftpserverip+":system_top.bit"
         self.write_data(cmd)
         self.read_until_done()
 
@@ -55,12 +59,12 @@ class uart:
         self.read_until_stop()
 
     def update_dev_tree(self):
-        cmd = "tftpboot 0x2A00000 "+self.ip+":devicetree.dtb"
+        cmd = "tftpboot 0x2A00000 "+self.tftpserverip+":devicetree.dtb"
         self.write_data(cmd)
         self.read_until_done()
 
     def update_kernel(self):
-        cmd = "tftpboot 0x3000000 "+self.ip+":uImage"
+        cmd = "tftpboot 0x3000000 "+self.tftpserverip+":uImage"
         self.write_data(cmd)
         self.read_until_done()
 
@@ -74,8 +78,9 @@ class uart:
 
     def read_for_time(self,period):
         for k in range(period):
-            data = u.read_until_stop()
+            data = self.read_until_stop()
             time.sleep(1)
+            #print(data)
 
 def setup_uart():
     # Read yaml
@@ -87,11 +92,11 @@ def setup_uart():
 if __name__ == "__main__":
     u = uart()
 
-    u.update_fpga()
-    u.update_dev_tree()
-    u.update_kernel()
-    u.update_boot_args()
-    u.boot()
-    u.read_for_time(10)
+    #u.update_fpga()
+    #u.update_dev_tree()
+    #u.update_kernel()
+    #u.update_boot_args()
+    #u.boot()
+    u.read_for_time(120)
 
     u = []
