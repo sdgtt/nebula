@@ -1,0 +1,10 @@
+system-config:
+  - tftpserverip: 192.168.86.220
+  - tftpserverroot: /tftpboot
+board-config:
+  - reference-boot-folder: zynq-zed-adv7511-ad9361-fmcomms2-3
+  - monitoring-interface: uart
+uart-config:
+  - address: /dev/ttyACM0
+  - baudrate: 115200
+  - logfilename: zedboard-fmcomms2-3.log
