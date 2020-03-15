@@ -24,18 +24,19 @@ class uart:
         self.address = address
         self.fmc = fmc
         self.baudrate = baudrate
-        self.com = serial.Serial(address, baudrate, timeout=0.5)
-        self.com.reset_input_buffer()
         self.listen_thread_run = True
         self.logfilename = logfilename
         self.thread = None
         self.print_to_console = True
         if yamlfilename:
             self.update_defaults_from_yaml(yamlfilename)
+        self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
+        self.com.reset_input_buffer()
 
     def update_defaults_from_yaml(self, filename):
         stream = open(filename, "r")
         configs = yaml.safe_load(stream)
+        stream.close()
         if "uart-config" not in configs:
             raise Except("uart-config field not in yaml config file")
         configsList = configs["uart-config"]
@@ -73,8 +74,8 @@ class uart:
     def read_until_stop(self):
         buffer = []
         while self.com.in_waiting > 0:
-            data = self.com.readline()
             try:
+                data = self.com.readline()
                 data = str(data[:-1].decode("ASCII"))
             except:
                 logging.warning("Exception occured during data decode")
