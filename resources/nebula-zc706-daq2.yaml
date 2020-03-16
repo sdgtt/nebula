@@ -1,0 +1,13 @@
+system-config:
+  - tftpserverip: 192.168.10.1
+  - tftpserverroot: /tftpboot
+board-config:
+  - reference-boot-folder: zynq-zc706-adv7511-fmcdaq2
+  - iio_device_names: ["axi-ad9144-hpc","axi-ad9680-hpc"]
+  - monitoring-interface: uart
+uart-config:
+  - address: /dev/ttyUSB0
+  - baudrate: 115200
+  - logfilename: zc706-daq2.log
+network-config:
+  - dutip: 192.168.10.2
