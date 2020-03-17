@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     p = pathlib.Path(__file__).parent.absolute()
     p = os.path.split(p)
-    p = os.path.join(p[0], "resources", "nebula-zed.yaml")
+    p = os.path.join(p[0], "resources", "nebula-zed-fmcomms2.yaml")
 
     m = manager(configfilename=p)
     m.run_test()
