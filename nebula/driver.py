@@ -22,6 +22,9 @@ class driver:
                     raise Exception("Unknown field in driver yaml " + k)
                 setattr(self, k, config[k])
 
+    def check_iio_context(self):
+        pass
+
     def check_iio_devices(self):
         ctx = iio.Context(self.uri)
         devs = []

@@ -14,37 +14,42 @@ class manager:
     def __init__(
         self, monitor="uart", configfilename=None,
     ):
+        # Check if config info exists in yaml
         self.configfilename = configfilename
-
-        self.power = pdu("192.168.86.1")
-
-        if "netconsole" in monitor.lower():
-            monitor_uboot = netconsole(port=45, logfilename="uboot.log")
-            monitor_kernel = netconsole(port=67, logfilename="kernel.log")
-            self.monitor = [monitor_uboot, monitor_kernel]
-        elif "uart" in monitor.lower():
-            # Check if config info exists in yaml
+        if configfilename:
             stream = open(configfilename, "r")
             configs = yaml.safe_load(stream)
             stream.close()
+        else:
+            configs = None
+
+        if "netconsole" in monitor.lower():
+            monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
+            monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
+            self.monitor = [monitor_uboot, monitor_kernel]
+        elif "uart" in monitor.lower():
             if "uart-config" not in configs:
                 configfilename = None
+            else:
+                configfilename = self.configfilename
             u = uart(yamlfilename=configfilename)
             self.monitor = [u]
 
         if "network-config" not in configs:
             configfilename = None
+        else:
+            configfilename = self.configfilename
         self.net = network(yamlfilename=configfilename)
+
+        if "pdu-config" not in configs:
+            configfilename = None
+        else:
+            configfilename = self.configfilename
+        self.power = pdu(yamlfilename=configfilename)
 
         self.boot_src = tftpboot()
 
     def get_status(self):
-        pass
-
-    def check_iio_context(self):
-        pass
-
-    def check_iio_devices(self):
         pass
 
     def load_boot_bin(self):
@@ -53,16 +58,19 @@ class manager:
     def run_test(self):
         # Move BOOT.BIN, kernel and devtree to target location
         # self.boot_src.update_boot_files()
+
         # Start loggers
         for mon in self.monitor:
             mon.start_log()
         # Power cycle board
         self.net.reboot_board()
+
         # Check to make sure board booted
         try:
             self.net.check_board_booted()
         except Exception as ex:
             print("Exception", str(ex.msg))
+
         # Check IIO context and devices
 
         # Run tests

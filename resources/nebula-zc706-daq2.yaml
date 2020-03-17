@@ -11,3 +11,6 @@ uart-config:
   - logfilename: zc706-daq2.log
 network-config:
   - dutip: 192.168.10.2
+pdu-config:
+  - pduip: 192.168.86.35
+  - outlet: 1

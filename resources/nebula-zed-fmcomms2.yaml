@@ -11,3 +11,6 @@ uart-config:
   - logfilename: zedboard-fmcomms2-3.log
 network-config:
   - dutip: 192.168.86.35
+pdu-config:
+  - pduip: 192.168.86.35
+  - outlet: 1
