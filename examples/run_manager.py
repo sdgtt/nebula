@@ -1,6 +1,8 @@
-import pathlib
-import nebula
+#  type: ignore
 import os
+import pathlib
+
+import nebula
 
 p = pathlib.Path(__file__).parent.absolute()
 p = os.path.split(p)

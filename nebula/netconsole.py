@@ -1,8 +1,8 @@
-import socket
-import select
-import time
-import threading
 import logging
+import select
+import socket
+import threading
+import time
 
 logging.basicConfig(level=logging.INFO)
 
@@ -64,7 +64,8 @@ class netconsole:
                             file.write(str(data))
                             if self.print_to_console:
                                 print("OK... " + str(data))
-                    except:
+                    except Exception as ex:
+                        logging.warning("Exception occurred: " + str(ex.msg))
                         sock.close()
                         self.server_sock.remove(sock)
                         logging.info("Closing connection")

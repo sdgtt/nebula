@@ -1,7 +1,9 @@
 import iio
+import yaml
+
 
 class driver:
-    def __init__(self,uri="ip:analog",yamlfilename=None,iio_device_names=None):
+    def __init__(self, uri="ip:analog", yamlfilename=None, iio_device_names=None):
         self.iio_device_names = iio_device_names
         self.uri = uri
         if yamlfilename:
@@ -12,7 +14,7 @@ class driver:
         configs = yaml.safe_load(stream)
         stream.close()
         if "driver-config" not in configs:
-            raise Except("driver-config field not in yaml config file")
+            raise Exception("driver-config field not in yaml config file")
         configsList = configs["driver-config"]
         for config in configsList:
             for k in config:
@@ -25,6 +27,6 @@ class driver:
         devs = []
         for d in ctx.devices:
             devs.append(d.name)
-        for dev in iio_device_names:
+        for dev in self.iio_device_names:
             if dev not in devs:
-                raise Exception("Device not found "+str(dev))
+                raise Exception("Device not found " + str(dev))

@@ -30,7 +30,7 @@ setuptools.setup(
     url="https://github.com/tfcollins/nebula",
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
-    install_requires=["numpy","pyserial","fabric","yaml"],
+    install_requires=["numpy", "pyserial", "fabric", "yaml", "pysnmp"],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: BSD License",

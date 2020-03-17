@@ -1,12 +1,11 @@
-import sys
-from nebula.netconsole import netconsole
-
-from nebula.uart import uart
-from nebula.pdu import pdu
-from nebula.tftpboot import tftpboot
-from nebula.network import network
+import os
 
 import yaml
+from nebula.netconsole import netconsole
+from nebula.network import network
+from nebula.pdu import pdu
+from nebula.tftpboot import tftpboot
+from nebula.uart import uart
 
 
 class manager:
@@ -62,8 +61,8 @@ class manager:
         # Check to make sure board booted
         try:
             self.net.check_board_booted()
-        except:
-            pass
+        except Exception as ex:
+            print("Exception", str(ex.msg))
         # Check IIO context and devices
 
         # Run tests
@@ -74,11 +73,12 @@ class manager:
 
 
 if __name__ == "__main__":
-    import pathlib
+    # import pathlib
 
-    p = pathlib.Path(__file__).parent.absolute()
-    p = os.path.split(p)
-    p = os.path.join(p[0], "resources", "nebula-zed-fmcomms2.yaml")
+    # p = pathlib.Path(__file__).parent.absolute()
+    # p = os.path.split(p)
+    # p = os.path.join(p[0], "resources", "nebula-zed-fmcomms2.yaml")
 
-    m = manager(configfilename=p)
-    m.run_test()
+    # m = manager(configfilename=p)
+    # m.run_test()
+    pass

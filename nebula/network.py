@@ -1,11 +1,18 @@
-import fabric
 import subprocess
 import time
+
+import fabric
 import yaml
 
 
 class network:
-    def __init__(self, dutip="analog", dutusername="root", dutpassword="analog", yamlfilename=None):
+    def __init__(
+        self,
+        dutip="analog",
+        dutusername="root",
+        dutpassword="analog",
+        yamlfilename=None,
+    ):
         self.dutip = dutip
         self.dutusername = dutusername
         self.dutpassword = dutpassword
@@ -17,7 +24,7 @@ class network:
         configs = yaml.safe_load(stream)
         stream.close()
         if "network-config" not in configs:
-            raise Except("network-config field not in yaml config file")
+            raise Exception("network-config field not in yaml config file")
         configsList = configs["network-config"]
         for config in configsList:
             for k in config:
@@ -71,5 +78,5 @@ class network:
 
         except Exception as ex:
             print(ex)
-            print("Exception occured during SSH Reboot")
+            print("Exception occurred during SSH Reboot")
             pass

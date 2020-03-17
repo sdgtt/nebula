@@ -1,10 +1,10 @@
+import logging
 import os
+import threading
 import time
-import subprocess
+
 import serial
 import yaml
-import logging
-import threading
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,7 +38,7 @@ class uart:
         configs = yaml.safe_load(stream)
         stream.close()
         if "uart-config" not in configs:
-            raise Except("uart-config field not in yaml config file")
+            raise Exception("uart-config field not in yaml config file")
         configsList = configs["uart-config"]
         for config in configsList:
             for k in config:
@@ -77,8 +77,9 @@ class uart:
             try:
                 data = self.com.readline()
                 data = str(data[:-1].decode("ASCII"))
-            except:
-                logging.warning("Exception occured during data decode")
+            except Exception as ex:
+                logging.warning("Exception occurred during data decode")
+                logging.warning(ex.msg)
                 continue
             if self.print_to_console:
                 print(data)
@@ -122,22 +123,24 @@ class uart:
         self.write_data(cmd)
 
     def read_for_time(self, period):
+        data = []
         for k in range(period):
-            data = self.read_until_stop()
+            data.append(self.read_until_stop())
             time.sleep(1)
+        return data
 
 
 if __name__ == "__main__":
 
-    import pathlib
+    # import pathlib
 
-    p = pathlib.Path(__file__).parent.absolute()
-    p = os.path.split(p)
-    p = os.path.join(p[0], "resources", "nebula-zed.yaml")
+    # p = pathlib.Path(__file__).parent.absolute()
+    # p = os.path.split(p)
+    # p = os.path.join(p[0], "resources", "nebula-zed.yaml")
 
-    u = uart(yamlfilename=p)
-    u.start_log()
-    time.sleep(10)
-    u.stop_log()
-
-    u = []
+    # u = uart(yamlfilename=p)
+    # u.start_log()
+    # time.sleep(10)
+    # u.stop_log()
+    # u = []
+    pass
