@@ -129,6 +129,13 @@ class uart:
             time.sleep(1)
         return data
 
+    def load_system_uart(self):
+        self.update_fpga()
+        self.update_dev_tree()
+        self.update_kernel()
+        self.update_boot_args()
+        self.boot()
+
 
 if __name__ == "__main__":
 

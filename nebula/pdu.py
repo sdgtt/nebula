@@ -7,9 +7,7 @@ import yaml
 class pdu:
     """ Power Distribution Manager """
 
-    def __init__(
-        self, pduip="192.168.86.10", outlet=1, yamlfilename=None,
-    ):
+    def __init__(self, pduip="192.168.86.10", outlet=1, yamlfilename=None):
         self.pduip = pduip
         self.outlet = outlet
         if yamlfilename:

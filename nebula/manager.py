@@ -1,4 +1,5 @@
 import os
+import time
 
 import yaml
 from nebula.netconsole import netconsole
@@ -11,9 +12,7 @@ from nebula.uart import uart
 class manager:
     """ Board Manager """
 
-    def __init__(
-        self, monitor="uart", configfilename=None,
-    ):
+    def __init__(self, monitor="uart", configfilename=None):
         # Check if config info exists in yaml
         self.configfilename = configfilename
         if configfilename:
@@ -55,6 +54,36 @@ class manager:
     def load_boot_bin(self):
         pass
 
+    def board_reboot(self):
+        # Try to reboot over SSH first
+        try:
+            self.net.reboot_board()
+        except Exception as ex:
+            # Try power cycling
+            print("SSH reboot failed, power cycling", str(ex))
+            self.power.power_cycle_board()
+            time.sleep(30)
+            try:
+                self.net.check_board_booted()
+            except Exception as ex:
+                print("Still cannot get to board after power cycling")
+                print("Exception", str(ex))
+                try:
+                    print("SSH reboot failed again after power cycling")
+                    print("Forcing UART override on power cycle")
+                    print("Power cycling")
+                    self.power.power_cycle_board()
+                    print("Spamming ENTER to get UART console")
+                    for k in range(60):
+                        self.monitor.write_data("\r\n")
+                        time.sleep(0.1)
+
+                    self.monitor.load_system_uart()
+                    time.sleep(20)
+                    self.net.check_board_booted()
+                except Exception as ex:
+                    raise Exception("Getting board back failed", str(ex))
+
     def run_test(self):
         # Move BOOT.BIN, kernel and devtree to target location
         # self.boot_src.update_boot_files()
@@ -64,12 +93,6 @@ class manager:
             mon.start_log()
         # Power cycle board
         self.net.reboot_board()
-
-        # Check to make sure board booted
-        try:
-            self.net.check_board_booted()
-        except Exception as ex:
-            print("Exception", str(ex.msg))
 
         # Check IIO context and devices
 
