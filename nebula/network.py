@@ -71,12 +71,10 @@ class network:
             ).run("reboot", hide=False)
             if result.ok:
                 print("Rebooting board with SSH")
-                time.sleep(10)
+                time.sleep(30)
             else:
                 # Use PDU
                 raise Exception("PDU reset not implemented yet")
 
         except Exception as ex:
-            print(ex)
-            print("Exception occurred during SSH Reboot")
-            pass
+            raise Exception("Exception occurred during SSH Reboot")

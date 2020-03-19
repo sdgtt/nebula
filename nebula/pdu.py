@@ -9,7 +9,13 @@ class pdu:
     """ Power Distribution Manager """
 
     def __init__(
-        self, pduip="192.168.86.10", outlet=1, pdu_type="cyberpower", yamlfilename=None
+        self,
+        pduip="192.168.86.10",
+        outlet=1,
+        pdu_type="cyberpower",
+        username="cyber",
+        password="cyber",
+        yamlfilename=None,
     ):
         self.pduip = pduip
         self.outlet = outlet

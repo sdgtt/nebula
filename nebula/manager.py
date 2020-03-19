@@ -62,7 +62,7 @@ class manager:
             # Try power cycling
             print("SSH reboot failed, power cycling", str(ex))
             self.power.power_cycle_board()
-            time.sleep(30)
+            time.sleep(40)
             try:
                 self.net.check_board_booted()
             except Exception as ex:
@@ -92,7 +92,7 @@ class manager:
         for mon in self.monitor:
             mon.start_log()
         # Power cycle board
-        self.net.reboot_board()
+        self.board_reboot()
 
         # Check IIO context and devices
 

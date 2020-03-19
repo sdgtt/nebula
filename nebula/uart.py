@@ -79,7 +79,7 @@ class uart:
                 data = str(data[:-1].decode("ASCII"))
             except Exception as ex:
                 logging.warning("Exception occurred during data decode")
-                logging.warning(ex.msg)
+                logging.warning(ex)
                 continue
             if self.print_to_console:
                 print(data)
