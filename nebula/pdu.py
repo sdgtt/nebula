@@ -2,17 +2,29 @@ import time
 
 import cyberpower_pdu_snmp as cpdu
 import yaml
+from pyvesync_v2 import VeSync
 
 
 class pdu:
     """ Power Distribution Manager """
 
-    def __init__(self, pduip="192.168.86.10", outlet=1, yamlfilename=None):
+    def __init__(
+        self, pduip="192.168.86.10", outlet=1, pdu_type="cyberpower", yamlfilename=None
+    ):
         self.pduip = pduip
         self.outlet = outlet
+        self.pdu_type = pdu_type
         if yamlfilename:
             self.update_defaults_from_yaml(yamlfilename)
-        self.pdu_cyber = cpdu.CyberPowerPdu(self.pduip)
+
+        if self.pdu_type == "cyberpower":
+            self.pdu_dev = cpdu.CyberPowerPdu(self.pduip)
+        elif self.pdu_type == "vesync":
+            self.pdu_dev = VeSync(self.username, self.password)
+            self.pdu_dev.login()
+            self.pdu_dev.update()
+        else:
+            raise Exception("Unknown PDU type")
 
     def update_defaults_from_yaml(self, filename):
         stream = open(filename, "r")
@@ -28,6 +40,12 @@ class pdu:
                 setattr(self, k, config[k])
 
     def power_cycle_board(self):
-        self.pdu_cyber.set_outlet_on(self.outlet, False)
+        if self.pdu_type == "cyberpower":
+            self.pdu_dev.set_outlet_on(self.outlet, False)
+        elif self.pdu_type == "vesync":
+            self.pdu_dev.outlets[self.outlet].turn_off()
         time.sleep(5)
-        self.pdu_cyber.set_outlet_on(self.outlet, True)
+        if self.pdu_type == "cyberpower":
+            self.pdu_dev.set_outlet_on(self.outlet, True)
+        elif self.pdu_type == "vesync":
+            self.pdu_dev.outlets[self.outlet].turn_on()

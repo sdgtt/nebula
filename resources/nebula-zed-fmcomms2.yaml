@@ -13,4 +13,5 @@ network-config:
   - dutip: 192.168.86.35
 pdu-config:
   - pduip: 192.168.86.35
+  - pdu_type: cyberpower
   - outlet: 1
