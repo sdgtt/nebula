@@ -3,6 +3,7 @@ import time
 
 import fabric
 import yaml
+from fabric import Connection
 
 
 class network:
@@ -77,4 +78,60 @@ class network:
                 raise Exception("PDU reset not implemented yet")
 
         except Exception as ex:
-            raise Exception("Exception occurred during SSH Reboot")
+            raise Exception("Exception occurred during SSH Reboot", str(ex))
+
+    def run_ssh_command(self, command):
+        result = fabric.Connection(
+            self.dutusername + "@" + self.dutip,
+            connect_kwargs={"password": self.dutpassword},
+        ).run(command, hide=True)
+        if result.failed:
+            raise Exception("Failed to run command:", command)
+        return result
+
+    def copy_file_to_remote(self, src, dest):
+        Connection(
+            self.dutusername + "@" + self.dutip,
+            connect_kwargs={"password": self.dutpassword},
+        ).put(src, remote=dest)
+
+    def update_boot_partition(
+        self, bootbinpath=None, uimagepath=None, devtreepath=None
+    ):
+        """ update_boot_partition:
+                Update boot files on existing card which from remote files
+        """
+        self.run_ssh_command("mkdir /tmp/sdcard")
+        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
+        if bootbinpath:
+            self.copy_file_to_remote(bootbinpath, "/tmp/sdcard/")
+        if uimagepath:
+            self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
+        if devtreepath:
+            self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
+        self.run_ssh_command("reboot")
+
+    def update_boot_partition_existing_files(self, subfolder=None):
+        """ update_boot_partition_existing_files:
+                Update boot files on existing card which contains reference
+                files in the BOOT partition
+
+                You must specify the subfolder with the BOOT partition to use.
+                For example: zynq-zc706-adv7511-fmcdaq2
+        """
+        if not subfolder:
+            raise Exception("Must provide a subfolder")
+        self.run_ssh_command("mkdir /tmp/sdcard")
+        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
+        self.run_ssh_command("cp /tmp/sdcard/" + subfolder + "/BOOT.BIN /tmp/sdcard/")
+        if "zynqmp" in subfolder:
+            self.run_ssh_command("cp /tmp/sdcard/zynqmp-common/Image /tmp/sdcard/")
+            self.run_ssh_command(
+                "cp /tmp/sdcard/" + subfolder + "/system.dtb /tmp/sdcard/"
+            )
+        else:
+            self.run_ssh_command("cp /tmp/sdcard/zynq-common/uImage /tmp/sdcard/")
+            self.run_ssh_command(
+                "cp /tmp/sdcard/" + subfolder + "/devicetree.dtb /tmp/sdcard/"
+            )
+        self.run_ssh_command("reboot")
