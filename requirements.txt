@@ -1,0 +1,6 @@
+fabric
+pyyaml
+pyserial
+pytest
+pyvesync_v2
+cyberpower-pdu-snmp
