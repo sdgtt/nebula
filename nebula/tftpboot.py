@@ -1,6 +1,8 @@
 import shutil
 import subprocess
 
+import yaml
+
 
 class tftpboot:
     """ TFTP Boot Module """
