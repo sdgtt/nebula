@@ -51,13 +51,14 @@ class builder:
                 return vivado
         raise Exception("REQUIRED_VIVADO_VERSION not found in repo")
 
-    def uboot_build(self, dir, def_config):
+    def uboot_build(self, dir, def_config=None, branch="2018_R2", board="zed"):
         os.chdir(dir)
-        # vivado = add_vivado_path(dir)
-        vivado_version = "2018.2"
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
         vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        if not def_config:
+            def_config = self.def_config_map(board)
         cmd = vivado
-        cmd += "; export ARCH=arm; export CROSS_COMPILE=arm-linux-gnueabihf-"
+        cmd += "; export ARCH=" + arch + "; export CROSS_COMPILE=" + cc
         cmd += "; make distclean; make clean"
         cmd += "; make " + def_config
         cmd += "; make -j" + str(os.cpu_count())
@@ -69,6 +70,19 @@ class builder:
         args = "--no-print-directory"
         cmd = vivado + "; make " + args + " -C projects/" + project + "/" + board
         self.shell_out2(cmd)
+
+    def def_config_map(self, board):
+        if "zcu102" in board.lower():
+            def_conf = "xilinx_zynqmp_zcu102_rev1_0_defconfig"
+        elif "zc706" in board.lower():
+            def_conf = "zynq_zc706_defconfig"
+        elif "zc702" in board.lower():
+            def_conf = "zynq_zc702_defconfig"
+        elif "zed" in board.lower():
+            def_conf = "zynq_zed_defconfig"
+        else:
+            raise Exception("Unsupported board")
+        return def_conf
 
     def linux_tools_map(self, branch, board):
         if branch == "2018_R2":
@@ -112,7 +126,7 @@ class builder:
         elif repo == "hdl":
             self.hdl_build(repo, project, board)
         elif repo == "u-boot-xlnx":
-            self.uboot_build(repo, def_config)
+            self.uboot_build(repo, def_config, board=board)
         elif repo == "linux":
             self.linux_build(repo, board=board)
         else:
@@ -142,8 +156,10 @@ class builder:
         def_config=None,
         githuborg=None,
     ):
-        if "linux" in repo and not board:
-            raise Exception("Must supply board for linux builds")
+        if repo in ["linux"] and not board:
+            raise Exception("Must supply board for " + repo + " builds")
+        if repo in ["u-boot-xlnx"] and (not board and not def_config):
+            raise Exception("Must supply board or def_config for " + repo + " builds")
         if "u-boot" in repo:
             self.analog_clone(repo, branch, githuborg="Xilinx")
         else:

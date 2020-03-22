@@ -49,6 +49,12 @@ def test_uboot_build():
     assert os.path.isfile("u-boot-xlnx/u-boot")
 
 
+def test_uboot_build_zcu102():
+    b = builder()
+    b.analog_clone_build("u-boot-xlnx", "xilinx-v2018.2", board="zcu102")
+    assert os.path.isfile("u-boot-xlnx/u-boot")
+
+
 def test_linux_build():
     b = builder()
     b.analog_clone_build("linux", "2018_R2", board="zed")
