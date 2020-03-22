@@ -70,23 +70,39 @@ class builder:
         cmd = vivado + "; make " + args + " -C projects/" + project + "/" + board
         self.shell_out2(cmd)
 
-    def linux_tools_map(self, branch, arch):
-        if branch >= 2018.1:
-            CC = "arm-linux-gnueabihf-"
+    def linux_tools_map(self, branch, board):
+        if branch == "2018_R2":
+            vivado = "2018.2"
+        elif branch == "2019_R1":
+            vivado = "2018.3"
         else:
-            CC = "arm-xilinx-linux-gnueabi-"
-        return CC
+            raise Exception("Unsupported branch")
+        if "zcu102" in board.lower():
+            arch = "arm64"
+            cc = "aarch64-linux-gnu-"
+        elif board.lower() in ["zed", "zc702", "zc706"]:
+            arch = "arm"
+            if float(vivado) >= 2018.1:
+                cc = "arm-linux-gnueabihf-"
+            else:
+                cc = "arm-xilinx-linux-gnueabi-"
+        else:
+            raise Exception("Unsupported board")
+        return (cc, arch, vivado)
 
-    def linux_build(self, dir):
+    def linux_build(self, dir, branch="2018_R2", board="zed"):
         os.chdir(dir)
-        # vivado = add_vivado_path(dir)
-        vivado_version = "2018.2"
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
         vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
         cmd = vivado
-        cmd += "; export ARCH=arm; export CROSS_COMPILE=arm-linux-gnueabihf-"
+        cmd += "; export ARCH=" + arch + "; export CROSS_COMPILE=" + cc
         cmd += "; make distclean; make clean"
-        cmd += "; make zynq_xcomm_adv7511_defconfig"
-        cmd += "; make -j" + str(os.cpu_count()) + " UIMAGE_LOADADDR=0x8000 uImage"
+        if "64" in arch:
+            cmd += "; make adi_zynqmp_defconfig"
+            cmd += "; make -j" + str(os.cpu_count()) + " UIMAGE_LOADADDR=0x8000 Image"
+        else:
+            cmd += "; make zynq_xcomm_adv7511_defconfig"
+            cmd += "; make -j" + str(os.cpu_count()) + " UIMAGE_LOADADDR=0x8000 uImage"
         self.shell_out2(cmd)
 
     def build_repo(self, repo, project=None, board=None, def_config=None):
@@ -98,7 +114,7 @@ class builder:
         elif repo == "u-boot-xlnx":
             self.uboot_build(repo, def_config)
         elif repo == "linux":
-            self.linux_build(repo)
+            self.linux_build(repo, board=board)
         else:
             print("Unknown ADI repo, not building")
         os.chdir(pwd)
@@ -126,6 +142,8 @@ class builder:
         def_config=None,
         githuborg=None,
     ):
+        if "linux" in repo and not board:
+            raise Exception("Must supply board for linux builds")
         if "u-boot" in repo:
             self.analog_clone(repo, branch, githuborg="Xilinx")
         else:

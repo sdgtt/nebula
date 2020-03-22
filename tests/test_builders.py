@@ -51,8 +51,15 @@ def test_uboot_build():
 
 def test_linux_build():
     b = builder()
-    b.analog_clone_build("linux", "2018_R2")
+    b.analog_clone_build("linux", "2018_R2", board="zed")
     path = "linux/arch/arm/boot/uImage"
+    assert os.path.isfile(path)
+
+
+def test_linux_build_zcu102():
+    b = builder()
+    b.analog_clone_build("linux", "2018_R2", board="zcu102")
+    path = "linux/arch/arm64/boot/Image"
     assert os.path.isfile(path)
 
 
