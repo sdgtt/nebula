@@ -48,15 +48,18 @@ class builder:
                     raise Exception(
                         "Required vivado version not found: " + vivado_version
                     )
+                vivado = ". " + vivado
                 return vivado
         raise Exception("REQUIRED_VIVADO_VERSION not found in repo")
 
     def uboot_build(self, dir, def_config=None, branch="2018_R2", board="zed"):
         os.chdir(dir)
-        cc, arch, vivado_version = self.linux_tools_map(branch, board)
-        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
         if not def_config:
             def_config = self.def_config_map(board)
+            cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        else:
+            cc, arch, vivado_version = self.linux_tools_map(branch, def_config)
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
         cmd = vivado
         cmd += "; export ARCH=" + arch + "; export CROSS_COMPILE=" + cc
         cmd += "; make distclean; make clean"
@@ -94,7 +97,11 @@ class builder:
         if "zcu102" in board.lower():
             arch = "arm64"
             cc = "aarch64-linux-gnu-"
-        elif board.lower() in ["zed", "zc702", "zc706"]:
+        elif (
+            "zed" in board.lower()
+            or "zc702" in board.lower()
+            or "zc706" in board.lower()
+        ):
             arch = "arm"
             if float(vivado) >= 2018.1:
                 cc = "arm-linux-gnueabihf-"
