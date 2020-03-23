@@ -1,8 +1,7 @@
 #!/usr/bin/python
-# import nebula
 
-import argparse
 import os
+import shutil
 import subprocess
 import time
 
@@ -153,6 +152,103 @@ class builder:
         if repo in ["linux", "u-boot-xlnx"]:
             cmd += " --depth=1"
         self.shell_out(cmd)
+
+    def create_zynq_bif(self, hdf_filename, build_dir):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        ### Create zynq.bif file used by bootgen
+        filename = "zynq.bif"
+        hdf_filename = os.path.basename(hdf_filename)
+        f = open(filename, "w+")
+        f.write("the_ROM_image:\n")
+        f.write("{\n")
+        f.write("[bootloader] fsbl.elf\n")
+        f.write("system_top.bit\n")
+        f.write("u-boot.elf\n")
+        f.write("}\n")
+        f.close()
+        os.chdir(pwd)
+
+    def create_fsbl_project(self, hdf_filename, build_dir):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
+        hdf_filename = os.path.basename(hdf_filename)
+        filename = "create_fsbl_project.tcl"
+        f = open(filename, "w+")
+        f.write("hsi open_hw_design " + hdf_filename + "\n")
+        f.write(
+            "set cpu_name [lindex [hsi get_cells -filter {IP_TYPE==PROCESSOR}] 0]\n"
+        )
+        f.write("sdk setws ./build/sdk\n")
+        f.write("sdk createhw -name hw_0 -hwspec " + hdf_filename + "\n")
+        f.write(
+            "sdk createapp -name fsbl -hwproject hw_0 -proc $cpu_name -os standalone -lang C -app {Zynq FSBL}\n"
+        )
+        f.write("configapp -app fsbl build-config release\n")
+        f.write("sdk projects -build -type all\n")
+        f.close()
+        os.chdir(pwd)
+
+    def build_fsbl(self, build_dir, branch, board):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        cmd = vivado
+        cmd += "; xsdk -batch -source create_fsbl_project.tcl"
+        self.shell_out2(cmd)
+        os.chdir(pwd)
+
+    def build_bootbin(self, build_dir, branch, board):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        cmd = vivado
+        cmd += "; bootgen -arch zynq -image zynq.bif -o BOOT.BIN -w"
+        self.shell_out2(cmd)
+        os.chdir(pwd)
+
+    def analog_build_bootbin(
+        self,
+        hdl_branch="hdl_2018_r2",
+        uboot_branch="xilinx-v2018.2",
+        board="zed",
+        project="fmcomms2",
+    ):
+        dest = "BOOTBIN"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        # Build HDL
+        self.analog_clone_build("hdl", branch=hdl_branch, board=board, project=project)
+        hdf_filename = (
+            "hdl/projects/"
+            + project
+            + "/"
+            + board
+            + "/"
+            + project
+            + "_"
+            + board
+            + ".sdk/system_top.hdf"
+        )
+        shutil.copyfile(hdf_filename, dest + "/system_top.hdf")
+        # Build u-boot
+        self.analog_clone_build("u-boot-xlnx", branch=uboot_branch, board=board)
+        filename = "u-boot-xlnx/u-boot"
+        shutil.copyfile(filename, dest + "/u-boot.elf")
+        # Build fsbl
+        self.create_fsbl_project(os.path.basename(hdf_filename), dest)
+        self.build_fsbl(dest, "2018_R2", board)
+        shutil.copyfile(dest + "/build/sdk/fsbl/Release/fsbl.elf", dest + "/fsbl.elf")
+        shutil.copyfile(
+            dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
+        )
+        # Build bif
+        self.create_zynq_bif(hdf_filename, dest)
+        # Build BOOT.BIN
+        self.build_bootbin(dest, "2018_R2", board)
 
     def analog_clone_build(
         self,

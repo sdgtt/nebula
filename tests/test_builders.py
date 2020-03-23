@@ -69,5 +69,12 @@ def test_linux_build_zcu102():
     assert os.path.isfile(path)
 
 
+def test_bootbin_build():
+    b = builder()
+    b.analog_build_bootbin()
+    path = "BOOTBIN/BOOT.BIN"
+    assert os.path.isfile(path)
+
+
 if __name__ == "__main__":
     test_uboot_build()
