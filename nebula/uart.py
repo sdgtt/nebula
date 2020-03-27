@@ -10,6 +10,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class uart:
+    """ UART Interface Handler
+            This class enables monitoring and sending commands
+            over a UART interface. Monitoring is done using
+            threads so monitor will not block.
+    """
+
     def __init__(
         self,
         address="/dev/ttyACM0",
@@ -51,12 +57,14 @@ class uart:
         self.com.close()
 
     def start_log(self):
+        """ Trigger monitoring with UART interface """
         self.listen_thread_run = True
         logging.info("Launching UART listening thread")
         self.thread = threading.Thread(target=self.listen, args=())
         self.thread.start()
 
     def stop_log(self):
+        """ Stop monitoring with UART interface """
         self.listen_thread_run = False
         logging.info("Waiting for UART reading thread")
         self.thread.join()
@@ -96,6 +104,7 @@ class uart:
         time.sleep(4)
 
     def update_fpga(self):
+        """ Transfter and load system_top.bit over TFTP to system during uboot """
         cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
         self.write_data(cmd)
         self.read_until_done()
@@ -105,20 +114,24 @@ class uart:
         self.read_until_stop()
 
     def update_dev_tree(self):
+        """ Transfter devicetree over TFTP to system during uboot """
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
         self.write_data(cmd)
         self.read_until_done()
 
     def update_kernel(self):
+        """ Transfter kernel image over TFTP to system during uboot """
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
         self.write_data(cmd)
         self.read_until_done()
 
     def update_boot_args(self):
+        """ Update kernel boot arguments during uboot """
         cmd = "setenv bootargs " + self.bootargs
         self.write_data(cmd)
 
     def boot(self):
+        """ Boot kernel during uboot """
         cmd = "bootm 0x3000000 - 0x2A00000"
         self.write_data(cmd)
 
@@ -130,6 +143,7 @@ class uart:
         return data
 
     def load_system_uart(self):
+        """ Load complete system (bitstream, devtree, kernel) during uboot """
         self.update_fpga()
         self.update_dev_tree()
         self.update_kernel()
