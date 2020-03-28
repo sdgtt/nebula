@@ -1,6 +1,6 @@
 import time
 
-import cyberpower_pdu_snmp as cpdu
+from nebula import cyberpower as cpdu
 import yaml
 from pyvesync_v2 import VeSync
 
