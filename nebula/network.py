@@ -2,11 +2,11 @@ import subprocess
 import time
 
 import fabric
-import yaml
 from fabric import Connection
+from nebula.common import utils
 
 
-class network:
+class network(utils):
     def __init__(
         self,
         dutip="analog",
@@ -18,20 +18,7 @@ class network:
         self.dutusername = dutusername
         self.dutpassword = dutpassword
         if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename)
-
-    def update_defaults_from_yaml(self, filename):
-        stream = open(filename, "r")
-        configs = yaml.safe_load(stream)
-        stream.close()
-        if "network-config" not in configs:
-            raise Exception("network-config field not in yaml config file")
-        configsList = configs["network-config"]
-        for config in configsList:
-            for k in config:
-                if not hasattr(self, k):
-                    raise Exception("Unknown field in network yaml " + k)
-                setattr(self, k, config[k])
+            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
     def ping_board(self, tries=10):
         ping = subprocess.Popen(

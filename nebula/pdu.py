@@ -1,11 +1,11 @@
 import time
 
 from nebula import cyberpower as cpdu
-import yaml
+from nebula.common import utils
 from pyvesync_v2 import VeSync
 
 
-class pdu:
+class pdu(utils):
     """ Power Distribution Manager """
 
     def __init__(
@@ -21,7 +21,7 @@ class pdu:
         self.outlet = outlet
         self.pdu_type = pdu_type
         if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename)
+            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
         if self.pdu_type == "cyberpower":
             self.pdu_dev = cpdu.CyberPowerPdu(self.pduip)
@@ -31,19 +31,6 @@ class pdu:
             self.pdu_dev.update()
         else:
             raise Exception("Unknown PDU type")
-
-    def update_defaults_from_yaml(self, filename):
-        stream = open(filename, "r")
-        configs = yaml.safe_load(stream)
-        stream.close()
-        if "pdu-config" not in configs:
-            raise Exception("pdu-config field not in yaml config file")
-        configsList = configs["pdu-config"]
-        for config in configsList:
-            for k in config:
-                if not hasattr(self, k):
-                    raise Exception("Unknown field in pdu yaml " + k)
-                setattr(self, k, config[k])
 
     def power_cycle_board(self):
         if self.pdu_type == "cyberpower":

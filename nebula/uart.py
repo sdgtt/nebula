@@ -4,12 +4,12 @@ import threading
 import time
 
 import serial
-import yaml
+from nebula.common import utils
 
 logging.basicConfig(level=logging.INFO)
 
 
-class uart:
+class uart(utils):
     """ UART Interface Handler
             This class enables monitoring and sending commands
             over a UART interface. Monitoring is done using
@@ -35,22 +35,9 @@ class uart:
         self.thread = None
         self.print_to_console = True
         if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename)
+            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
         self.com.reset_input_buffer()
-
-    def update_defaults_from_yaml(self, filename):
-        stream = open(filename, "r")
-        configs = yaml.safe_load(stream)
-        stream.close()
-        if "uart-config" not in configs:
-            raise Exception("uart-config field not in yaml config file")
-        configsList = configs["uart-config"]
-        for config in configsList:
-            for k in config:
-                if not hasattr(self, k):
-                    raise Exception("Unknown field in uart yaml " + k)
-                setattr(self, k, config[k])
 
     def __del__(self):
         logging.info("Closing UART")
