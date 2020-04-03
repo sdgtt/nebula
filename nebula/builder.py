@@ -91,6 +91,8 @@ class builder:
             vivado = "2018.2"
         elif branch == "2019_R1":
             vivado = "2018.3"
+        elif branch == "master":
+            vivado = "2019.1"
         else:
             raise Exception("Unsupported branch")
         if "zcu102" in board.lower():
@@ -169,6 +171,39 @@ class builder:
         f.close()
         os.chdir(pwd)
 
+    def create_zynqmp_bif(self, hdf_filename, build_dir):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        ### Create zynq.bif file used by bootgen
+        filename = "zynq.bif"
+        hdf_filename = os.path.basename(hdf_filename)
+        f = open(filename, "w+")
+        f.write("the_ROM_image:\n")
+        f.write("{\n")
+        f.write("[bootloader,destination_cpu=a53-0] fsbl.elf\n")
+        f.write("[pmufw_image] pmufw.elf\n")
+        f.write("[destination_device=pl] system_top.bit\n")
+        f.write("[destination_cpu=a53-0, exception_level=el-3,trustzone] bl31.elf\n")
+        f.write("[destination_cpu=a53-0, exception_level=el-2] u-boot.elf\n")
+        f.write("}\n")
+        f.close()
+        os.chdir(pwd)
+
+    def create_pmufw_project(self, hdf_filename, build_dir):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
+        hdf_filename = os.path.basename(hdf_filename)
+        filename = "create_pmufw_project.tcl"
+        f = open(filename, "w+")
+        f.write("set hwdsgn [open_hw_design " + hdf_filename + "]\n")
+        f.write(
+            "generate_app -hw $hwdsgn -os standalone -proc psu_pmu_0 -app zynqmp_pmufw -sw pmufw -dir pmufw\n"
+        )
+        f.write("quit\n")
+        f.close()
+        os.chdir(pwd)
+
     def create_fsbl_project(self, hdf_filename, build_dir):
         pwd = os.getcwd()
         os.chdir(build_dir)
@@ -190,6 +225,27 @@ class builder:
         f.close()
         os.chdir(pwd)
 
+    def create_zmp_fsbl_project(self, hdf_filename, build_dir):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
+        hdf_filename = os.path.basename(hdf_filename)
+        filename = "create_fsbl_project.tcl"
+        f = open(filename, "w+")
+        f.write("hsi open_hw_design " + hdf_filename + "\n")
+        f.write(
+            "set cpu_name [lindex [hsi get_cells -filter {IP_TYPE==PROCESSOR}] 0]\n"
+        )
+        f.write("sdk setws ./build/sdk\n")
+        f.write("sdk createhw -name hw_0 -hwspec " + hdf_filename + "\n")
+        f.write(
+            "sdk createapp -name fsbl -hwproject hw_0 -proc $cpu_name -os standalone -lang C -app {Zynq MP FSBL}\n"
+        )
+        f.write("configapp -app fsbl build-config release\n")
+        f.write("sdk projects -build -type all\n")
+        f.close()
+        os.chdir(pwd)
+
     def build_fsbl(self, build_dir, branch, board):
         pwd = os.getcwd()
         os.chdir(build_dir)
@@ -200,13 +256,53 @@ class builder:
         self.shell_out2(cmd)
         os.chdir(pwd)
 
-    def build_bootbin(self, build_dir, branch, board):
+    def build_pmufw(self, build_dir, branch, board):
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
         vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
         cmd = vivado
-        cmd += "; bootgen -arch zynq -image zynq.bif -o BOOT.BIN -w"
+        cmd += "; hsi -source create_pmufw_project.tcl"
+        self.shell_out2(cmd)
+        self.shell_out2(
+            'grep "CC_FLAGS :=" pmufw/Makefile | grep -e "-Os" || sed -i \'/-mxl-soft-mul/ s/$/ -Os -flto -ffat-lto-objects/\' pmufw/Makefile'
+        )
+        os.chdir("pmufw")
+        cmd = vivado
+        cmd += "; make"
+        self.shell_out2(cmd)
+        os.chdir(pwd)
+
+    def build_zmp_fsbl(self, build_dir, branch, board):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        cmd = vivado
+        cmd += "; xsdk -batch -source create_fsbl_project.tcl"
+        self.shell_out2(cmd)
+        os.chdir(pwd)
+
+    def build_atf(self, build_dir, branch, board):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        self.analog_clone("arm-trusted-firmware", "xilinx-v" + vivado_version, "Xilinx")
+        os.chdir("arm-trusted-firmware")
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        cmd = vivado
+        cmd += "; export CROSS_COMPILE=" + cc + "; PLAT=zynqmp RESET_TO_BL31=1"
+        cmd += "; make"
+        self.shell_out2(cmd)
+        os.chdir(pwd)
+
+    def build_bootbin(self, build_dir, branch, board, archbg="zynq"):
+        pwd = os.getcwd()
+        os.chdir(build_dir)
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        cmd = vivado
+        cmd += "; bootgen -arch " + archbg + " -image zynq.bif -o BOOT.BIN -w"
         self.shell_out2(cmd)
         os.chdir(pwd)
 
@@ -234,21 +330,54 @@ class builder:
             + ".sdk/system_top.hdf"
         )
         shutil.copyfile(hdf_filename, dest + "/system_top.hdf")
+        shutil.copyfile(
+            dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
+        )
+
         # Build u-boot
         self.analog_clone_build("u-boot-xlnx", branch=uboot_branch, board=board)
         filename = "u-boot-xlnx/u-boot"
         shutil.copyfile(filename, dest + "/u-boot.elf")
-        # Build fsbl
-        self.create_fsbl_project(os.path.basename(hdf_filename), dest)
-        self.build_fsbl(dest, "2018_R2", board)
-        shutil.copyfile(dest + "/build/sdk/fsbl/Release/fsbl.elf", dest + "/fsbl.elf")
-        shutil.copyfile(
-            dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
-        )
-        # Build bif
-        self.create_zynq_bif(hdf_filename, dest)
+
+        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+
+        if arch == "arm":
+            # Build fsbl
+            self.create_fsbl_project(os.path.basename(hdf_filename), dest)
+            self.build_fsbl(dest, hdl_branch, board)
+            shutil.copyfile(
+                dest + "/build/sdk/fsbl/Release/fsbl.elf", dest + "/fsbl.elf"
+            )
+            # Build bif
+            self.create_zynq_bif(hdf_filename, dest)
+
+            archbg = "zynq"
+
+        elif arch == "arm64":
+            pwd = os.getcwd()
+            self.create_pmufw_project(os.path.basename(hdf_filename), dest)
+            self.build_pmufw(dest, hdl_branch, board)
+            shutil.copyfile(dest + "/pmufw/executable.elf", dest + "/pmufw.elf")
+
+            self.build_atf(pwd, hdl_branch, board)
+            shutil.copyfile(
+                pwd + "/arm-trusted-firmware/build/fvp/release/bl31/bl31.elf",
+                dest + "/bl31.elf",
+            )
+
+            self.create_zmp_fsbl_project(os.path.basename(hdf_filename), dest)
+            self.build_zmp_fsbl(dest, hdl_branch, board)
+
+            shutil.copyfile(
+                dest + "/build/sdk/fsbl/Release/fsbl.elf", dest + "/fsbl.elf"
+            )
+            # Build bif
+            self.create_zynqmp_bif(hdf_filename, dest)
+
+            archbg = "zynqmp"
+
         # Build BOOT.BIN
-        self.build_bootbin(dest, "2018_R2", board)
+        self.build_bootbin(dest, hdl_branch, board, archbg=archbg)
 
     def analog_clone_build(
         self,
