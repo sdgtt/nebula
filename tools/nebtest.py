@@ -1,5 +1,5 @@
 #  type: ignore
-import argsparse
+import argparse
 import nebula
 
 parser = argparse.ArgumentParser(description="Nebula test runner cli")
