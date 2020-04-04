@@ -7,14 +7,16 @@ from nebula.network import network
 from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
+from nebula.driver import driver
 
 
 class manager:
     """ Board Manager """
 
-    def __init__(self, monitor="uart", configfilename=None):
+    def __init__(self, monitor_type="uart", configfilename=None, extras=None):
         # Check if config info exists in yaml
         self.configfilename = configfilename
+        self.monitor_type = monitor_type
         if configfilename:
             stream = open(configfilename, "r")
             configs = yaml.safe_load(stream)
@@ -22,17 +24,19 @@ class manager:
         else:
             configs = None
 
-        if "netconsole" in monitor.lower():
+        if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
             monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
             self.monitor = [monitor_uboot, monitor_kernel]
-        elif "uart" in monitor.lower():
+        elif "uart" in monitor_type.lower():
             if "uart-config" not in configs:
                 configfilename = None
             else:
                 configfilename = self.configfilename
             u = uart(yamlfilename=configfilename)
             self.monitor = [u]
+
+            self.driver = driver(yamlfilename=configfilename)
 
         if "network-config" not in configs:
             configfilename = None
@@ -65,10 +69,11 @@ class manager:
             time.sleep(40)
             try:
                 ip = self.monitor[0].get_ip_address()
-                print("IP Address Found:",str(ip))
+                print("IP Address Found:", str(ip))
                 if ip != self.net.dutip:
-                    print("DUT IP changed to:",ip)
+                    print("DUT IP changed to:", ip)
                     self.net.dutip = ip
+                    self.driver.uri = "ip:" + ip
                 self.net.check_board_booted()
             except Exception as ex:
                 print("Still cannot get to board after power cycling")
@@ -80,12 +85,12 @@ class manager:
                     self.power.power_cycle_board()
                     print("Spamming ENTER to get UART console")
                     for k in range(60):
-                        self.monitor.write_data("\r\n")
+                        self.monitor[0].write_data("\r\n")
                         time.sleep(0.1)
 
-                    self.monitor.load_system_uart()
+                    self.monitor[0].load_system_uart()
                     time.sleep(20)
-                    print("IP Address:",str(self.monitor[0].get_ip_address()))
+                    print("IP Address:", str(self.monitor[0].get_ip_address()))
                     self.net.check_board_booted()
                 except Exception as ex:
                     raise Exception("Getting board back failed", str(ex))
@@ -101,6 +106,7 @@ class manager:
         self.board_reboot()
 
         # Check IIO context and devices
+        self.driver.run_all_checks()
 
         # Run tests
 

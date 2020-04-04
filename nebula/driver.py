@@ -21,3 +21,6 @@ class driver(utils):
         for dev in self.iio_device_names:
             if dev not in devs:
                 raise Exception("Device not found " + str(dev))
+
+    def run_all_checks(self):
+        self.check_iio_devices()
