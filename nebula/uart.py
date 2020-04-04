@@ -48,7 +48,7 @@ class uart(utils):
         """ Trigger monitoring with UART interface """
         self.listen_thread_run = True
         logging.info("Launching UART listening thread")
-        self.thread = threading.Thread(target=self.listen, args=(logappend))
+        self.thread = threading.Thread(target=self.listen, args=(logappend,))
         self.thread.start()
 
     def stop_log(self):
