@@ -1,6 +1,9 @@
 import shutil
 import subprocess
 from nebula.common import utils
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class tftpboot(utils):

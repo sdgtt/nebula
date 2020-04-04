@@ -7,7 +7,7 @@ import ipaddress
 import serial
 from nebula.common import utils
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 class uart(utils):
@@ -48,6 +48,8 @@ class uart(utils):
         """ Trigger monitoring with UART interface """
         self.listen_thread_run = True
         logging.info("Launching UART listening thread")
+        if not self.print_to_console:
+            logging.info("UART console saving to file: " + self.logfilename)
         self.thread = threading.Thread(target=self.listen, args=(logappend,))
         self.thread.start()
 
@@ -78,7 +80,7 @@ class uart(utils):
                 data = str(data[:-1].decode("ASCII"))
             except Exception as ex:
                 logging.warning("Exception occurred during data decode")
-                logging.warning(ex)
+                logging.warning(str(ex))
                 continue
             if self.print_to_console:
                 print(data)
@@ -137,19 +139,19 @@ class uart(utils):
         if restart:
             self.start_log(logappend=True)
         for d in data:
-            if isinstance(d,list):
+            if isinstance(d, list):
                 for c in d:
-                    c = c.replace('\r','')
+                    c = c.replace("\r", "")
                     try:
                         ipaddress.ip_address(c)
-                        print("Found IP",c)
+                        logging.info("Found IP" + str(c))
                         return c
                     except:
                         continue
             else:
                 try:
                     ipaddress.ip_address(d)
-                    print("Found IP",d)
+                    logging.info("Found IP" + str(d))
                     return d
                 except:
                     continue

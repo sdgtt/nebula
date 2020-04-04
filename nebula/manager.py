@@ -1,6 +1,6 @@
 import os
 import time
-
+import logging
 import yaml
 from nebula.netconsole import netconsole
 from nebula.network import network
@@ -8,6 +8,9 @@ from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 from nebula.driver import driver
+
+logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 class manager:
@@ -64,33 +67,33 @@ class manager:
             self.net.reboot_board()
         except Exception as ex:
             # Try power cycling
-            print("SSH reboot failed, power cycling", str(ex))
+            log.info("SSH reboot failed, power cycling " + str(ex))
             self.power.power_cycle_board()
             time.sleep(40)
             try:
                 ip = self.monitor[0].get_ip_address()
-                print("IP Address Found:", str(ip))
+                log.info("IP Address Found: " + str(ip))
                 if ip != self.net.dutip:
-                    print("DUT IP changed to:", ip)
+                    log.info("DUT IP changed to: " + str(ip))
                     self.net.dutip = ip
                     self.driver.uri = "ip:" + ip
                 self.net.check_board_booted()
             except Exception as ex:
-                print("Still cannot get to board after power cycling")
-                print("Exception", str(ex))
+                log.info("Still cannot get to board after power cycling")
+                log.info("Exception: " + str(ex))
                 try:
-                    print("SSH reboot failed again after power cycling")
-                    print("Forcing UART override on power cycle")
-                    print("Power cycling")
+                    log.info("SSH reboot failed again after power cycling")
+                    log.info("Forcing UART override on power cycle")
+                    log.info("Power cycling")
                     self.power.power_cycle_board()
-                    print("Spamming ENTER to get UART console")
+                    log.info("Spamming ENTER to get UART console")
                     for k in range(60):
                         self.monitor[0].write_data("\r\n")
                         time.sleep(0.1)
 
                     self.monitor[0].load_system_uart()
                     time.sleep(20)
-                    print("IP Address:", str(self.monitor[0].get_ip_address()))
+                    log.info("IP Address: " + str(self.monitor[0].get_ip_address()))
                     self.net.check_board_booted()
                 except Exception as ex:
                     raise Exception("Getting board back failed", str(ex))

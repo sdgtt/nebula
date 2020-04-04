@@ -1,6 +1,10 @@
 import iio
+import logging
 
 from nebula.common import utils
+
+
+log = logging.getLogger(__name__)
 
 
 class driver(utils):
@@ -19,7 +23,7 @@ class driver(utils):
         for d in ctx.devices:
             devs.append(d.name)
         for dev in self.iio_device_names:
-            print("Checking for", dev)
+            log.info("Checking for: " + str(dev))
             if dev not in devs:
                 raise Exception("Device not found " + str(dev))
 

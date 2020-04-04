@@ -1,8 +1,11 @@
 import time
+import logging
 
 from nebula import cyberpower as cpdu
 from nebula.common import utils
 from pyvesync_v2 import VeSync
+
+log = logging.getLogger(__name__)
 
 
 class pdu(utils):

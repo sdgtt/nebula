@@ -4,7 +4,7 @@ import socket
 import threading
 import time
 
-logging.basicConfig(level=logging.INFO)
+log = logging.getLogger(__name__)
 
 
 class netconsole:
@@ -25,15 +25,15 @@ class netconsole:
 
     def start_log(self):
         self.listen_thread_run = True
-        logging.info("Launching listening thread")
+        log.info("Launching listening thread")
         self.thread = threading.Thread(target=self.listen, args=())
         self.thread.start()
 
     def stop_log(self):
         self.listen_thread_run = False
-        logging.info("Waiting for thread")
+        log.info("Waiting for thread")
         self.thread.join()
-        logging.info("Thread joined")
+        log.info("Thread joined")
 
     def listen(self):
         file = open(self.logfilename, "w")
@@ -42,7 +42,7 @@ class netconsole:
         self.server_sock.bind((self.host, self.port))
         self.server_sock.listen(1)
         self.sockets = [self.server_sock]
-        logging.info("Started listening")
+        log.info("Started listening")
         while self.listen_thread_run:
             time.sleep(1)
             read_sockets, write_sockets, error_sockets = select.select(
@@ -53,26 +53,24 @@ class netconsole:
                 if sock == self.server_sock:
                     sockfd, addr = self.server_sock.accept()
                     self.sockets.append(sockfd)
-                    logging.info("Connected by " + addr[0] + " " + str(addr[1]))
+                    log.info("Connected by " + addr[0] + " " + str(addr[1]))
                 else:
                     try:
                         data = sock.recv(self.rxbuff_max)
                         if data:
-                            logging.info(
-                                "Got data of length " + str(len(data)) + " bytes"
-                            )
+                            log.info("Got data of length " + str(len(data)) + " bytes")
                             file.write(str(data))
                             if self.print_to_console:
                                 print("OK... " + str(data))
                     except Exception as ex:
-                        logging.warning("Exception occurred: " + str(ex.msg))
+                        log.warning("Exception occurred: " + str(ex.msg))
                         sock.close()
                         self.server_sock.remove(sock)
-                        logging.info("Closing connection")
+                        log.info("Closing connection")
                         continue
         self.server_sock.close()
         file.close()
-        logging.info("Listening thread closing")
+        log.info("Listening thread closing")
 
 
 if __name__ == "__main__":

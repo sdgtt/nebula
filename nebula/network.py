@@ -1,9 +1,11 @@
 import subprocess
 import time
-
+import logging
 import fabric
 from fabric import Connection
 from nebula.common import utils
+
+log = logging.getLogger(__name__)
 
 
 class network(utils):
@@ -43,12 +45,12 @@ class network(utils):
         if self.ping_board():
             raise Exception("Board not booted")
         else:
-            print("PING PASSED")
+            logging.info("PING PASSED")
 
         if self.check_ssh():
             raise Exception("SSH failing")
         else:
-            print("SSH PASSED")
+            logging.info("SSH PASSED")
 
     def reboot_board(self):
         # Try to reboot board with SSH if possible
