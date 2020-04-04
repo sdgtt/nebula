@@ -19,6 +19,7 @@ class driver(utils):
         for d in ctx.devices:
             devs.append(d.name)
         for dev in self.iio_device_names:
+            print("Checking for", dev)
             if dev not in devs:
                 raise Exception("Device not found " + str(dev))
 
