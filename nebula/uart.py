@@ -44,11 +44,11 @@ class uart(utils):
         logging.info("Closing UART")
         self.com.close()
 
-    def start_log(self):
+    def start_log(self, logappend=False):
         """ Trigger monitoring with UART interface """
         self.listen_thread_run = True
         logging.info("Launching UART listening thread")
-        self.thread = threading.Thread(target=self.listen, args=())
+        self.thread = threading.Thread(target=self.listen, args=(logappend))
         self.thread.start()
 
     def stop_log(self):
@@ -58,8 +58,11 @@ class uart(utils):
         self.thread.join()
         logging.info("UART reading thread joined")
 
-    def listen(self):
-        file = open(self.logfilename, "w")
+    def listen(self, logappend=False):
+        ws = "w"
+        if logappend:
+            ws = "a"
+        file = open(self.logfilename, ws)
         while self.listen_thread_run:
             data = self.read_until_stop()
             for d in data:
@@ -132,7 +135,7 @@ class uart(utils):
         self.write_data(cmd)
         data = self.read_for_time(period=3)
         if restart:
-            self.start_log()
+            self.start_log(logappend=True)
         for d in data:
             if isinstance(d,list):
                 for c in d:
