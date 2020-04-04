@@ -64,6 +64,11 @@ class manager:
             self.power.power_cycle_board()
             time.sleep(40)
             try:
+                ip = self.monitor[0].get_ip_address()
+                print("IP Address Found:",str(ip))
+                if ip != self.net.dutip:
+                    print("DUT IP changed to:",ip)
+                    self.net.dutip = ip
                 self.net.check_board_booted()
             except Exception as ex:
                 print("Still cannot get to board after power cycling")
@@ -80,6 +85,7 @@ class manager:
 
                     self.monitor.load_system_uart()
                     time.sleep(20)
+                    print("IP Address:",str(self.monitor[0].get_ip_address()))
                     self.net.check_board_booted()
                 except Exception as ex:
                     raise Exception("Getting board back failed", str(ex))

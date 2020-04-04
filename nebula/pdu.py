@@ -20,6 +20,8 @@ class pdu(utils):
         self.pduip = pduip
         self.outlet = outlet
         self.pdu_type = pdu_type
+        self.username = username
+        self.password = password
         if yamlfilename:
             self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 

@@ -2,6 +2,7 @@ import logging
 import os
 import threading
 import time
+import ipaddress
 
 import serial
 from nebula.common import utils
@@ -121,6 +122,34 @@ class uart(utils):
         """ Boot kernel during uboot """
         cmd = "bootm 0x3000000 - 0x2A00000"
         self.write_data(cmd)
+
+    def get_ip_address(self):
+        cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
+        restart = True
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        self.write_data(cmd)
+        data = self.read_for_time(period=3)
+        if restart:
+            self.start_log()
+        for d in data:
+            if isinstance(d,list):
+                for c in d:
+                    c = c.replace('\r','')
+                    try:
+                        ipaddress.ip_address(c)
+                        print("Found IP",c)
+                        return c
+                    except:
+                        continue
+            else:
+                try:
+                    ipaddress.ip_address(d)
+                    print("Found IP",d)
+                    return d
+                except:
+                    continue
 
     def read_for_time(self, period):
         data = []
