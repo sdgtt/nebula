@@ -330,9 +330,9 @@ class builder:
             + ".sdk/system_top.hdf"
         )
         shutil.copyfile(hdf_filename, dest + "/system_top.hdf")
-        shutil.copyfile(
-            dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
-        )
+        #shutil.copyfile(
+        #    dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
+        #)
 
         # Build u-boot
         self.analog_clone_build("u-boot-xlnx", branch=uboot_branch, board=board)
