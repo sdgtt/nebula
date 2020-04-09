@@ -87,9 +87,9 @@ class builder:
         return def_conf
 
     def linux_tools_map(self, branch, board):
-        if "2018_r2" in branch.lower():
+        if "2018_r2" in branch.lower() or "2018.2" in branch.lower():
             vivado = "2018.2"
-        elif "2019_r1" in branch.lower():
+        elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
             vivado = "2018.3"
         elif branch == "master":
             vivado = "2019.1"
