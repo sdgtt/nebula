@@ -1,13 +1,14 @@
+import logging
 import os
 import time
-import logging
+
 import yaml
+from nebula.driver import driver
 from nebula.netconsole import netconsole
 from nebula.network import network
 from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
-from nebula.driver import driver
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)

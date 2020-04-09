@@ -1,8 +1,8 @@
-import iio
 import logging
 
-from nebula.common import utils
+import iio
 
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 

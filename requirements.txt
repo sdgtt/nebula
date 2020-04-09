@@ -5,3 +5,4 @@ pyserial
 pytest
 pyvesync_v2
 pysnmp
+xmodem

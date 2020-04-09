@@ -1,6 +1,7 @@
+import logging
 import subprocess
 import time
-import logging
+
 import fabric
 from fabric import Connection
 from nebula.common import utils
@@ -23,6 +24,10 @@ class network(utils):
             self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
     def ping_board(self, tries=10):
+        """ Ping board and check if any received
+
+            return: True non-zero received, False zero received
+        """
         ping = subprocess.Popen(
             ["ping", "-c", "4", self.dutip],
             stdout=subprocess.PIPE,
@@ -35,6 +40,10 @@ class network(utils):
         return True
 
     def check_ssh(self):
+        """ SSH to board board and check if its possible to run any command
+
+            return: True working ssh, False non-working ssh
+        """
         result = fabric.Connection(
             self.dutusername + "@" + self.dutip,
             connect_kwargs={"password": self.dutpassword},
@@ -42,6 +51,9 @@ class network(utils):
         return result.failed
 
     def check_board_booted(self):
+        """ Check if board has network activity with ping, then check SSH working
+            This function raises exceptions on failures
+        """
         if self.ping_board():
             raise Exception("Board not booted")
         else:
@@ -53,6 +65,8 @@ class network(utils):
             logging.info("SSH PASSED")
 
     def reboot_board(self):
+        """ Reboot board over SSH, otherwise raise exception
+        """
         # Try to reboot board with SSH if possible
         try:
             result = fabric.Connection(

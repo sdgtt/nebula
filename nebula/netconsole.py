@@ -24,12 +24,14 @@ class netconsole:
         file.close()
 
     def start_log(self):
+        """ Trigger monitoring with network interface """
         self.listen_thread_run = True
         log.info("Launching listening thread")
         self.thread = threading.Thread(target=self.listen, args=())
         self.thread.start()
 
     def stop_log(self):
+        """ Stop monitoring with network interface """
         self.listen_thread_run = False
         log.info("Waiting for thread")
         self.thread.join()

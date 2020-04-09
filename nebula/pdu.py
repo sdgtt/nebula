@@ -1,5 +1,5 @@
-import time
 import logging
+import time
 
 from nebula import cyberpower as cpdu
 from nebula.common import utils
@@ -38,6 +38,8 @@ class pdu(utils):
             raise Exception("Unknown PDU type")
 
     def power_cycle_board(self):
+        """ Power Cycle Board: OFF, wait 5 seconds, ON
+        """
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
