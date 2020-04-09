@@ -1,11 +1,12 @@
+import ipaddress
 import logging
 import os
 import threading
 import time
-import ipaddress
 
 import serial
 from nebula.common import utils
+from xmodem import XMODEM
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class uart(utils):
         self.address = address
         self.fmc = fmc
         self.baudrate = baudrate
+        self.bootargs = bootargs
         self.listen_thread_run = True
         self.logfilename = logfilename
         self.thread = None
@@ -96,11 +98,28 @@ class uart(utils):
         self.com.write(bdata)
         time.sleep(4)
 
-    def update_fpga(self):
+    def send_file(self, filename, address):
+        self.write_data("loadx " + address)
+        self.read_for_time(5)
+        with open(filename, "rb") as infile:
+            ser = self.com
+
+            def putc(data, timeout=1):
+                return ser.write(data)
+
+            def getc(size, timeout=1):
+                return ser.read(size) or None
+
+            logging.info("Starting UART file transfer for: " + filename)
+            modem = XMODEM(getc, putc)
+            return modem.send(infile, callback=callback)
+
+    def update_fpga(self, skip_tftpload=False):
         """ Transfter and load system_top.bit over TFTP to system during uboot """
-        cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
-        self.write_data(cmd)
-        self.read_until_done()
+        if not skip_tftpload:
+            cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
+            self.write_data(cmd)
+            self.read_until_stop()
 
         cmd = "fpga loadb 0 0x1000000 0x1"
         self.write_data(cmd)
@@ -110,13 +129,13 @@ class uart(utils):
         """ Transfter devicetree over TFTP to system during uboot """
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
         self.write_data(cmd)
-        self.read_until_done()
+        self.read_until_stop()
 
     def update_kernel(self):
         """ Transfter kernel image over TFTP to system during uboot """
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
         self.write_data(cmd)
-        self.read_until_done()
+        self.read_until_stop()
 
     def update_boot_args(self):
         """ Update kernel boot arguments during uboot """
@@ -163,11 +182,22 @@ class uart(utils):
             time.sleep(1)
         return data
 
-    def load_system_uart(self):
-        """ Load complete system (bitstream, devtree, kernel) during uboot """
+    def load_system_uart_from_tftp(self):
+        """ Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
         self.update_fpga()
         self.update_dev_tree()
         self.update_kernel()
+        self.update_boot_args()
+        self.boot()
+
+    def load_system_uart(
+        self, system_top_bit_filename, devtree_filename, kernel_filename
+    ):
+        """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
+        self.send_file(system_top_bit_filename, "0x1000000")
+        self.update_fpga(skip_tftpload=True)
+        self.send_file(devtree_filename, "0x2A00000")
+        self.send_file(kernel_filename, "0x3000000")
         self.update_boot_args()
         self.boot()
 
