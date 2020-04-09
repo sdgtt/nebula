@@ -339,7 +339,7 @@ class builder:
         filename = "u-boot-xlnx/u-boot"
         shutil.copyfile(filename, dest + "/u-boot.elf")
 
-        cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        cc, arch, vivado_version = self.linux_tools_map(uboot_branch, board)
 
         if arch == "arm":
             # Build fsbl
