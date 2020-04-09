@@ -10,7 +10,7 @@ Welcome to nebula's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   uart
+   core/index
 
 
 
