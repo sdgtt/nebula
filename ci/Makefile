@@ -45,4 +45,4 @@ export PYTHONPATH := /usr/lib/python2.7/site-packages:$(PYTHONPATH)
 test:
 	cd .. ; \
 	pip3 install -r requirements.txt ; \
-	python3 -m pytest -v -s test/test_builders.py
+	python3 -m pytest -v -s tests/test_builders.py
