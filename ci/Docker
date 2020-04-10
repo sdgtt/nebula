@@ -8,3 +8,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y fakeroot libncurses5-dev l
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libssl-dev mtools bc python cpio zip unzip rsync file wget
 RUN DEBIAN_FRONTEND=noninteractive dpkg --add-architecture i386
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y lib32stdc++6
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-pip python3-setuptools
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y libxml2-dev bison flex libcdk5-dev cmake
+RUN DEBIAN_FRONTEND=noninteractive git clone https://github.com/analogdevicesinc/libiio.git
+RUN DEBIAN_FRONTEND=noninteractive cd libiio && mkdir build && cd build && cmake ../ -DPYTHON_BINDINGS=ON && make -j4 && make install
