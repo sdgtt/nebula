@@ -42,5 +42,4 @@ GITTAG := $(shell git describe --tags HEAD)
 .ONESHELL:
 test:
 	pip3 install -r requirements.txt
-	pip3 install -r requirements_dev.txt
-	python3 -m pytest -m pytest -v
+	python3 -m pytest -v -s
