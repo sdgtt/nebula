@@ -39,6 +39,8 @@ endif
 
 GITTAG := $(shell git describe --tags HEAD)
 
+PYTHONPATH := $(PYTHONPATH):/usr/lib/python2.7/site-packages
+
 .ONESHELL:
 test:
 	cd .. ; \
