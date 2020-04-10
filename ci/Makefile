@@ -39,7 +39,7 @@ endif
 
 GITTAG := $(shell git describe --tags HEAD)
 
-PYTHONPATH := $(PYTHONPATH):/usr/lib/python2.7/site-packages
+export PYTHONPATH := /usr/lib/python2.7/site-packages:$(PYTHONPATH)
 
 .ONESHELL:
 test:
