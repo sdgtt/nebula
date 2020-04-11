@@ -6,7 +6,7 @@ import time
 
 import serial
 from nebula.common import utils
-from xmodem import XMODEM
+import xmodem
 
 log = logging.getLogger(__name__)
 
@@ -111,7 +111,7 @@ class uart(utils):
                 return ser.read(size) or None
 
             logging.info("Starting UART file transfer for: " + filename)
-            modem = XMODEM(getc, putc)
+            modem = xmodem.XMODEM(getc, putc)
             return modem.send(infile, callback=callback)
 
     def update_fpga(self, skip_tftpload=False):

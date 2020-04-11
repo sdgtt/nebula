@@ -5,11 +5,6 @@ import shutil
 import subprocess
 import time
 
-from pyfiglet import Figlet
-
-f = Figlet(font="slant")
-print(f.renderText("Nebula"))
-
 
 class builder:
     def __init__(self):
@@ -330,9 +325,9 @@ class builder:
             + ".sdk/system_top.hdf"
         )
         shutil.copyfile(hdf_filename, dest + "/system_top.hdf")
-        #shutil.copyfile(
+        # shutil.copyfile(
         #    dest + "/build/sdk/hw_0/system_top.bit", dest + "/system_top.bit"
-        #)
+        # )
 
         # Build u-boot
         self.analog_clone_build("u-boot-xlnx", branch=uboot_branch, board=board)

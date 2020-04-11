@@ -64,7 +64,7 @@ class network(utils):
         else:
             logging.info("SSH PASSED")
 
-    def reboot_board(self):
+    def reboot_board(self, bypass_sleep=False):
         """ Reboot board over SSH, otherwise raise exception
         """
         # Try to reboot board with SSH if possible
@@ -75,7 +75,8 @@ class network(utils):
             ).run("reboot", hide=False)
             if result.ok:
                 print("Rebooting board with SSH")
-                time.sleep(30)
+                if not bypass_sleep:
+                    time.sleep(30)
             else:
                 # Use PDU
                 raise Exception("PDU reset not implemented yet")

@@ -1,10 +1,17 @@
-from nebula.netconsole import *
-from nebula.uart import *
-from nebula.tftpboot import *
-from nebula.pdu import *
-from nebula.manager import *
-from nebula.network import *
-from nebula.driver import *
-from nebula.builder import *
-from nebula.cyberpower import *
-from nebula.common import *
+from pyfiglet import Figlet
+
+f = Figlet(font="slant")
+print(f.renderText("Nebula"))
+
+from nebula.netconsole import netconsole
+from nebula.uart import uart
+from nebula.tftpboot import tftpboot
+from nebula.pdu import pdu
+from nebula.manager import manager
+from nebula.network import network
+from nebula.driver import driver
+from nebula.builder import builder
+from nebula.common import utils
+
+__version__ = "0.0.1"
+name = "Nebula: Embedded Development Tools"
