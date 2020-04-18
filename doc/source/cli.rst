@@ -1,11 +1,8 @@
 Command-Line
 ============
 
-.. invoke::
-     :module: nebula.tasks
-     :prog: nebula
+  nebula.tasks
+  nebula
 
-.. invoke::
-     :module: nebula.build.tasks
-     :prog: nebula
-
+  nebula.build.tasks
+  nebula

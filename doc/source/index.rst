@@ -10,9 +10,13 @@ Welcome to nebula's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   core/index
+   overview
    flow
    cli
+   pytest
+   yml
+   examples
+   core/index
 
 
 

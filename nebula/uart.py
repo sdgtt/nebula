@@ -16,6 +16,21 @@ class uart(utils):
             This class enables monitoring and sending commands
             over a UART interface. Monitoring is done using
             threads so monitor will not block.
+
+        Attributes
+        ----------
+        address
+            File descriptor of serial/COM interface
+        tftpserverip
+            IP address of TFTP server
+        logfilename
+            Filename to save output log of console
+        bootargs
+            Kernel bootargs
+        baudrate
+            Baudrate of UART interface in bits per second (default is 115200)
+        print_to_console
+            Print output of UART console. Output will appear in log file as well
     """
 
     def __init__(
@@ -52,7 +67,7 @@ class uart(utils):
         logging.info("Launching UART listening thread")
         if not self.print_to_console:
             logging.info("UART console saving to file: " + self.logfilename)
-        self.thread = threading.Thread(target=self.listen, args=(logappend,))
+        self.thread = threading.Thread(target=self._listen, args=(logappend,))
         self.thread.start()
 
     def stop_log(self):
@@ -62,19 +77,19 @@ class uart(utils):
         self.thread.join()
         logging.info("UART reading thread joined")
 
-    def listen(self, logappend=False):
+    def _listen(self, logappend=False):
         ws = "w"
         if logappend:
             ws = "a"
         file = open(self.logfilename, ws)
         while self.listen_thread_run:
-            data = self.read_until_stop()
+            data = self._read_until_stop()
             for d in data:
                 file.writelines(d + "\n")
         file.close()
         logging.info("UART listening thread closing")
 
-    def read_until_stop(self):
+    def _read_until_stop(self):
         buffer = []
         while self.com.in_waiting > 0:
             try:
@@ -89,7 +104,7 @@ class uart(utils):
             buffer.append(data)
         return buffer
 
-    def write_data(self, data):
+    def _write_data(self, data):
         data = data + "\n"
         bdata = data.encode()
         logging.info("--------Sending Data-----------")
@@ -98,9 +113,9 @@ class uart(utils):
         self.com.write(bdata)
         time.sleep(4)
 
-    def send_file(self, filename, address):
-        self.write_data("loadx " + address)
-        self.read_for_time(5)
+    def _send_file(self, filename, address):
+        self._write_data("loadx " + address)
+        self._read_for_time(5)
         with open(filename, "rb") as infile:
             ser = self.com
 
@@ -118,43 +133,44 @@ class uart(utils):
         """ Transfter and load system_top.bit over TFTP to system during uboot """
         if not skip_tftpload:
             cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
-            self.write_data(cmd)
-            self.read_until_stop()
+            self._write_data(cmd)
+            self._read_until_stop()
 
         cmd = "fpga loadb 0 0x1000000 0x1"
-        self.write_data(cmd)
-        self.read_until_stop()
+        self._write_data(cmd)
+        self._read_until_stop()
 
     def update_dev_tree(self):
         """ Transfter devicetree over TFTP to system during uboot """
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
-        self.write_data(cmd)
-        self.read_until_stop()
+        self._write_data(cmd)
+        self._read_until_stop()
 
     def update_kernel(self):
         """ Transfter kernel image over TFTP to system during uboot """
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
-        self.write_data(cmd)
-        self.read_until_stop()
+        self._write_data(cmd)
+        self._read_until_stop()
 
     def update_boot_args(self):
         """ Update kernel boot arguments during uboot """
         cmd = "setenv bootargs " + self.bootargs
-        self.write_data(cmd)
+        self._write_data(cmd)
 
     def boot(self):
-        """ Boot kernel during uboot """
+        """ Boot kernel from uboot menu """
         cmd = "bootm 0x3000000 - 0x2A00000"
-        self.write_data(cmd)
+        self._write_data(cmd)
 
     def get_ip_address(self):
+        """ Read IP address of DUT using ip command from UART """
         cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
         restart = True
         if self.listen_thread_run:
             restart = True
             self.stop_log()
-        self.write_data(cmd)
-        data = self.read_for_time(period=3)
+        self._write_data(cmd)
+        data = self._read_for_time(period=3)
         if restart:
             self.start_log(logappend=True)
         for d in data:
@@ -175,10 +191,10 @@ class uart(utils):
                 except:
                     continue
 
-    def read_for_time(self, period):
+    def _read_for_time(self, period):
         data = []
         for k in range(period):
-            data.append(self.read_until_stop())
+            data.append(self._read_until_stop())
             time.sleep(1)
         return data
 
@@ -194,10 +210,10 @@ class uart(utils):
         self, system_top_bit_filename, devtree_filename, kernel_filename
     ):
         """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
-        self.send_file(system_top_bit_filename, "0x1000000")
+        self._send_file(system_top_bit_filename, "0x1000000")
         self.update_fpga(skip_tftpload=True)
-        self.send_file(devtree_filename, "0x2A00000")
-        self.send_file(kernel_filename, "0x3000000")
+        self._send_file(devtree_filename, "0x2A00000")
+        self._send_file(kernel_filename, "0x3000000")
         self.update_boot_args()
         self.boot()
 
