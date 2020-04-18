@@ -11,6 +11,8 @@ Welcome to nebula's documentation!
    :caption: Contents:
 
    core/index
+   flow
+   cli
 
 
 

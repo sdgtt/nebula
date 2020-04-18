@@ -1,0 +1,27 @@
+digraph {
+    "POWERUP BOARD"
+    "GET IP\n(UART)"
+    "Run pytest" [peripheries=3]
+    "Network\nBroken" [peripheries=2,shape=square]
+    "Kernel/Bitstream\nFailed" [peripheries=2]
+    "UBOOT\nBroken" [peripheries=2,shape=square]
+
+    "POWERUP BOARD" -> "GET IP\n(UART)"
+    "GET IP\n(UART)" -> "Update BOOT\nFrom Linux (NET)" [label="Found IP"]
+    "GET IP\n(UART)" -> "Power\nCycle (PDU)" [label="Not accessible"]
+    "GET IP\n(UART)" -> "Network\nBroken" [label="No IP"]
+
+    "Update BOOT\nFrom Linux (NET)" -> "Restart\n(NET)"
+    "Restart\n(NET)" -> "Check PING\n(NET)"
+    "Check PING\n(NET)" -> "Check SSH\n(NET)" [label="Passed"]
+    "Check PING\n(NET)" -> "Update IP\n(UART)" [label="Failed"]
+    "Update IP\n(UART)" -> "Check SSH\n(NET)" [label="Passed"]
+    "Update IP\n(UART)" -> "Kernel/Bitstream\nFailed" [label="Failed"]
+    "Check SSH\n(NET)"-> "Kernel/Bitstream\nFailed" [label="Failed"]
+    "Check SSH\n(NET)"-> "Run pytest" [label="Passed"]
+
+    "Power\nCycle (PDU)" -> "Enter UBOOT\nMenu (UART)"
+    "Enter UBOOT\nMenu (UART)" -> "Load Bootfiles\n(UART/TFTP)" [label="Passed"]
+    "Enter UBOOT\nMenu (UART)" -> "UBOOT\nBroken" [label="Failed"]
+    "Load Bootfiles\n(UART/TFTP)" -> "Check PING\n(NET)"
+}
