@@ -256,6 +256,23 @@ class uart(utils):
         self.update_boot_args()
         self.boot()
 
+    def update_boot_files_from_running(
+        self, system_top_bit_filename, devtree_filename, kernel_filename
+    ):
+        """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM) from a running system """
+        # Spam enter while reboot to get to u-boot menu
+        log.info("Spamming ENTER to get UART console")
+        for k in range(60):
+            self.write_data("\r\n")
+            time.sleep(0.1)
+        log.info("Loading boot files from UART")
+        # Boot board
+        self.load_system_uart(
+            system_top_bit_filename=system_top_bit_filename,
+            devtree_filename=devtree_filename,
+            kernel_filename=kernel_filename,
+        )
+
 
 if __name__ == "__main__":
 
