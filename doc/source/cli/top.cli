@@ -1,0 +1,9 @@
+Subcommands:
+
+  show-log                 Show log for all following tasks
+  net.restart-board        Reboot development system over IP
+  net.update-boot-files    Update boot files on SD Card over SSH
+  uart.get-ip              Get IP of DUT from UART connection
+  uart.update-boot-files   Update boot files through u-boot menu (Assuming
+                           board is running)
+

@@ -1,0 +1,8 @@
+Usage: nebula [--core-opts] show-log [other tasks here ...]
+
+Docstring:
+  Show log for all following tasks 
+
+Options:
+  none
+

@@ -1,7 +1,6 @@
-from pyfiglet import Figlet
-
-f = Figlet(font="slant")
-print(f.renderText("Nebula"))
+# from pyfiglet import Figlet
+# f = Figlet(font="slant")
+# print(f.renderText("Nebula"))
 
 from nebula.netconsole import netconsole
 from nebula.uart import uart

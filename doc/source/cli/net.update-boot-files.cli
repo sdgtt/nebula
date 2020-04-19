@@ -1,0 +1,13 @@
+Usage: nebula [--core-opts] net.update-boot-files [--options] [other tasks here ...]
+
+Docstring:
+  Update boot files on SD Card over SSH 
+
+Options:
+  -b STRING, --bootbinpath=STRING   Path to BOOT.BIN. Optional
+  -d STRING, --devtreepath=STRING   Path to devicetree. Optional
+  -i STRING, --ip=STRING            IP address of board
+  -m STRING, --uimagepath=STRING    Path to kernel image. Optional
+  -p STRING, --password=STRING      Password for board. Default: analog
+  -u STRING, --user=STRING          Board username. Default: root
+

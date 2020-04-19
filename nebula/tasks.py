@@ -85,7 +85,7 @@ def restart_board(c, ip, user="root", password="analog"):
 
 @task(
     help={
-        "ip": "IP address of board",
+        "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
         "bootbinpath": "Path to BOOT.BIN. Optional",
@@ -103,10 +103,6 @@ def update_boot_files(
     devtreepath=None,
 ):
     """ Update boot files on SD Card over SSH """
-    if ip == None:
-        config = load_yaml(DEFAULT_NEBULA_CONFIG)
-        ip = config["network-config"]["dutip"]
-
     n = nebula.network(dutip=ip, dutusername=user, dutpassword=password)
     n.update_boot_partition(
         bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath

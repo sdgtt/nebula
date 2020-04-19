@@ -1,0 +1,11 @@
+Usage: nebula [--core-opts] uart.get-ip [--options] [other tasks here ...]
+
+Docstring:
+  Get IP of DUT from UART connection 
+
+Options:
+  -a STRING, --address=STRING        UART device address (/dev/ttyACMO).
+                                     Overrides yaml
+  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
+                                     /etc/default/nebula
+

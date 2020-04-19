@@ -1,0 +1,10 @@
+Usage: nebula [--core-opts] net.restart-board [--options] [other tasks here ...]
+
+Docstring:
+  Reboot development system over IP 
+
+Options:
+  -i STRING, --ip=STRING         IP address of board
+  -p STRING, --password=STRING   Password for board. Default: analog
+  -u STRING, --user=STRING       Board username. Default: root
+
