@@ -48,7 +48,7 @@ class uart(utils):
         self.fmc = fmc
         self.baudrate = baudrate
         self.bootargs = bootargs
-        self.listen_thread_run = True
+        self.listen_thread_run = False
         self.logfilename = logfilename
         self.thread = None
         self.print_to_console = True
@@ -111,7 +111,7 @@ class uart(utils):
         logging.info(bdata)
         logging.info("-------------------------------")
         self.com.write(bdata)
-        time.sleep(4)
+        time.sleep(1)
 
     def _send_file(self, filename, address):
         self._write_data("loadx " + address)
@@ -162,15 +162,54 @@ class uart(utils):
         cmd = "bootm 0x3000000 - 0x2A00000"
         self._write_data(cmd)
 
+    def _check_for_login(self):
+        cmd = ""
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        needs_login = False
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if "login:" in c:
+                        needs_login = True
+        if needs_login:
+            # Do login
+            cmd = "root"
+            self._write_data(cmd)
+            data = self._read_for_time(period=1)
+            cmd = "analog"
+            self._write_data(cmd)
+            data = self._read_for_time(period=2)
+            # Check
+            cmd = ""
+            self._write_data(cmd)
+            data = self._read_for_time(period=1)
+            logged_in = False
+            for d in data:
+                if isinstance(d, list):
+                    for c in d:
+                        c = c.replace("\r", "")
+                        if "root@" in c or "#" in c:
+                            logging.info("Logged in success")
+                            logged_in = True
+        else:
+            return True
+        return logged_in
+
     def get_ip_address(self):
         """ Read IP address of DUT using ip command from UART """
-        cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
-        restart = True
+        # cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
+        cmd = "ip -4 addr | grep -v 127 | awk '$1 == \"inet\" {print $2}' | awk -F'/' '{print $1}'"
+        restart = False
         if self.listen_thread_run:
             restart = True
             self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
         self._write_data(cmd)
-        data = self._read_for_time(period=3)
+        data = self._read_for_time(period=1)
         if restart:
             self.start_log(logappend=True)
         for d in data:
@@ -179,14 +218,14 @@ class uart(utils):
                     c = c.replace("\r", "")
                     try:
                         ipaddress.ip_address(c)
-                        logging.info("Found IP" + str(c))
+                        logging.info("Found IP: " + str(c))
                         return c
                     except:
                         continue
             else:
                 try:
                     ipaddress.ip_address(d)
-                    logging.info("Found IP" + str(d))
+                    logging.info("Found IP: " + str(d))
                     return d
                 except:
                     continue

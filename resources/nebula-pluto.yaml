@@ -1,0 +1,22 @@
+### Main external resources
+system-config:
+  - tftpserverip: 192.168.10.1 # TFTP server IP address
+  - tftpserverroot: /tftpboot # Directory of TFTP share on server
+### Local hardware settings
+board-config:
+  - reference-boot-folder: plutosdr-fw # Location of golden bootfiles in TFTP share
+  - iio_device_names: ["ad9361-phy","cf-ad9361-dds-core-lpc","cf-ad9361-lpc"]
+  - monitoring-interface: uart # Console monitoring type. Options: uart, netconsole
+### UART settings
+uart-config:
+  - address: /dev/serial/by-id/usb-Analog_Devices_Inc._PlutoSDR__ADALM-PLUTO__10440004278a0007f9ff0d00ce8fedd622-if03 # File descriptor for UART console (auto will try to find, but linux only)
+  - baudrate: 115200 # UART baudrate in bits per second
+  - logfilename: pluto.log # Filename for logging output of console
+### Network/Ethernet settings
+network-config:
+  - dutip: 192.168.2.1 # IP address of development board
+### Power distribution unit settings
+pdu-config:
+  - pduip: 192.168.86.35 # IP address of power distribution unit
+  - outlet: 1 # Outlet number of development board
+  - pdu_type: cyberpower # PDU device type. Options: cyberpower, vesync
