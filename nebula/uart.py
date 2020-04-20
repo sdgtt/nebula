@@ -197,6 +197,23 @@ class uart(utils):
             return True
         return logged_in
 
+    def request_ip_dhcp(self):
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
+        cmd = "dhclient -r eth0"
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        cmd = "dhclient eth0"
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        if restart:
+            self.start_log(logappend=True)
+
     def get_ip_address(self):
         """ Read IP address of DUT using ip command from UART """
         # cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"

@@ -73,6 +73,9 @@ class manager:
             time.sleep(60)
             try:
                 ip = self.monitor[0].get_ip_address()
+                if not ip:
+                    self.monitor[0].request_ip_dhcp()
+                    ip = self.monitor[0].get_ip_address()
                 log.info("IP Address Found: " + str(ip))
                 if ip != self.net.dutip:
                     log.info("DUT IP changed to: " + str(ip))
