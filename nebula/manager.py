@@ -70,7 +70,7 @@ class manager:
             # Try power cycling
             log.info("SSH reboot failed, power cycling " + str(ex))
             self.power.power_cycle_board()
-            time.sleep(40)
+            time.sleep(60)
             try:
                 ip = self.monitor[0].get_ip_address()
                 log.info("IP Address Found: " + str(ip))
@@ -89,7 +89,7 @@ class manager:
                     self.power.power_cycle_board()
                     log.info("Spamming ENTER to get UART console")
                     for k in range(60):
-                        self.monitor[0].write_data("\r\n")
+                        self.monitor[0]._write_data("\r\n")
                         time.sleep(0.1)
 
                     self.monitor[0].load_system_uart()
