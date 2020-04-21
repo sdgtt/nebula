@@ -1,3 +1,7 @@
+class Error(Exception):
+   """Base class for other exceptions"""
+   pass
+
 class NetworkNotFunctional(Error):
     """Linux is functional but Ethernet is broken (Cable disconnected?)"""
     pass
