@@ -9,6 +9,7 @@ from nebula.network import network
 from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
+import nebula.errors as ne
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -61,6 +62,57 @@ class manager:
 
     def load_boot_bin(self):
         pass
+
+    def board_reboot_uart_net_pdu(self, bootbinpath, uimagepath, devtreepath):
+        """ Manager when UART, PDU, and Network are available """
+        try:
+            # Get IP over UART
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+                if not ip:
+                    raise ne.NetworkNotFunctional
+            # Update board over SSH and reboot
+            self.net.update_boot_partition(
+                bootbinpath=uimagepath, uimagepath=uimagepath, devtreepath=devtreepath
+            )
+
+        except ne.LinuxNotReached:
+            # Power cycle
+            log.info("SSH reboot failed again after power cycling")
+            log.info("Forcing UART override on power cycle")
+            log.info("Power cycling")
+            self.power.power_cycle_board()
+
+            # Enter u-boot menu
+            self.monitor[0]._enter_uboot_menu_from_power_cycle()
+
+            # Load boot files
+            self.load_system_uart(
+                system_top_bit_filename=system_top_bit_filename,
+                kernel_filename=uimagepath,
+                devtree_filename=devtreepath,
+            )
+
+        # Check if Linux is up
+        if self.monitor[0].check_linux_working():
+            raise ne.LinuxNotFunctionalAfterBootFileUpdate
+
+        # Check is networking is working
+        if self.net.ping_board():
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+                if not ip:
+                    raise ne.NetworkNotFunctionalAfterBootFileUpdate
+
+        # Check SSH
+        if self.net.check_ssh():
+            raise ne.SSHNotFunctionalAfterBootFileUpdate()
+
+        print("Home sweet home")
 
     def board_reboot(self):
         # Try to reboot over SSH first

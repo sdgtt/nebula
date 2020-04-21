@@ -3,6 +3,7 @@ import shutil
 
 import pytest
 from nebula import uart
+from nebula import pdu
 import time
 
 @pytest.mark.skip(reason="Not fully implemented"):
@@ -21,6 +22,17 @@ def test_adrv9361_fmc_uboot_boot():
     time.sleep(30)
 
     # Check board booted :)
+
+@pytest.mark.skip(reason="Not fully implemented"):
+def test_adrv9361_fmc_get_to_uboot_menu():
+
+    config = "/etc/default/nebula"
+    power = pdu(yamlfilename=config)
+    u = uart(yamlfilename=config)
+
+    # Go go go
+    power.power_cycle_board()
+    u._enter_uboot_menu_from_power_cycle()
 
 if __name__ == "__main__":
     test_adrv9361_fmc_uboot_boot()

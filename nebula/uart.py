@@ -254,6 +254,25 @@ class uart(utils):
             time.sleep(1)
         return data
 
+    def _enter_uboot_menu_from_power_cycle(self):
+        log.info("Spamming ENTER to get UART console")
+        for k in range(60):
+            self._write_data("\r\n")
+            time.sleep(0.1)
+        # Check uboot console reached
+        d = self._read_for_time(1)
+        for d in data:
+            if not isinstance(d, list):
+                d = [d]
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if "boot" in c:
+                        logging.info("u-boot menu reached")
+                        return True
+        logging.info("u-boot menu not reached")
+        return False
+
     def load_system_uart_from_tftp(self):
         """ Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
         self.update_fpga()
