@@ -116,6 +116,9 @@ class uart(utils):
     def _send_file(self, filename, address):
         self._write_data("loadx " + address)
         self._read_for_time(5)
+        f = open(filename, 'rb')
+        total = len(f.read()) // 128
+        f.close()
         with open(filename, "rb") as infile:
             ser = self.com
 
@@ -125,9 +128,13 @@ class uart(utils):
             def getc(size, timeout=1):
                 return ser.read(size) or None
 
+            def callback(total_packets, success_count, error_count):
+                if total_packets % 100 == 0:
+                    print("total_packets {}, success_count {}, error_count {}, total {}".format(total_packets, success_count, error_count,total))
+
             logging.info("Starting UART file transfer for: " + filename)
             modem = xmodem.XMODEM(getc, putc)
-            return modem.send(infile, callback=callback)
+            return modem.send(infile,timeout=10,quiet=True,callback=callback)
 
     def update_fpga(self, skip_tftpload=False):
         """ Transfter and load system_top.bit over TFTP to system during uboot """
@@ -254,22 +261,32 @@ class uart(utils):
             time.sleep(1)
         return data
 
-    def _enter_uboot_menu_from_power_cycle(self):
-        log.info("Spamming ENTER to get UART console")
-        for k in range(60):
-            self._write_data("\r\n")
-            time.sleep(0.1)
-        # Check uboot console reached
-        d = self._read_for_time(1)
-        for d in data:
+    def _check_for_string_console(self,console_out,string):
+        for d in console_out:
             if not isinstance(d, list):
                 d = [d]
             if isinstance(d, list):
                 for c in d:
                     c = c.replace("\r", "")
-                    if "boot" in c:
-                        logging.info("u-boot menu reached")
+                    if string in c:
                         return True
+        return False
+
+
+    def _enter_uboot_menu_from_power_cycle(self):
+        log.info("Spamming ENTER to get UART console")
+        #stop_at_done = False
+        #if not self.listen_thread_run:
+        #    stop_at_done = True
+        #    self.stop_log()
+        for k in range(30):
+            self._write_data("\r\n")
+            data = self._read_for_time(1)
+            # Check uboot console reached
+            if self._check_for_string_console(data,"zynq-uboot"):
+                logging.info("u-boot menu reached")
+                return True
+            time.sleep(0.1)
         logging.info("u-boot menu not reached")
         return False
 
