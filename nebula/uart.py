@@ -52,6 +52,7 @@ class uart(utils):
         self.logfilename = logfilename
         self.thread = None
         self.print_to_console = True
+        self.max_read_time = 30
         if yamlfilename:
             self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
@@ -116,7 +117,7 @@ class uart(utils):
     def _send_file(self, filename, address):
         self._write_data("loadx " + address)
         self._read_for_time(5)
-        f = open(filename, 'rb')
+        f = open(filename, "rb")
         total = len(f.read()) // 128
         f.close()
         with open(filename, "rb") as infile:
@@ -130,39 +131,44 @@ class uart(utils):
 
             def callback(total_packets, success_count, error_count):
                 if total_packets % 100 == 0:
-                    print("total_packets {}, success_count {}, error_count {}, total {}".format(total_packets, success_count, error_count,total))
+                    print(
+                        "total_packets {}, success_count {}, error_count {}, total {}".format(
+                            total_packets, success_count, error_count, total
+                        )
+                    )
 
             logging.info("Starting UART file transfer for: " + filename)
             modem = xmodem.XMODEM(getc, putc)
-            return modem.send(infile,timeout=10,quiet=True,callback=callback)
+            return modem.send(infile, timeout=10, quiet=True, callback=callback)
 
     def update_fpga(self, skip_tftpload=False):
         """ Transfter and load system_top.bit over TFTP to system during uboot """
         if not skip_tftpload:
             cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
             self._write_data(cmd)
-            self._read_until_stop()
+            self._read_until_done(done_string="zynq-uboot")
 
         cmd = "fpga loadb 0 0x1000000 0x1"
         self._write_data(cmd)
-        self._read_until_stop()
+        self._read_until_done(done_string="zynq-uboot")
 
     def update_dev_tree(self):
         """ Transfter devicetree over TFTP to system during uboot """
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
         self._write_data(cmd)
-        self._read_until_stop()
+        self._read_until_done(done_string="zynq-uboot")
 
     def update_kernel(self):
         """ Transfter kernel image over TFTP to system during uboot """
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
         self._write_data(cmd)
-        self._read_until_stop()
+        self._read_until_done(done_string="zynq-uboot")
 
     def update_boot_args(self):
         """ Update kernel boot arguments during uboot """
         cmd = "setenv bootargs " + self.bootargs
         self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
 
     def boot(self):
         """ Boot kernel from uboot menu """
@@ -221,6 +227,38 @@ class uart(utils):
         if restart:
             self.start_log(logappend=True)
 
+    def get_uart_command_for_linux(self, cmd, findstring):
+        """ Read IP address of DUT using ip command from UART """
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        if restart:
+            self.start_log(logappend=True)
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    try:
+                        if findstring in c:
+                            logging.info("Found substring: " + str(c))
+                            return c
+                    except:
+                        continue
+            else:
+                try:
+                    if findstring in d:
+                        logging.info("Found substring: " + str(d))
+                        return d
+                except:
+                    continue
+        return None
+
     def get_ip_address(self):
         """ Read IP address of DUT using ip command from UART """
         # cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
@@ -253,6 +291,7 @@ class uart(utils):
                     return d
                 except:
                     continue
+        return None
 
     def _read_for_time(self, period):
         data = []
@@ -261,7 +300,21 @@ class uart(utils):
             time.sleep(1)
         return data
 
-    def _check_for_string_console(self,console_out,string):
+    def _read_until_done(self, done_string="done"):
+        data = []
+        for k in range(self.max_read_time):
+            data = self._read_until_stop()
+            if isinstance(data, list):
+                for d in data:
+                    if done_string in d:
+                        logging.info("done found in data")
+                        return
+            elif done_string in data:
+                logging.info("done found in data")
+                return
+            time.sleep(1)
+
+    def _check_for_string_console(self, console_out, string):
         for d in console_out:
             if not isinstance(d, list):
                 d = [d]
@@ -272,18 +325,17 @@ class uart(utils):
                         return True
         return False
 
-
     def _enter_uboot_menu_from_power_cycle(self):
         log.info("Spamming ENTER to get UART console")
-        #stop_at_done = False
-        #if not self.listen_thread_run:
+        # stop_at_done = False
+        # if not self.listen_thread_run:
         #    stop_at_done = True
         #    self.stop_log()
         for k in range(30):
             self._write_data("\r\n")
             data = self._read_for_time(1)
             # Check uboot console reached
-            if self._check_for_string_console(data,"zynq-uboot"):
+            if self._check_for_string_console(data, "zynq-uboot"):
                 logging.info("u-boot menu reached")
                 return True
             time.sleep(0.1)
@@ -292,11 +344,41 @@ class uart(utils):
 
     def load_system_uart_from_tftp(self):
         """ Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
+
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+
+        # Flush
+        self._read_until_stop()
+
+        cmd = "setenv autoload no"
+        self._write_data(cmd)
+        self._read_for_time(period=3)
+        cmd = "dhcp"
+        self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
+        cmd = "echo board IP ${ipaddr}"
+        self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
+        cmd = "setenv serverip 192.168.86.39"
+        self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
+
         self.update_fpga()
+        time.sleep(1)
         self.update_dev_tree()
+        time.sleep(1)
         self.update_kernel()
+        time.sleep(1)
         self.update_boot_args()
+        time.sleep(1)
         self.boot()
+        self._read_for_time(period=5)
+
+        if restart:
+            self.start_log(logappend=True)
 
     def load_system_uart(
         self, system_top_bit_filename, devtree_filename, kernel_filename

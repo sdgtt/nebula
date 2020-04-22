@@ -28,6 +28,7 @@ class network(utils):
 
             return: True non-zero received, False zero received
         """
+        log.info("Checking for board through ping")
         ping = subprocess.Popen(
             ["ping", "-c", "4", self.dutip],
             stdout=subprocess.PIPE,
@@ -44,6 +45,7 @@ class network(utils):
 
             return: True working ssh, False non-working ssh
         """
+        log.info("Checking for board through SSH")
         result = fabric.Connection(
             self.dutusername + "@" + self.dutip,
             connect_kwargs={"password": self.dutpassword},
@@ -67,6 +69,7 @@ class network(utils):
     def reboot_board(self, bypass_sleep=False):
         """ Reboot board over SSH, otherwise raise exception
         """
+        log.info("Rebooting board over SSH")
         # Try to reboot board with SSH if possible
         try:
             result = fabric.Connection(
@@ -105,6 +108,7 @@ class network(utils):
         """ update_boot_partition:
                 Update boot files on existing card which from remote files
         """
+        log.info("Updating boot files over SSH")
         self.run_ssh_command("mkdir /tmp/sdcard")
         self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
         if bootbinpath:
@@ -123,6 +127,7 @@ class network(utils):
                 You must specify the subfolder with the BOOT partition to use.
                 For example: zynq-zc706-adv7511-fmcdaq2
         """
+        log.info("Updating boot files over SSH from SD card itself")
         if not subfolder:
             raise Exception("Must provide a subfolder")
         self.run_ssh_command("mkdir /tmp/sdcard")

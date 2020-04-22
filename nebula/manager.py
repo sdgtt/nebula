@@ -57,15 +57,27 @@ class manager:
 
         self.boot_src = tftpboot()
 
+        self.tftp = True
+
     def get_status(self):
         pass
 
     def load_boot_bin(self):
         pass
 
-    def board_reboot_uart_net_pdu(self, bootbinpath, uimagepath, devtreepath):
+    def board_reboot_uart_net_pdu(
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+    ):
         """ Manager when UART, PDU, and Network are available """
         try:
+            # Flush UART
+            self.monitor[0]._read_until_stop()  # Flush
+            # Check if Linux is accessible
+            log.info("Checking if Linux is accessible")
+            out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+            if not out:
+                raise ne.LinuxNotReached
+
             # Get IP over UART
             ip = self.monitor[0].get_ip_address()
             if not ip:
@@ -73,10 +85,17 @@ class manager:
                 ip = self.monitor[0].get_ip_address()
                 if not ip:
                     raise ne.NetworkNotFunctional
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+
             # Update board over SSH and reboot
             self.net.update_boot_partition(
                 bootbinpath=uimagepath, uimagepath=uimagepath, devtreepath=devtreepath
             )
+            log.info("Waiting for reboot to complete")
+            time.sleep(30)
 
         except ne.LinuxNotReached:
             # Power cycle
@@ -88,16 +107,23 @@ class manager:
             # Enter u-boot menu
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
 
-            # Load boot files
-            self.load_system_uart(
-                system_top_bit_filename=system_top_bit_filename,
-                kernel_filename=uimagepath,
-                devtree_filename=devtreepath,
-            )
+            if self.tftp:
+                # Move files to correct position for TFTP
+                # self.monitor[0].load_system_uart_from_tftp()
 
-        # Check if Linux is up
-        if self.monitor[0].check_linux_working():
-            raise ne.LinuxNotFunctionalAfterBootFileUpdate
+                # Load boot files over tftp
+                self.monitor[0].load_system_uart_from_tftp()
+
+            else:
+                # Load boot files
+                self.monitor[0].load_system_uart(
+                    system_top_bit_filename=system_top_bit_path,
+                    kernel_filename=uimagepath,
+                    devtree_filename=devtreepath,
+                )
+            # NEED A CHECK HERE OR SOMETHING
+            log.info("Waiting for boot to complete")
+            time.sleep(30)
 
         # Check is networking is working
         if self.net.ping_board():
@@ -110,7 +136,7 @@ class manager:
 
         # Check SSH
         if self.net.check_ssh():
-            raise ne.SSHNotFunctionalAfterBootFileUpdate()
+            raise ne.SSHNotFunctionalAfterBootFileUpdate
 
         print("Home sweet home")
 
