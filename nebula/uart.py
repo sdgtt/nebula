@@ -53,8 +53,7 @@ class uart(utils):
         self.thread = None
         self.print_to_console = True
         self.max_read_time = 30
-        if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
         self.com.reset_input_buffer()
 

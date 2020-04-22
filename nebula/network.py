@@ -20,8 +20,7 @@ class network(utils):
         self.dutip = dutip
         self.dutusername = dutusername
         self.dutpassword = dutpassword
-        if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
     def ping_board(self, tries=10):
         """ Ping board and check if any received

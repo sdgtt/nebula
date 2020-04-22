@@ -21,8 +21,7 @@ class tftpboot(utils):
         self.default_target = default_target
         self.reference_files = reference_files
 
-        if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
         if not self.check_service("tftpd-hpa"):
             self.start_service("tftpd-hpa")

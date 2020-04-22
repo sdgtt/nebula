@@ -25,8 +25,7 @@ class pdu(utils):
         self.pdu_type = pdu_type
         self.username = username
         self.password = password
-        if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
         if self.pdu_type == "cyberpower":
             self.pdu_dev = cpdu.CyberPowerPdu(self.pduip)

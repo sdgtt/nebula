@@ -11,8 +11,7 @@ class driver(utils):
     def __init__(self, uri="ip:analog", yamlfilename=None, iio_device_names=None):
         self.iio_device_names = iio_device_names
         self.uri = uri
-        if yamlfilename:
-            self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
     def check_iio_context(self):
         pass
