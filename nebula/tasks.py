@@ -40,6 +40,54 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
 
 @task(
     help={
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
+    """ Get Carrier (FPGA) name of DUT from UART connection """
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        cmd = "cat /sys/firmware/devicetree/base/model"
+        addr = u.get_uart_command_for_linux(cmd, "")
+        if addr:
+            if addr[-1] == "#":
+                addr = addr[:-1]
+            print(addr)
+        else:
+            print("Address not found")
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def get_mezzanine(c, address="auto", yamlfilename="/etc/default/nebula"):
+    """ Get Mezzanine (FMC) name of DUT from UART connection """
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        cmd = "find /sys/ -name eeprom | xargs fru-dump -b -i | grep Part Number"
+        addr = u.get_uart_command_for_linux(cmd, "")
+        if addr:
+            if addr[-1] == "#":
+                addr = addr[:-1]
+            print(addr)
+        else:
+            print("Address not found")
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
@@ -70,6 +118,8 @@ def update_boot_files_uart(
 
 uart = Collection("uart")
 uart.add_task(get_ip)
+uart.add_task(get_carriername)
+uart.add_task(get_mezzanine)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
 
 #############################################

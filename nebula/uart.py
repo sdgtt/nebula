@@ -256,7 +256,7 @@ class uart(utils):
             self.start_log(logappend=True)
 
     def get_uart_command_for_linux(self, cmd, findstring):
-        """ Read IP address of DUT using ip command from UART """
+        """ Write command to UART and wait for a specific string """
         restart = False
         if self.listen_thread_run:
             restart = True
@@ -273,14 +273,20 @@ class uart(utils):
                 for c in d:
                     c = c.replace("\r", "")
                     try:
-                        if findstring in c:
+                        if len(findstring) == 0:
+                            if (len(c) > 0) and (c != cmd):
+                                return c
+                        elif findstring in c:
                             logging.info("Found substring: " + str(c))
                             return c
                     except:
                         continue
             else:
                 try:
-                    if findstring in d:
+                    if len(findstring) == 0:
+                        if (len(d) > 0) and (d != cmd):
+                            return d
+                    elif findstring in d:
                         logging.info("Found substring: " + str(d))
                         return d
                 except:
