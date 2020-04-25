@@ -1,6 +1,11 @@
 import logging
 
-import iio
+try:
+    import iio
+except:
+    print(
+        "--WARNING: IIO bindings not on-path, libIIO dependent operations will not work"
+    )
 
 from nebula.common import utils
 

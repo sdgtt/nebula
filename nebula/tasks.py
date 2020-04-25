@@ -19,20 +19,23 @@ def load_yaml(filename):
 #############################################
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
-def get_ip(c, address=None, yamlfilename="/etc/default/nebula"):
+def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
     """ Get IP of DUT from UART connection """
-    u = nebula.uart(address=address, yamlfilename=yamlfilename)
-    u.print_to_console = False
-    addr = u.get_ip_address()
-    if addr:
-        print(addr)
-    else:
-        print("Address not found")
-    del u
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        addr = u.get_ip_address()
+        if addr:
+            print(addr)
+        else:
+            print("Address not found")
+        del u
+    except Exception as ex:
+        print(ex)
 
 
 @task(

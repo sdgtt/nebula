@@ -1,14 +1,17 @@
+import os
 import ipaddress
 import logging
-import os
 import threading
 import time
+import glob
 
 import serial
 from nebula.common import utils
 import xmodem
 
 log = logging.getLogger(__name__)
+
+LINUX_SERIAL_FOLDER = "/dev/serial"
 
 
 class uart(utils):
@@ -35,14 +38,15 @@ class uart(utils):
 
     def __init__(
         self,
-        address="/dev/ttyACM0",
-        tftpserverip="192.168.86.220",
+        address=None,
+        tftpserverip=None,
         fmc="fmcomms2",
         baudrate=115200,
         logfilename="uart.log",
         bootargs="console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon rootfstype=ext4 rootwait",
         yamlfilename=None,
     ):
+        self.com = []  # Preset incase __del__ is called before set
         self.tftpserverip = tftpserverip
         self.address = address
         self.fmc = fmc
@@ -53,13 +57,38 @@ class uart(utils):
         self.thread = None
         self.print_to_console = True
         self.max_read_time = 30
+        self.fds_to_skip = ["Digilent"]
         self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        if not self.address:
+            raise Exception(
+                "UART address must be defined (under uart-config in yaml is one option)"
+            )
+        # Automatically set UART address
+        if "auto" in self.address.lower():
+            if os.name == "nt" or os.name == "posix":
+                if os.path.isdir(LINUX_SERIAL_FOLDER):
+                    fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
+                    for fd in fds:
+                        for skip in self.fds_to_skip:
+                            if skip.lower() in fd.lower():
+                                continue
+                            print("Automatic UART selected:", fd)
+                            self.address = fd
+                            break
+                else:
+                    raise Exception("No serial devices connected")
+
+            else:
+                raise Exception(
+                    "Automatic UART detection is not possible in Windows yet"
+                )
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
         self.com.reset_input_buffer()
 
     def __del__(self):
         logging.info("Closing UART")
-        self.com.close()
+        if self.com:
+            self.com.close()
 
     def start_log(self, logappend=False):
         """ Trigger monitoring with UART interface """

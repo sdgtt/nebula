@@ -15,6 +15,8 @@ class utils:
                     return
             else:
                 return
+        if not os.path.exists(filename):
+            return
 
         stream = open(filename, "r")
         configs = yaml.safe_load(stream)
