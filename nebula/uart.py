@@ -266,6 +266,10 @@ class uart(utils):
             raise Exception("Console inaccessible due to login failure")
         self._write_data(cmd)
         data = self._read_for_time(period=1)
+        if isinstance(data,list):
+            if isinstance(data[0],list):
+                data = data[0]
+        data = data[1:] # Remove command itself
         if restart:
             self.start_log(logappend=True)
         for d in data:
@@ -274,7 +278,7 @@ class uart(utils):
                     c = c.replace("\r", "")
                     try:
                         if len(findstring) == 0:
-                            if (len(c) > 0) and (c != cmd):
+                            if (len(c) > 0) and (c != cmd) and (cmd not in c):
                                 return c
                         elif findstring in c:
                             logging.info("Found substring: " + str(c))
@@ -284,7 +288,7 @@ class uart(utils):
             else:
                 try:
                     if len(findstring) == 0:
-                        if (len(d) > 0) and (d != cmd):
+                        if (len(d) > 0) and (d != cmd) and (cmd not in d):
                             return d
                     elif findstring in d:
                         logging.info("Found substring: " + str(d))

@@ -54,6 +54,10 @@ def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
         if addr:
             if addr[-1] == "#":
                 addr = addr[:-1]
+            addr = addr.split("\x00")
+            if "@" in addr[-1]:
+                addr = addr[:-1]
+            addr = "-".join(addr)
             print(addr)
         else:
             print("Address not found")
