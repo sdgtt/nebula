@@ -44,6 +44,7 @@ class uart(utils):
         baudrate=115200,
         logfilename="uart.log",
         bootargs="console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon rootfstype=ext4 rootwait",
+        dhcp=False,
         yamlfilename=None,
     ):
         self.com = []  # Preset incase __del__ is called before set
@@ -56,6 +57,7 @@ class uart(utils):
         self.logfilename = logfilename
         self.thread = None
         self.print_to_console = True
+        self.dhcp = dhcp
         self.max_read_time = 30
         self.fds_to_skip = ["Digilent"]
         self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
@@ -238,7 +240,7 @@ class uart(utils):
             return True
         return logged_in
 
-    def request_ip_dhcp(self):
+    def set_ip_static(self, address, nic="eth0"):
         restart = False
         if self.listen_thread_run:
             restart = True
@@ -246,10 +248,27 @@ class uart(utils):
         # Check if we need to login to the console
         if not self._check_for_login():
             raise Exception("Console inaccessible due to login failure")
-        cmd = "dhclient -r eth0"
+        cmd = "/usr/local/bin/enable_static_ip.sh " + address + " " + nic
         self._write_data(cmd)
         data = self._read_for_time(period=1)
-        cmd = "dhclient eth0"
+        if restart:
+            self.start_log(logappend=True)
+
+    def request_ip_dhcp(self, nic="eth0"):
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
+        cmd = "/usr/local/bin/enable_dhcp.sh"
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        cmd = "dhclient -r " + nic
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        cmd = "dhclient " + nic
         self._write_data(cmd)
         data = self._read_for_time(period=1)
         if restart:
@@ -266,10 +285,10 @@ class uart(utils):
             raise Exception("Console inaccessible due to login failure")
         self._write_data(cmd)
         data = self._read_for_time(period=1)
-        if isinstance(data,list):
-            if isinstance(data[0],list):
+        if isinstance(data, list):
+            if isinstance(data[0], list):
                 data = data[0]
-        data = data[1:] # Remove command itself
+        data = data[1:]  # Remove command itself
         if restart:
             self.start_log(logappend=True)
         for d in data:

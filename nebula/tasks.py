@@ -92,6 +92,45 @@ def get_mezzanine(c, address="auto", yamlfilename="/etc/default/nebula"):
 
 @task(
     help={
+        "nic": "Network interface name to set. Default is eth0",
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def set_dhcp(c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"):
+    """ Set board to use DHCP for networking from UART connection """
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        u.request_ip_dhcp()
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
+        "ip": "IP Address to set NIC to",
+        "nic": "Network interface name to set. Default is eth0",
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def set_static_ip(
+    c, ip, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"
+):
+    """ Set Static IP address of board of DUT from UART connection """
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        u.set_ip_static(ip, nic)
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
@@ -122,6 +161,8 @@ def update_boot_files_uart(
 
 uart = Collection("uart")
 uart.add_task(get_ip)
+uart.add_task(set_dhcp)
+uart.add_task(set_static_ip)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
