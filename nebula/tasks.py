@@ -21,7 +21,7 @@ def load_yaml(filename):
 def gen_config(c):
     """ Generate YAML configuration interactively """
     try:
-        h = nebula.helper.helper()
+        h = nebula.helper()
         h.create_config_interactive()
         del h
     except Exception as ex:

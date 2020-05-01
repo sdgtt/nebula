@@ -25,18 +25,25 @@ network-config:
     example: False
     help: "Network style for connecting to board, DHCP True and Static False"
     optional: False
+    requires: False:nic,nicip
   field_3:
     name: nic
     example: eth0
     help: "NIC used to talk to development board"
-    optional: False
+    optional: depends
     callback: get_nics
+  field_4:
+    name: nicip
+    example: 192.168.10.1
+    help: "NIC connected to development board ip address"
+    optional: depends
 pdu-config:
   field_1:
     name: pdu_type
     example: cyberpower
     help: "PDU type (options cyberpower,vesync)"
     optional: False
+    requires: vesync:username,password
   field_2:
     name: pduip
     example: 192.168.30.2
@@ -51,12 +58,12 @@ pdu-config:
     name: username
     example: "username"
     help: "Username needed for login (only need for vesync so far)"
-    optional: True
+    optional: depends
   field_5:
     name: password
     example: "password"
     help: "Password needed for login (only need for vesync so far)"
-    optional: True
+    optional: depends
 uart-config:
   field_1:
     name: address

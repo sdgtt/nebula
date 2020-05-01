@@ -11,6 +11,7 @@ from nebula.network import network
 from nebula.driver import driver
 from nebula.builder import builder
 from nebula.common import utils
+from nebula.helper import helper
 
 __version__ = "0.0.1"
 name = "Nebula: Embedded Development Tools"
