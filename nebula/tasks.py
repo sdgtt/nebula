@@ -17,6 +17,18 @@ def load_yaml(filename):
 
 
 #############################################
+@task()
+def gen_config(c):
+    """ Generate YAML configuration interactively """
+    try:
+        h = nebula.helper.helper()
+        h.create_config_interactive()
+        del h
+    except Exception as ex:
+        print(ex)
+
+
+#############################################
 @task(
     help={
         "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
@@ -219,6 +231,7 @@ def show_log(c):
 
 
 ns = Collection()
+ns.add_task(gen_config)
 ns.add_task(show_log)
 ns.add_collection(uart)
 ns.add_collection(net)

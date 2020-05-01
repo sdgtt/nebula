@@ -1,0 +1,100 @@
+board-config:
+  field_1:
+    name: reference-boot-folder
+    example: zynq-zc706-adv7511-fmcdaq2
+    help: "Folder name where reference boot files exit for specific board"
+    optional: False
+  field_2:
+    name: monitoring-interface
+    example: uart
+    help: "Select monitoring interface (uart or netconsole)"
+    optional: False
+  field_3:
+    name: iio_device_names
+    example: ["axi-ad9144-hpc","axi-ad9680-hpc"]
+    help: "List of IIO devices on board"
+    optional: False
+network-config:
+  field_1:
+    name: dutip
+    example: 192.168.10.2
+    help: "IP address of development board"
+    optional: False
+  field_2:
+    name: dhcp
+    example: False
+    help: "Network style for connecting to board, DHCP True and Static False"
+    optional: False
+  field_3:
+    name: nic
+    example: eth0
+    help: "NIC used to talk to development board"
+    optional: False
+    callback: get_nics
+pdu-config:
+  field_1:
+    name: pdu_type
+    example: cyberpower
+    help: "PDU type (options cyberpower,vesync)"
+    optional: False
+  field_2:
+    name: pduip
+    example: 192.168.30.2
+    help: "IP address of PDU"
+    optional: False
+  field_3:
+    name: outlet
+    example: 1
+    help: "Outlet number on PDU for dev board"
+    optional: False
+  field_4:
+    name: username
+    example: "username"
+    help: "Username needed for login (only need for vesync so far)"
+    optional: True
+  field_5:
+    name: password
+    example: "password"
+    help: "Password needed for login (only need for vesync so far)"
+    optional: True
+uart-config:
+  field_1:
+    name: address
+    example: /dev/ttyUSB0
+    help: "UART Address"
+    optional: False
+    callback: get_uarts
+  field_2:
+    name: baudrate
+    example: 115200
+    help: "UART baudrate"
+    optional: False
+  field_3:
+    name: logfilename
+    example: my.log
+    help: "Output UART logfilename"
+    optional: False
+system-config:
+  field_1:
+    name: tftpserverip
+    example: 192.168.30.1
+    help: "TFTP server address"
+    optional: False
+  field_2:
+    name: tftpserverroot
+    example: /var/lib/tftpboot
+    help: "TFTP folder location"
+    optional: False
+
+# - field_1_name: dutip
+# - field_1_example: 192.168.10.2
+# - field_1_help: "IP address of development board"
+# - field_1_optional: False
+# - field_2_name: dhcp
+# - field_2_example: False
+# - field_2_help: "Network style for connecting to board, DHCP True and Static False"
+# - field_2_optional: False
+# - field_3_name: nic
+# - field_3_example: eth0
+# - field_3_help: "NIC to talk to development board"
+# - field_3_optional: False
