@@ -85,16 +85,3 @@ system-config:
     example: /var/lib/tftpboot
     help: "TFTP folder location"
     optional: False
-
-# - field_1_name: dutip
-# - field_1_example: 192.168.10.2
-# - field_1_help: "IP address of development board"
-# - field_1_optional: False
-# - field_2_name: dhcp
-# - field_2_example: False
-# - field_2_help: "Network style for connecting to board, DHCP True and Static False"
-# - field_2_optional: False
-# - field_3_name: nic
-# - field_3_example: eth0
-# - field_3_help: "NIC to talk to development board"
-# - field_3_optional: False
