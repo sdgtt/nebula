@@ -3,28 +3,35 @@ import os
 import pathlib
 import netifaces
 import glob
+import click
 
 
 def get_uarts():
     LINUX_SERIAL_FOLDER = "/dev/serial"
-    str = " (Options: "
-
+    strs = "\n(Found: "
+    default = None
     if os.name == "nt" or os.name == "posix":
         if os.path.isdir(LINUX_SERIAL_FOLDER):
             fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
             for fd in fds:
-                str = str + str(fd) + ", "
-            str = str[:-2] + ") "
-            return str
-    return None
+                print(fd)
+                strs = strs + "\n" + str(fd)
+                default = str(fd)
+            strs = strs[:-2] + ") "
+            return (strs, default)
+    return (None, default)
 
 
 def get_nics():
-    str = " (Options: "
+    filter = ["docker0", "lo"]
+    default = None
+    str = "\n(Found: "
     for nic in netifaces.interfaces():
-        str = str + nic + ", "
+        if nic not in filter:
+            str = str + nic + ", "
+            default = nic
     str = str[:-2] + ") "
-    return str
+    return (str, default)
 
 
 class helper:
@@ -42,6 +49,10 @@ class helper:
         outconfig = dict()
         required_sections = []
         print("YAML Config Interactive Generation")
+        print("###################")
+        print("FYI Questions are arranged:")
+        print("  Question (Options) [Default]")
+        print("###################")
         for key in configs.keys():
             # Ask if we need it
             if key not in required_sections:
@@ -62,8 +73,6 @@ class helper:
                         deps_string = field["requires"].split(":")
                         required_answer = deps_string[0]
                         current_depends = deps_string[1].split(",")
-                        # print("requires", required_answer)
-                        # print("current_depends", current_depends)
 
                     # Filter out if not needed
                     if isinstance(field["optional"], str):
@@ -75,29 +84,60 @@ class helper:
                             break  # Skip
 
                     # Form question
-                    stri = field["help"] + ".\nExample: " + str(field["example"]) + " "
-                    if field["optional"] == True:
-                        stri = stri + " (optional)"
+                    # stri = field["help"] + ".\nExample: " + str(field["default"]) + " "
+                    # if field["optional"] == True:
+                    #     stri = stri + " (optional)"
+                    # if "callback" in list(field.keys()):
+                    #     out = eval(field["callback"] + "()")
+                    #     if out:
+                    #         stri = stri + out
+                    # stri = stri + ": "
+                    # print("-------------")
+                    # out = input(stri)
+
+                    extend = ""
+                    if "default" in list(field.keys()):
+                        default = field["default"]
+                    else:
+                        default = None
+                    ################
                     if "callback" in list(field.keys()):
-                        out = eval(field["callback"] + "()")
+                        (out, defaultcb) = eval(field["callback"] + "()")
                         if out:
-                            stri = stri + out
-                    stri = stri + ": "
-                    print("-------------")
-                    out = input(stri)
-                    #
+                            extend = out
+                        if defaultcb:
+                            default = defaultcb
+
+                    ################
+                    if "options" in field.keys():
+                        options = field["options"]
+                        options = click.Choice(options)
+                    else:
+                        options = None
+                    print("###################")
+                    out = click.prompt(
+                        text=click.style(field["help"] + extend, fg="green"),
+                        prompt_suffix=": ",
+                        default=default,
+                        type=options,
+                        show_choices=True,
+                    )
+                    ################
+                    # Check if meets required answers for dependent properties checks to be enabled
                     if required_answer:
-                        if not required_answer == out:
+                        if not required_answer == out:  # Disable dependency check
                             current_depends = None
-                    required_answer = None  # Reset
-                    #
+                    required_answer = None  # Reset so we break while
+
+                    # Check if we need to ask again
                     if not out:
                         if (not field["optional"]) or (
                             field["name"] in current_depends
                         ):
-                            print("Not optional!!!!")
+                            # print("Not optional!!!!")
                             continue
                         break  # Skip
+                    # Convert string to boolean
                     if isinstance(out, str):
                         if out.lower() == "false":
                             out = False
@@ -109,10 +149,26 @@ class helper:
         # Output
         LINUX_DEFAULT_PATH = "/etc/default/nebula"
         loc = input(
-            "Output config locations [Default {}] : ".format(LINUX_DEFAULT_PATH)
+            "Output config file (this not just a folder) [{}] : ".format(
+                LINUX_DEFAULT_PATH
+            )
         )
         if not loc:
             loc = LINUX_DEFAULT_PATH
-        out = os.path.join(head_tail[0], "resources", "out.yaml")
+        # out = os.path.join(head_tail[0], "resources", "out.yaml")
+        out = loc
         with open(out, "w") as file:
-            documents = yaml.dump(outconfig, file)
+            documents = yaml.dump(outconfig, file, default_flow_style=False)
+
+        # Post process to fix yaml.dump bug where boolean are all lowercase
+        file1 = open(out, "r")
+        lines = []
+        for line in file1.readlines():
+            line = line.replace(": true\n", ": True\n")
+            line = line.replace(": false\n", ": False\n")
+            lines.append(line)
+        file1.close()
+        file1 = open(out, "w")
+        file1.writelines(lines)
+        file1.close()
+        print("Pew pew... all set")

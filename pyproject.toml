@@ -14,6 +14,8 @@ pytest = "^5.4.1"
 pyvesync_v2 = "^1.1.0"
 pysnmp = "^4.4.12"
 xmodem = "^0.4.6"
+netifaces = "^0.10.9"
+click = "^7.1.2"
 
 [tool.poetry.dev-dependencies]
 sphinx = "^3.0.1"
