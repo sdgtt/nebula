@@ -4,6 +4,7 @@ import shutil
 import pytest
 from nebula import uart
 from nebula import pdu
+from nebula import network
 import time
 
 # @pytest.mark.skip(reason="Not fully implemented")
