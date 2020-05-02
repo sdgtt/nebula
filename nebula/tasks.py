@@ -31,6 +31,37 @@ def gen_config(c):
 #############################################
 @task(
     help={
+        "bootbinpath": "Path to BOOT.BIN.",
+        "uimagepath": "Path to kernel image.",
+        "devtreepath": "Path to devicetree.",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def update_boot_files_manager(
+    c,
+    system_top_bit_path="system_top.bit",
+    bootbinpath="BOOT.BIN",
+    uimagepath="uImage",
+    devtreepath="devicetree.dtb",
+    yamlfilename="/etc/default/nebula",
+):
+    """ Update boot files through u-boot menu (Assuming board is running) """
+    m = nebula.manager(configfilename=yamlfilename)
+
+    m.board_reboot_auto(
+        system_top_bit_path=system_top_bit_path,
+        bootbinpath=bootbinpath,
+        uimagepath=uimagepath,
+        devtreepath=devtreepath,
+    )
+
+
+manager = Collection("manager")
+manager.add_task(update_boot_files_manager, name="update_boot_files")
+
+#############################################
+@task(
+    help={
         "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
@@ -235,3 +266,4 @@ ns.add_task(gen_config)
 ns.add_task(show_log)
 ns.add_collection(uart)
 ns.add_collection(net)
+ns.add_collection(manager)

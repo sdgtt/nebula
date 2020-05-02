@@ -65,10 +65,18 @@ class manager:
     def load_boot_bin(self):
         pass
 
+    def _check_files_exist(self, *args):
+        for filename in args:
+            if not os.path.exists(filename):
+                raise Exception(filename + " not found or does not exist")
+
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
         """ Manager when UART, PDU, and Network are available """
+        self._check_files_exist(
+            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        )
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -198,6 +206,18 @@ class manager:
         # Stop and collect logs
         for mon in self.monitor:
             mon.stop_log()
+
+    def board_reboot_auto(
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+    ):
+        """ Automatically select loading mechanism
+            based on current class setup """
+        self.board_reboot_uart_net_pdu(
+            system_top_bit_path=system_top_bit_path,
+            bootbinpath=bootbinpath,
+            uimagepath=uimagepath,
+            devtreepath=devtreepath,
+        )
 
 
 if __name__ == "__main__":
