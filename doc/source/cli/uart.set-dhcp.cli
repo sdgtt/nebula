@@ -1,11 +1,13 @@
-Usage: nebula [--core-opts] uart.get-ip [--options] [other tasks here ...]
+Usage: nebula [--core-opts] uart.set-dhcp [--options] [other tasks here ...]
 
 Docstring:
-  Get IP of DUT from UART connection 
+  Set board to use DHCP for networking from UART connection 
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO).
                                      Defaults to auto. Overrides yaml
+  -n STRING, --nic=STRING            Network interface name to set. Default is
+                                     eth0
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 

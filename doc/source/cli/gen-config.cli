@@ -1,0 +1,8 @@
+Usage: nebula [--core-opts] gen-config [other tasks here ...]
+
+Docstring:
+  Generate YAML configuration interactively 
+
+Options:
+  none
+

@@ -1,9 +1,16 @@
 Subcommands:
 
+  gen-config               Generate YAML configuration interactively
   show-log                 Show log for all following tasks
   net.restart-board        Reboot development system over IP
   net.update-boot-files    Update boot files on SD Card over SSH
+  uart.get-carriername     Get Carrier (FPGA) name of DUT from UART connection
   uart.get-ip              Get IP of DUT from UART connection
+  uart.get-mezzanine       Get Mezzanine (FMC) name of DUT from UART connection
+  uart.set-dhcp            Set board to use DHCP for networking from UART
+                           connection
+  uart.set-static-ip       Set Static IP address of board of DUT from UART
+                           connection
   uart.update-boot-files   Update boot files through u-boot menu (Assuming
                            board is running)
 

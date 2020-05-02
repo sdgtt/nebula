@@ -6,7 +6,7 @@ Docstring:
 Options:
   -b STRING, --bootbinpath=STRING   Path to BOOT.BIN. Optional
   -d STRING, --devtreepath=STRING   Path to devicetree. Optional
-  -i STRING, --ip=STRING            IP address of board
+  -i STRING, --ip=STRING            IP address of board. Default from yaml
   -m STRING, --uimagepath=STRING    Path to kernel image. Optional
   -p STRING, --password=STRING      Password for board. Default: analog
   -u STRING, --user=STRING          Board username. Default: root

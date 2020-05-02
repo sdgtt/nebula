@@ -1,7 +1,7 @@
-Usage: nebula [--core-opts] uart.get-ip [--options] [other tasks here ...]
+Usage: nebula [--core-opts] uart.get-carriername [--options] [other tasks here ...]
 
 Docstring:
-  Get IP of DUT from UART connection 
+  Get Carrier (FPGA) name of DUT from UART connection 
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO).

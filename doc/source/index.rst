@@ -26,6 +26,7 @@ There are two main interfaces for nebula:
    tests/index
    examples
    core/index
+   dev/index
 
 
 

@@ -41,8 +41,7 @@ class helper:
     def create_config_interactive(self):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
-        head_tail = os.path.split(path)
-        res = os.path.join(head_tail[0], "resources", "template_gen.yaml")
+        res = os.path.join(path, "resources", "template_gen.yaml")
         stream = open(res, "r")
         configs = yaml.safe_load(stream)
         stream.close()
