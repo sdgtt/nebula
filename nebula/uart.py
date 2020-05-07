@@ -455,7 +455,7 @@ class uart(utils):
         # Spam enter while reboot to get to u-boot menu
         log.info("Spamming ENTER to get UART console")
         for k in range(60):
-            self.write_data("\r\n")
+            self._write_data("\r\n")
             time.sleep(0.1)
         log.info("Loading boot files from UART")
         # Boot board

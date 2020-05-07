@@ -174,7 +174,7 @@ def set_static_ip(
 
 @task(
     help={
-        "bootbinpath": "Path to BOOT.BIN.",
+        "system_top_bit_filename": "Path to system_top.bit.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
         "address": "UART device address (/dev/ttyACMO). Overrides yaml",
@@ -184,7 +184,7 @@ def set_static_ip(
 )
 def update_boot_files_uart(
     c,
-    bootbinpath,
+    system_top_bit_filename,
     uimagepath,
     devtreepath,
     address=None,
@@ -198,7 +198,7 @@ def update_boot_files_uart(
         u._write_data("reboot")
         time.sleep(4)
     u.update_boot_files_from_running(
-        bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
+        system_top_bit_filename=system_top_bit_filename, kernel_filename=uimagepath, devtree_filename=devtreepath
     )
 
 
