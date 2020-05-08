@@ -87,6 +87,32 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
+def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/nebula"):
+    """ Set IP of virtual NIC created from DUT based on found MAC """
+    try:
+        import os
+
+        if not (os.name == "nt" or os.name == "posix"):
+            raise Exception("This command only works on Linux currently")
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        addr = u.get_local_mac_usbdev()
+        addr = addr.replace(":", "")
+        addr = addr.replace("\r", "")
+        addr = addr.strip()
+        cmd = "ifconfig enx" + addr + " 192.168.2.10"
+        c.run(cmd)
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
+        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
 def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
     """ Get Carrier (FPGA) name of DUT from UART connection """
     try:
@@ -198,7 +224,9 @@ def update_boot_files_uart(
         u._write_data("reboot")
         time.sleep(4)
     u.update_boot_files_from_running(
-        system_top_bit_filename=system_top_bit_filename, kernel_filename=uimagepath, devtree_filename=devtreepath
+        system_top_bit_filename=system_top_bit_filename,
+        kernel_filename=uimagepath,
+        devtree_filename=devtreepath,
     )
 
 
@@ -209,6 +237,7 @@ uart.add_task(set_static_ip)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
+uart.add_task(set_local_nic_ip_from_usbdev)
 
 #############################################
 @task(

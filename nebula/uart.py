@@ -70,12 +70,16 @@ class uart(utils):
             if os.name == "nt" or os.name == "posix":
                 if os.path.isdir(LINUX_SERIAL_FOLDER):
                     fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
+                    found = False
                     for fd in fds:
                         for skip in self.fds_to_skip:
                             if skip.lower() in fd.lower():
                                 continue
                             print("Automatic UART selected:", fd)
                             self.address = fd
+                            found = True
+                            break
+                        if found:
                             break
                 else:
                     raise Exception("No serial devices connected")
@@ -315,6 +319,11 @@ class uart(utils):
                 except:
                     continue
         return None
+
+    def get_local_mac_usbdev(self):
+        """ Read MAC Address of enumerated NIC on host from DUT (Pluto/M2K only) """
+        cmd = "cat /www/index.html | grep '00:' | grep -v `cat /sys/class/net/usb0/address` | sed 's/ *<[^>]*> */ /g'"
+        return self.get_uart_command_for_linux(cmd, "00")
 
     def get_ip_address(self):
         """ Read IP address of DUT using ip command from UART """
