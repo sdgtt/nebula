@@ -8,7 +8,7 @@ class utils:
     def update_defaults_from_yaml(self, filename, configname):
         """ Utility class for processing yaml files """
         if not filename:
-            if os.name == "nt":
+            if os.name == "nt" or os.name == "posix":
                 if os.path.exists(LINUX_DEFAULT_PATH):
                     filename = LINUX_DEFAULT_PATH
                 else:
