@@ -76,7 +76,7 @@ class network(utils):
             result = fabric.Connection(
                 self.dutusername + "@" + self.dutip,
                 connect_kwargs={"password": self.dutpassword},
-            ).run("reboot", hide=False)
+            ).run("/sbin/reboot", hide=False)
             if result.ok:
                 print("Rebooting board with SSH")
                 if not bypass_sleep:
