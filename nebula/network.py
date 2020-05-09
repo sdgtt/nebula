@@ -16,12 +16,16 @@ class network(utils):
         dutusername="root",
         dutpassword="analog",
         dhcp=False,
+        nic=None,
+        nicip=None,
         yamlfilename=None,
     ):
         self.dutip = dutip
         self.dutusername = dutusername
         self.dutpassword = dutpassword
         self.dhcp = dhcp
+        self.nic = nic
+        self.nicip = nicip
         self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
     def ping_board(self, tries=10):
