@@ -67,27 +67,7 @@ class uart(utils):
             )
         # Automatically set UART address
         if "auto" in self.address.lower():
-            if os.name == "nt" or os.name == "posix":
-                if os.path.isdir(LINUX_SERIAL_FOLDER):
-                    fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
-                    found = False
-                    for fd in fds:
-                        for skip in self.fds_to_skip:
-                            if skip.lower() in fd.lower():
-                                continue
-                            print("Automatic UART selected:", fd)
-                            self.address = fd
-                            found = True
-                            break
-                        if found:
-                            break
-                else:
-                    raise Exception("No serial devices connected")
-
-            else:
-                raise Exception(
-                    "Automatic UART detection is not possible in Windows yet"
-                )
+            self._auto_set_address()
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
         self.com.reset_input_buffer()
 
@@ -95,6 +75,32 @@ class uart(utils):
         logging.info("Closing UART")
         if self.com:
             self.com.close()
+
+    def _auto_set_address(self):
+        """ Try to set yaml automatically """
+        if os.name == "nt" or os.name == "posix":
+            if os.path.isdir(LINUX_SERIAL_FOLDER):
+                fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
+                found = False
+                for fd in fds:
+                    for skip in self.fds_to_skip:
+                        if skip.lower() in fd.lower():
+                            continue
+                        print("Automatic UART selected:", fd)
+                        self.address = fd
+                        found = True
+                        break
+                    if found:
+                        break
+            else:
+                raise Exception("No serial devices connected")
+
+        else:
+            raise Exception("Automatic UART detection is not possible in Windows yet")
+        if self.com:
+            self.com.close()
+        self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
+        self.com.reset_input_buffer()
 
     def start_log(self, logappend=False):
         """ Trigger monitoring with UART interface """
@@ -210,16 +216,18 @@ class uart(utils):
         self._write_data(cmd)
 
     def _check_for_login(self):
-        cmd = ""
-        self._write_data(cmd)
-        data = self._read_for_time(period=1)
-        needs_login = False
-        for d in data:
-            if isinstance(d, list):
-                for c in d:
-                    c = c.replace("\r", "")
-                    if "login:" in c:
-                        needs_login = True
+        for _ in range(2):  # Check at least twice
+            cmd = ""
+            self._write_data(cmd)
+            data = self._read_for_time(period=1)
+            needs_login = False
+            for d in data:
+                if isinstance(d, list):
+                    for c in d:
+                        c = c.replace("\r", "")
+                        logging.info(c)
+                        if "login:" in c:
+                            needs_login = True
         if needs_login:
             # Do login
             cmd = "root"

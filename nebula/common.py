@@ -22,7 +22,8 @@ class utils:
         configs = yaml.safe_load(stream)
         stream.close()
         if configname + "-config" not in configs:
-            raise Exception(configname + "-config field not in yaml config file")
+            return
+            # raise Exception(configname + "-config field not in yaml config file")
         configsList = configs[configname + "-config"]
         for config in configsList:
             for k in config:

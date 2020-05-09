@@ -62,13 +62,40 @@ manager.add_task(update_boot_files_manager, name="update_boot_files")
 #############################################
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def restart_board_uart(c, address="auto", yamlfilename="/etc/default/nebula"):
+    """ Reboot DUT from UART connection assuming Linux is accessible"""
+    try:
+        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u.print_to_console = False
+        cmd = "reboot"
+        u.get_uart_command_for_linux(cmd, "")
+        # if addr:
+        #     if addr[-1] == "#":
+        #         addr = addr[:-1]
+        #     print(addr)
+        # else:
+        #     print("Address not found")
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
 def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
     """ Get IP of DUT from UART connection """
     try:
+        # YAML will override
         u = nebula.uart(address=address, yamlfilename=yamlfilename)
         u.print_to_console = False
         addr = u.get_ip_address()
@@ -83,7 +110,8 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -96,12 +124,42 @@ def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/n
             raise Exception("This command only works on Linux currently")
         u = nebula.uart(address=address, yamlfilename=yamlfilename)
         u.print_to_console = False
+        ipaddr = u.get_ip_address()
+        if not ipaddr:
+            print("Board IP is not set, must be set first")
+            return
+        # Get local mac from board
         addr = u.get_local_mac_usbdev()
         addr = addr.replace(":", "")
         addr = addr.replace("\r", "")
         addr = addr.strip()
-        cmd = "ifconfig enx" + addr + " 192.168.2.10"
-        c.run(cmd)
+        # Get IP of virtual nic
+        cmd = (
+            "ip -4 addr l enx"
+            + addr
+            + "| grep -v 127 | awk '$1 == \"inet\" {print $2}' | awk -F'/' '{print $1}'"
+        )
+        out = c.run(cmd)
+        local = out.stdout
+        local = local.replace("\r", "").replace("\n", "").strip()
+        # Compare against local
+        ipaddrs = ipaddr.split(".")
+        if local:
+            remotesub = ".".join(ipaddrs[:-1])
+            locals = local.split(".")
+            localsub = ".".join(locals[:-1])
+            do_not_set = remotesub == localsub
+            if do_not_set:
+                ipaddrs = local
+
+        if not do_not_set:
+            # Create new address
+            ipaddrs[-1] = str(int(ipaddrs[-1]) + 9)
+            ipaddrs = ".".join(ipaddrs)
+            cmd = "ifconfig enx" + addr + " " + ipaddrs
+            c.run(cmd)
+
+        print("Local IP Set:", ipaddrs, "Remote:", ipaddr)
         del u
     except Exception as ex:
         print(ex)
@@ -109,7 +167,8 @@ def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/n
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -137,7 +196,8 @@ def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -162,7 +222,8 @@ def get_mezzanine(c, address="auto", yamlfilename="/etc/default/nebula"):
 @task(
     help={
         "nic": "Network interface name to set. Default is eth0",
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -181,7 +242,8 @@ def set_dhcp(c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"):
     help={
         "ip": "IP Address to set NIC to",
         "nic": "Network interface name to set. Default is eth0",
-        "address": "UART device address (/dev/ttyACMO). Defaults to auto. Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -203,7 +265,8 @@ def set_static_ip(
         "system_top_bit_filename": "Path to system_top.bit.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
-        "address": "UART device address (/dev/ttyACMO). Overrides yaml",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "reboot": "Reboot board from linux console to get to u-boot menu. Defaut False",
     }
@@ -231,6 +294,7 @@ def update_boot_files_uart(
 
 
 uart = Collection("uart")
+uart.add_task(restart_board_uart, name="restart_board")
 uart.add_task(get_ip)
 uart.add_task(set_dhcp)
 uart.add_task(set_static_ip)
