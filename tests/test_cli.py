@@ -25,7 +25,7 @@ def test_cli_get_ip():
 
     config = "/etc/default/nebula"
     config = "/etc/nebula/nebula-zynq-adrv9361-z7035-fmc.yaml"
-    assert os.path.isfile(config, "Configuration file not found")
+    assert os.path.isfile(config), "Configuration file not found"
 
     c = con("localhost")
     o = c.local("nebula uart.get-ip -y" + config)
