@@ -160,7 +160,7 @@ class uart(utils):
                 return ser.read(size) or None
 
             def callback(total_packets, success_count, error_count):
-                if total_packets % 100 == 0:
+                if total_packets % 1000 == 0:
                     print(
                         "total_packets {}, success_count {}, error_count {}, total {}".format(
                             total_packets, success_count, error_count, total
