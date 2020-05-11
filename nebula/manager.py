@@ -57,7 +57,7 @@ class manager:
 
         self.boot_src = tftpboot()
 
-        self.tftp = True
+        self.tftp = False
 
     def get_status(self):
         pass
