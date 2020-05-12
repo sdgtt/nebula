@@ -48,11 +48,15 @@ class CyberPowerPdu(object):
 
         :param outlet: Which outlet to set the power for (for my model this is
                        in the range 1 through 8)
-        :param on: True means turn it on, False means turn it off
+        :param on: INVALID ATM True means turn it on, False means turn it off
         """
 
         oid = ObjectIdentity("1.3.6.1.4.1.3808.1.1.3.3.3.1.1.4.{}".format(outlet))
-        target_state = "immediateOn" if on else "immediateOff"
+        if isinstance(on,bool):
+            target_state = "immediateOn" if on else "immediateOff"
+        else:
+            target_state = on
+        
         errorIndication, errorStatus, errorIndex, varBinds = next(
             setCmd(
                 SnmpEngine(),
@@ -81,8 +85,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("host", help="Hostname/IP address of PDU")
     parser.add_argument("outlet", help="Outlet to interact with")
-    parser.add_argument("on", choices=("on", "off"))
+#     parser.add_argument("on", choices=("on", "off"))
+    parser.add_argument("action", help="immediateOn, immediateOff, immediateReboot")
 
     args = parser.parse_args()
 
-    CyberPowerPdu(args.host).set_outlet_on(args.outlet, args.on == "on")
+    CyberPowerPdu(args.host).set_outlet_on(args.outlet, args.action)
