@@ -126,6 +126,9 @@ def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/n
         u.print_to_console = False
         ipaddr = u.get_ip_address()
         if not ipaddr:
+            # Try again, sometimes there is junk in terminal
+            ipaddr = u.get_ip_address()
+        if not ipaddr:
             print("Board IP is not set, must be set first")
             return
         # Get local mac from board
@@ -144,6 +147,7 @@ def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/n
         local = local.replace("\r", "").replace("\n", "").strip()
         # Compare against local
         ipaddrs = ipaddr.split(".")
+        do_not_set = False
         if local:
             remotesub = ".".join(ipaddrs[:-1])
             locals = local.split(".")
