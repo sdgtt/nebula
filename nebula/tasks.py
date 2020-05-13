@@ -28,6 +28,24 @@ def gen_config(c):
         print(ex)
 
 
+@task(
+    help={
+        "section": "Section of yaml to update",
+        "field": "Field of section of yaml to update",
+        "value": "New field value. If none if given field is only printed",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def update_config(
+    c, section, field, value=None, yamlfilename="/etc/default/nebula",
+):
+    """ Update or read field of existing yaml config file """
+    h = nebula.helper()
+    h.update_yaml(
+        configfilename=yamlfilename, section=section, field=field, new_value=value
+    )
+
+
 #############################################
 @task(
     help={
@@ -361,6 +379,7 @@ def show_log(c):
 ns = Collection()
 ns.add_task(gen_config)
 ns.add_task(show_log)
+ns.add_task(update_config)
 ns.add_collection(uart)
 ns.add_collection(net)
 ns.add_collection(manager)

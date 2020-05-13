@@ -38,6 +38,42 @@ class helper:
     def __init__(self):
         pass
 
+    def update_yaml(self, configfilename, section, field, new_value):
+        """ Update single field of exist config file """
+
+        if not os.path.isfile(configfilename):
+            raise Exception("Specificied yaml file does not exist")
+        stream = open(configfilename, "r")
+        configs = yaml.safe_load(stream)
+        stream.close()
+        updated = False
+        try:
+            for i, f in enumerate(configs[section]):
+                if field in list(f.keys()):
+                    updated = True
+                    value = configs[section][i][field]
+                    if new_value:
+                        configs[section][i][field] = new_value
+                        print(
+                            "Field",
+                            field,
+                            "in",
+                            section,
+                            "updated from",
+                            value,
+                            "to",
+                            new_value,
+                        )
+                    else:
+                        print(value)
+                    break
+            if not updated:
+                raise
+        except:
+            raise Exception("Field or section does not exist")
+        if new_value:
+            self._write_config_file(configfilename, configs)
+
     def create_config_interactive(self):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
@@ -154,20 +190,22 @@ class helper:
         )
         if not loc:
             loc = LINUX_DEFAULT_PATH
+        self._write_config_file(loc, outconfig)
         # out = os.path.join(head_tail[0], "resources", "out.yaml")
-        out = loc
-        with open(out, "w") as file:
+        print("Pew pew... all set")
+
+    def _write_config_file(self, filename, outconfig):
+        with open(filename, "w") as file:
             documents = yaml.dump(outconfig, file, default_flow_style=False)
 
         # Post process to fix yaml.dump bug where boolean are all lowercase
-        file1 = open(out, "r")
+        file1 = open(filename, "r")
         lines = []
         for line in file1.readlines():
             line = line.replace(": true\n", ": True\n")
             line = line.replace(": false\n", ": False\n")
             lines.append(line)
         file1.close()
-        file1 = open(out, "w")
+        file1 = open(filename, "w")
         file1.writelines(lines)
         file1.close()
-        print("Pew pew... all set")
