@@ -7,3 +7,4 @@ pyvesync_v2
 pysnmp
 xmodem
 click>=7.0
+netifaces
