@@ -28,8 +28,14 @@ class pdu(utils):
         self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
 
         if self.pdu_type == "cyberpower":
+            if not self.pduip:
+                raise Exception("pduip must be set for cyberpower config")
             self.pdu_dev = cpdu.CyberPowerPdu(self.pduip)
         elif self.pdu_type == "vesync":
+            if not self.username:
+                raise Exception("username must be set for vesync config")
+            if not self.password:
+                raise Exception("password must be set for vesync config")
             self.pdu_dev = VeSync(self.username, self.password)
             self.pdu_dev.login()
             self.pdu_dev.update()

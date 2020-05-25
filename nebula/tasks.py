@@ -17,6 +17,42 @@ def load_yaml(filename):
 
 
 #############################################
+@task(
+    help={
+        "pdutype": "Type of PDU used. Current options: cyberpower, vesync",
+        "outlet": "Outlet index of which dev board is connected",
+        "pduip": "IP address of PDU (optional)",
+        "username": "Username of PDU service (optional)",
+        "password": "Password of PDU service (optional)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def power_cycle(
+    c,
+    pdutype,
+    outlet,
+    pduip=None,
+    username=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
+):
+    """ Reboot board with PDU """
+    p = nebula.pdu(
+        pdu_type=pdutype,
+        pduip=pduip,
+        outlet=outlet,
+        username=username,
+        password=password,
+        configfilename=yamlfilename,
+    )
+
+    p.power_cycle_board()
+
+
+pdu = Collection("pdu")
+pdu.add_task(power_cycle)
+
+#############################################
 @task()
 def gen_config(c):
     """ Generate YAML configuration interactively """
@@ -382,4 +418,5 @@ ns.add_task(show_log)
 ns.add_task(update_config)
 ns.add_collection(uart)
 ns.add_collection(net)
+ns.add_collection(pdu)
 ns.add_collection(manager)
