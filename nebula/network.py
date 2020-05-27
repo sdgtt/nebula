@@ -12,21 +12,29 @@ log = logging.getLogger(__name__)
 class network(utils):
     def __init__(
         self,
-        dutip="analog",
-        dutusername="root",
-        dutpassword="analog",
-        dhcp=False,
+        dutip=None,
+        dutusername=None,
+        dutpassword=None,
+        dhcp=None,
         nic=None,
         nicip=None,
         yamlfilename=None,
     ):
-        self.dutip = dutip
-        self.dutusername = dutusername
-        self.dutpassword = dutpassword
-        self.dhcp = dhcp
-        self.nic = nic
-        self.nicip = nicip
+        props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
+        for prop in props:
+            setattr(self, prop, None)
         self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
+        for prop in props:
+            if eval(prop) != None:
+                setattr(self, prop, eval(prop))
+        # Set sane defaults if everything still blank
+        if not self.dutusername:
+            self.dutusername = "root"
+        if not self.dutpassword:
+            self.dutpassword = "analog"
+        if not self.dhcp:
+            self.dhcp = False
 
     def ping_board(self, tries=10):
         """ Ping board and check if any received
@@ -114,7 +122,18 @@ class network(utils):
                 Update boot files on existing card which from remote files
         """
         log.info("Updating boot files over SSH")
-        self.run_ssh_command("mkdir /tmp/sdcard")
+        try:
+            self.run_ssh_command("ls /tmp/sdcard")
+            dir_exists = True
+        except:
+            dir_exists = False
+        if dir_exists:
+            try:
+                self.run_ssh_command("umount /tmp/sdcard")
+            except:
+                pass
+        else:
+            self.run_ssh_command("mkdir /tmp/sdcard")
         self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
         if bootbinpath:
             self.copy_file_to_remote(bootbinpath, "/tmp/sdcard/")
