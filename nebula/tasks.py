@@ -24,6 +24,7 @@ def load_yaml(filename):
         "board": "Name of development board",
         "def_config": "Kernel def config",
         "githuborg": "Github organization string. Default to analogdevicesinc",
+        "vivado_version": "Vivado version (ex: 2018.2). Defaults to determine from source/release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -35,9 +36,13 @@ def repo(
     board=None,
     def_config=None,
     githuborg="analogdevicesinc",
+    vivado_version=None,
 ):
     """ Clone and build git project """
+    if vivado_version=="Inherit":
+        vivado_version = None
     p = nebula.builder()
+    p.vivado_override = vivado_version
     p.analog_clone_build(
         repo,
         branch,

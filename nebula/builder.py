@@ -7,6 +7,8 @@ import time
 
 
 class builder:
+    vivado_override = None
+
     def __init__(self):
         pass
 
@@ -82,14 +84,17 @@ class builder:
         return def_conf
 
     def linux_tools_map(self, branch, board):
-        if "2018_r2" in branch.lower() or "2018.2" in branch.lower():
-            vivado = "2018.2"
-        elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
-            vivado = "2018.3"
-        elif branch == "master":
-            vivado = "2019.1"
+        if self.vivado_override:
+            vivado = self.vivado_override
         else:
-            raise Exception("Unsupported branch")
+            if "2018_r2" in branch.lower() or "2018.2" in branch.lower():
+                vivado = "2018.2"
+            elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
+                vivado = "2018.3"
+            elif branch == "master":
+                vivado = "2019.1"
+            else:
+                raise Exception("Unsupported branch")
         if "zcu102" in board.lower():
             arch = "arm64"
             cc = "aarch64-linux-gnu-"
