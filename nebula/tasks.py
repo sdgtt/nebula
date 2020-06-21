@@ -15,6 +15,40 @@ def load_yaml(filename):
     stream.close()
     return configs
 
+#############################################
+@task(
+    help={
+        "repo": "Name of repo",
+        "branch": "Git branch name. Default is master",
+        "project": "Name of HDL project",
+        "board": "Name of development board",
+        "def_config": "Kernel def config",
+        "githuborg": "Github organization string. Default to analogdevicesinc",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+    },
+)
+def repo(
+    c,
+    repo,
+    branch="master",
+    project=None,
+    board=None,
+    def_config=None,
+    githuborg="analogdevicesinc",
+):
+    """ Clone and build git project """
+    p = nebula.builder()
+    p.analog_clone_build(
+        repo,
+        branch,
+        project,
+        board,
+        def_config,
+        githuborg,
+    )
+
+builder = Collection("build")
+builder.add_task(repo)
 
 #############################################
 @task(
@@ -416,6 +450,7 @@ ns = Collection()
 ns.add_task(gen_config)
 ns.add_task(show_log)
 ns.add_task(update_config)
+ns.add_collection(builder)
 ns.add_collection(uart)
 ns.add_collection(net)
 ns.add_collection(pdu)
