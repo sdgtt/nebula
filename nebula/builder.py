@@ -4,7 +4,9 @@ import os
 import shutil
 import subprocess
 import time
+import logging
 
+log = logging.getLogger(__name__)
 
 class builder:
     vivado_override = None
@@ -14,11 +16,11 @@ class builder:
 
     def shell_out(self, cmd):
         cmd = cmd.split(" ")
-        print(cmd)
+        logging.info("Running command: "+cmd)
         subprocess.run(cmd)
 
     def shell_out2(self, script):
-        print(script)
+        logging.info("Running command: "+script)
         p = subprocess.Popen(script, shell=True, executable="/bin/bash")
         (output, err) = p.communicate()
         # return output.decode("utf-8")
@@ -49,6 +51,7 @@ class builder:
         raise Exception("REQUIRED_VIVADO_VERSION not found in repo")
 
     def uboot_build(self, dir, def_config=None, branch="2018_R2", board="zed"):
+        logging.info("Starting u-boot build")
         os.chdir(dir)
         if not def_config:
             def_config = self.def_config_map(board)
@@ -64,6 +67,7 @@ class builder:
         self.shell_out2(cmd)
 
     def hdl_build(self, dir, project, board):
+        logging.info("Starting HDL build for project: "+project+" board: "+board)
         os.chdir(dir)
         vivado = self.add_vivado_path(dir)
         args = "--no-print-directory"
@@ -113,6 +117,7 @@ class builder:
         return (cc, arch, vivado)
 
     def linux_build(self, dir, branch="2018_R2", board="zed"):
+        logging.info("Starting Linux build")
         os.chdir(dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
         vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
@@ -156,6 +161,7 @@ class builder:
         self.shell_out(cmd)
 
     def create_zynq_bif(self, hdf_filename, build_dir):
+        logging.info("Constructing zynq-bif")
         pwd = os.getcwd()
         os.chdir(build_dir)
         ### Create zynq.bif file used by bootgen
@@ -172,6 +178,7 @@ class builder:
         os.chdir(pwd)
 
     def create_zynqmp_bif(self, hdf_filename, build_dir):
+        logging.info("Constructing zynqmp-bif")
         pwd = os.getcwd()
         os.chdir(build_dir)
         ### Create zynq.bif file used by bootgen
@@ -190,6 +197,7 @@ class builder:
         os.chdir(pwd)
 
     def create_pmufw_project(self, hdf_filename, build_dir):
+        logging.info("Constructing pmufw project")
         pwd = os.getcwd()
         os.chdir(build_dir)
         ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
@@ -205,6 +213,7 @@ class builder:
         os.chdir(pwd)
 
     def create_fsbl_project(self, hdf_filename, build_dir):
+        logging.info("Constructing fsbl project")
         pwd = os.getcwd()
         os.chdir(build_dir)
         ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
@@ -226,6 +235,7 @@ class builder:
         os.chdir(pwd)
 
     def create_zmp_fsbl_project(self, hdf_filename, build_dir):
+        logging.info("Constructing zmp-fsbl project")
         pwd = os.getcwd()
         os.chdir(build_dir)
         ### Create create_fsbl_project.tcl file used by xsdk to create the fsbl
@@ -247,6 +257,7 @@ class builder:
         os.chdir(pwd)
 
     def build_fsbl(self, build_dir, branch, board):
+        logging.info("Building fsbl")
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
@@ -257,6 +268,7 @@ class builder:
         os.chdir(pwd)
 
     def build_pmufw(self, build_dir, branch, board):
+        logging.info("Building pmufw")
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
@@ -274,6 +286,7 @@ class builder:
         os.chdir(pwd)
 
     def build_zmp_fsbl(self, build_dir, branch, board):
+        logging.info("Building zmp-fsbl")
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
@@ -284,6 +297,7 @@ class builder:
         os.chdir(pwd)
 
     def build_atf(self, build_dir, branch, board):
+        logging.info("Building atf")
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
@@ -297,6 +311,7 @@ class builder:
         os.chdir(pwd)
 
     def build_bootbin(self, build_dir, branch, board, archbg="zynq"):
+        logging.info("Building BOOT.BIN")
         pwd = os.getcwd()
         os.chdir(build_dir)
         cc, arch, vivado_version = self.linux_tools_map(branch, board)
