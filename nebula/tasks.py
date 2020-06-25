@@ -3,6 +3,7 @@ from invoke import task
 import nebula
 import logging
 import time
+import yaml
 
 logging.getLogger().setLevel(logging.WARNING)
 
@@ -14,6 +15,19 @@ def load_yaml(filename):
     configs = yaml.safe_load(stream)
     stream.close()
     return configs
+
+
+#############################################
+@task(help={"release": "Name of release to download. Default is 2019_R1",},)
+def download_sdcard(c, release="2019_R1"):
+    """ Download, verify, and decompress SD card image """
+    d = nebula.downloader()
+    d.download_sdcard_release(release)
+
+
+dl = Collection("dl")
+dl.add_task(download_sdcard, "sdcard")
+
 
 #############################################
 @task(
@@ -39,18 +53,14 @@ def repo(
     vivado_version=None,
 ):
     """ Clone and build git project """
-    if vivado_version=="Inherit":
+    if vivado_version == "Inherit":
         vivado_version = None
     p = nebula.builder()
     p.vivado_override = vivado_version
     p.analog_clone_build(
-        repo,
-        branch,
-        project,
-        board,
-        def_config,
-        githuborg,
+        repo, branch, project, board, def_config, githuborg,
     )
+
 
 builder = Collection("build")
 builder.add_task(repo)
@@ -460,3 +470,4 @@ ns.add_collection(uart)
 ns.add_collection(net)
 ns.add_collection(pdu)
 ns.add_collection(manager)
+ns.add_collection(dl)
