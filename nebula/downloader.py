@@ -1,12 +1,8 @@
-import urllib.request
 import requests
-import tarfile
 import lzma
 from tqdm import tqdm
 import pathlib
-import tempfile
 import hashlib
-import time
 import os
 
 
