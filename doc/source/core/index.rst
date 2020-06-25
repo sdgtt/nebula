@@ -7,8 +7,8 @@ Components
 .. toctree::
 
    nebula.builder
-   nebula.common
    nebula.cyberpower
+   nebula.downloader
    nebula.driver
    nebula.manager
    nebula.netconsole

@@ -4,8 +4,10 @@ Docstring:
   Set board to use DHCP for networking from UART connection 
 
 Options:
-  -a STRING, --address=STRING        UART device address (/dev/ttyACMO).
-                                     Defaults to auto. Overrides yaml
+  -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a
+                                     yaml config exist is will override, if no
+                                     yaml file exists and no address provided
+                                     auto is used
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:

@@ -1,0 +1,8 @@
+Usage: nebula [--core-opts] dl.sdcard [--options] [other tasks here ...]
+
+Docstring:
+  Download, verify, and decompress SD card image 
+
+Options:
+  -r STRING, --release=STRING   Name of release to download. Default is 2019_R1
+

@@ -1,7 +1,7 @@
-Usage: nebula [--core-opts] uart.get-ip [--options] [other tasks here ...]
+Usage: nebula [--core-opts] uart.restart-board [--options] [other tasks here ...]
 
 Docstring:
-  Get IP of DUT from UART connection 
+  Reboot DUT from UART connection assuming Linux is accessible
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a

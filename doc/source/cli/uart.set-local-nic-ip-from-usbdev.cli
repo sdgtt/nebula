@@ -1,7 +1,7 @@
-Usage: nebula [--core-opts] uart.get-ip [--options] [other tasks here ...]
+Usage: nebula [--core-opts] uart.set-local-nic-ip-from-usbdev [--options] [other tasks here ...]
 
 Docstring:
-  Get IP of DUT from UART connection 
+  Set IP of virtual NIC created from DUT based on found MAC 
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a

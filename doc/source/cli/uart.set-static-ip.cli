@@ -4,8 +4,10 @@ Docstring:
   Set Static IP address of board of DUT from UART connection 
 
 Options:
-  -a STRING, --address=STRING        UART device address (/dev/ttyACMO).
-                                     Defaults to auto. Overrides yaml
+  -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a
+                                     yaml config exist is will override, if no
+                                     yaml file exists and no address provided
+                                     auto is used
   -i STRING, --ip=STRING             IP Address to set NIC to
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0

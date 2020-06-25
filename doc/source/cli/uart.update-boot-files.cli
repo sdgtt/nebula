@@ -4,13 +4,17 @@ Docstring:
   Update boot files through u-boot menu (Assuming board is running) 
 
 Options:
-  -a STRING, --address=STRING        UART device address (/dev/ttyACMO).
-                                     Overrides yaml
-  -b STRING, --bootbinpath=STRING    Path to BOOT.BIN.
-  -d STRING, --devtreepath=STRING    Path to devicetree.
-  -r, --reboot                       Reboot board from linux console to get to
-                                     u-boot menu. Defaut False
-  -u STRING, --uimagepath=STRING     Path to kernel image.
-  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
-                                     /etc/default/nebula
+  -a STRING, --address=STRING                   UART device address
+                                                (/dev/ttyACMO). If a yaml
+                                                config exist is will override,
+                                                if no yaml file exists and no
+                                                address provided auto is used
+  -d STRING, --devtreepath=STRING               Path to devicetree.
+  -r, --reboot                                  Reboot board from linux console
+                                                to get to u-boot menu. Defaut
+                                                False
+  -s STRING, --system-top-bit-filename=STRING
+  -u STRING, --uimagepath=STRING                Path to kernel image.
+  -y STRING, --yamlfilename=STRING              Path to yaml config file.
+                                                Default: /etc/default/nebula
 

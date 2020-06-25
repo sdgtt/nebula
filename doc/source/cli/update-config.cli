@@ -1,0 +1,13 @@
+Usage: nebula [--core-opts] update-config [--options] [other tasks here ...]
+
+Docstring:
+  Update or read field of existing yaml config file 
+
+Options:
+  -f STRING, --field=STRING          Field of section of yaml to update
+  -s STRING, --section=STRING        Section of yaml to update
+  -v STRING, --value=STRING          New field value. If none if given field is
+                                     only printed
+  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
+                                     /etc/default/nebula
+

@@ -1,0 +1,16 @@
+Usage: nebula [--core-opts] pdu.power-cycle [--options] [other tasks here ...]
+
+Docstring:
+  Reboot board with PDU 
+
+Options:
+  -a STRING, --password=STRING       Password of PDU service (optional)
+  -d STRING, --pduip=STRING          IP address of PDU (optional)
+  -o STRING, --outlet=STRING         Outlet index of which dev board is
+                                     connected
+  -p STRING, --pdutype=STRING        Type of PDU used. Current options:
+                                     cyberpower, vesync
+  -u STRING, --username=STRING       Username of PDU service (optional)
+  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
+                                     /etc/default/nebula
+
