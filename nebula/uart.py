@@ -374,19 +374,23 @@ class uart(utils):
             time.sleep(1)
         return data
 
-    def _read_until_done(self, done_string="done"):
+    def _read_until_done(self, done_string="done", max_time=None):
         data = []
-        for k in range(self.max_read_time):
+        mt = max_time if max_time else self.max_read_time
+        for k in range(mt):
             data = self._read_until_stop()
             if isinstance(data, list):
                 for d in data:
                     if done_string in d:
                         logging.info("done found in data")
-                        return
+                        return True
             elif done_string in data:
                 logging.info("done found in data")
-                return
+                return True
+            else:
+                logging.info("Still waiting")
             time.sleep(1)
+        return False
 
     def _check_for_string_console(self, console_out, string):
         for d in console_out:
@@ -398,6 +402,17 @@ class uart(utils):
                     if string in c:
                         return True
         return False
+
+    def _wait_for_boot_complete_linaro(self, done_string="Welcome to Linaro 14.04"):
+        """ Wait for Linux to boot by waiting for Welcome message """
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        out = self._read_until_done(done_string=done_string, max_time=60)
+        if restart:
+            self.start_log(logappend=True)
+        return out
 
     def _enter_uboot_menu_from_power_cycle(self):
         log.info("Spamming ENTER to get UART console")
