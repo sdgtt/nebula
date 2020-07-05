@@ -5,6 +5,8 @@ import os
 
 
 class coverage:
+    """ Test coverage management """
+
     def __init__(self, address="192.168.86.33", username="root", password="analog"):
         self.address = address
         self.conn = Connection(
@@ -13,24 +15,25 @@ class coverage:
         )
         self.unpacked = None
 
-    def crun(self, cmd):
+    def _crun(self, cmd):
         print(cmd)
         result = self.conn.run(cmd)
         print(result)
         print(result.stdout)
 
-    def lrun(self, cmd):
+    def _lrun(self, cmd):
         print(cmd)
         result = self.conn.local(cmd)
         print(result)
         print(result.stdout)
 
     def collect_gcov_trackers(self):
+        """ Collect gcov traces from remote board """
         tmp_folder = "".join(random.choice(string.ascii_lowercase) for i in range(16))
         tmp_folder = "/tmp/" + tmp_folder
         GCDA = "/sys/kernel/debug/gcov"
         cmd = "find " + GCDA + " -type d -exec mkdir -p " + tmp_folder + "/\{\} \;"
-        self.crun(cmd)
+        self._crun(cmd)
         cmd = (
             "find "
             + GCDA
@@ -38,7 +41,7 @@ class coverage:
             + tmp_folder
             + "'/$0' {} \;"
         )
-        self.crun(cmd)
+        self._crun(cmd)
         cmd = (
             "find "
             + GCDA
@@ -46,27 +49,28 @@ class coverage:
             + tmp_folder
             + "'/$0' {} \;"
         )
-        self.crun(cmd)
+        self._crun(cmd)
         dest = (
             "".join(random.choice(string.ascii_lowercase) for i in range(16))
             + ".tar.gz"
         )
         cmd = "tar czf " + dest + " -C " + tmp_folder + " sys"
-        self.crun(cmd)
+        self._crun(cmd)
         self.conn.get(dest)
         # Unpack
         self.unpacked = os.getcwd() + "/out"
-        self.lrun("mkdir " + self.unpacked)
-        self.lrun("tar xvf " + dest + " -C " + self.unpacked + "/")
-        self.lrun("rm " + dest)
+        self._lrun("mkdir " + self.unpacked)
+        self._lrun("tar xvf " + dest + " -C " + self.unpacked + "/")
+        self._lrun("rm " + dest)
 
     def gen_lcov_html_report(self, linux_build_dir):
+        """ Generate lcov report from linux build dir and gcov traces """
         report = os.getcwd() + "/report"
         cmd = "lcov -b " + linux_build_dir + " -c -d " + self.unpacked + " > " + report
-        self.lrun(cmd)
+        self._lrun(cmd)
         html = self.unpacked = os.getcwd() + "/html/"
         cmd = "genhtml -o " + html + " " + report
-        self.lrun(cmd)
+        self._lrun(cmd)
         print("Generated HTML is located here", html)
 
 
