@@ -5,6 +5,9 @@ Subcommands:
   update-config                       Update or read field of existing yaml
                                       config file
   build.repo                          Clone and build git project
+  coverage.kernel                     Collect DUT gcov kernel logs and generate
+                                      html report (Requires lcov to be
+                                      installed locally)
   dl.sdcard                           Download, verify, and decompress SD card
                                       image
   manager.update-boot-files           Update boot files through u-boot menu

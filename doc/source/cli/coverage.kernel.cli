@@ -1,0 +1,12 @@
+Usage: nebula [--core-opts] coverage.kernel [--options] [other tasks here ...]
+
+Docstring:
+  Collect DUT gcov kernel logs and generate html report (Requires lcov to be installed locally) 
+
+Options:
+  -i STRING, --ip=STRING                IP address of board with gcov enabled
+                                        kernel
+  -l STRING, --linux-build-dir=STRING
+  -p STRING, --password=STRING          Password of DUT. Defaults to analog
+  -u STRING, --username=STRING          Username of DUT. Defaults to root
+
