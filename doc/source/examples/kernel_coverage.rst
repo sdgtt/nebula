@@ -50,3 +50,7 @@ Once the remote kernel is booted and tests have been run. To collect the gcov tr
 
 
 This will create a directory called **html** with the generated html report.
+
+.. note::
+
+  For the reports to be generated correctly the necessary compiler must be on path which was used to build the kernel and lcov must be installed.
