@@ -58,6 +58,7 @@ class coverage:
         self.unpacked = os.getcwd() + "/out"
         self.lrun("mkdir " + self.unpacked)
         self.lrun("tar xvf " + dest + " -C " + self.unpacked + "/")
+        self.lrun("rm " + dest)
 
     def gen_lcov_html_report(self, linux_build_dir):
         report = os.getcwd() + "/report"

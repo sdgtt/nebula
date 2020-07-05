@@ -18,6 +18,26 @@ def load_yaml(filename):
 
 
 #############################################
+@task(
+    help={
+        "ip": "IP address of board with gcov enabled kernel",
+        "linux_build_dir": "Build directory of kernel",
+        "username": "Username of DUT. Defaults to root",
+        "password": "Password of DUT. Defaults to analog",
+    },
+)
+def kernel_cov(c, ip, linux_build_dir, username, password):
+    """ Collect DUT gcov kernel logs and generate html report (Requires lcov to be installed locally) """
+    cov = nebula.coverage(ip, username, password)
+    cov.collect_gcov_trackers()
+    cov.gen_lcov_html_report(linux_build_dir)
+
+
+cov = Collection("coverage")
+cov.add_task(kernel_cov, "kernel")
+
+
+#############################################
 @task(help={"release": "Name of release to download. Default is 2019_R1",},)
 def download_sdcard(c, release="2019_R1"):
     """ Download, verify, and decompress SD card image """
@@ -465,9 +485,11 @@ ns = Collection()
 ns.add_task(gen_config)
 ns.add_task(show_log)
 ns.add_task(update_config)
+
 ns.add_collection(builder)
 ns.add_collection(uart)
 ns.add_collection(net)
 ns.add_collection(pdu)
 ns.add_collection(manager)
 ns.add_collection(dl)
+ns.add_collection(cov)
