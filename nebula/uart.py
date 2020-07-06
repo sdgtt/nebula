@@ -4,6 +4,7 @@ import logging
 import threading
 import time
 import glob
+from tqdm import tqdm
 
 import serial
 from nebula.common import utils
@@ -160,7 +161,13 @@ class uart(utils):
         f = open(filename, "rb")
         total = len(f.read()) // 128
         f.close()
-        with open(filename, "rb") as infile:
+        with open(filename, "rb") as infile, tqdm(
+            desc="Sending: " + filename,
+            total=total,
+            unit="iB",
+            unit_scale=True,
+            unit_divisor=1024,
+        ) as bar:
             ser = self.com
 
             def putc(data, timeout=1):
@@ -170,7 +177,8 @@ class uart(utils):
                 return ser.read(size) or None
 
             def callback(total_packets, success_count, error_count):
-                if total_packets % 1000 == 0:
+                bar.update(1)
+                if False:#total_packets % 1000 == 0:
                     print(
                         "total_packets {}, success_count {}, error_count {}, total {}".format(
                             total_packets, success_count, error_count, total
