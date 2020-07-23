@@ -26,7 +26,7 @@ def load_yaml(filename):
         "password": "Password of DUT. Defaults to analog",
     },
 )
-def kernel_cov(c, ip, linux_build_dir, username, password):
+def kernel_cov(c, ip, linux_build_dir, username="root", password="analog"):
     """ Collect DUT gcov kernel logs and generate html report (Requires lcov to be installed locally) """
     cov = nebula.coverage(ip, username, password)
     cov.collect_gcov_trackers()
