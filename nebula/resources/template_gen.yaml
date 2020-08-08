@@ -11,17 +11,22 @@
 
 board-config:
   field_1:
+    name: board-name
+    default: zynq-zc706-adv7511-fmcdaq2
+    help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD"
+    optional: False
+  field_2:
     name: reference-boot-folder
     default: zynq-zc706-adv7511-fmcdaq2
     help: "Folder name where reference boot files exit for specific board"
     optional: False
-  field_2:
+  field_3:
     name: monitoring-interface
     default: uart
     help: "Select monitoring interface"
     options: [uart,netconsole]
     optional: False
-  field_3:
+  field_4:
     name: iio_device_names
     default: ['axi-ad9144-hpc','axi-ad9680-hpc']
     help: "List of IIO devices on board"
