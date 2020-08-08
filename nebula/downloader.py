@@ -6,25 +6,39 @@ import hashlib
 import os
 import csv
 import yaml
+import shutil
 
 
 class downloader:
     def __init__(self):
         pass
 
-    def _get_files(self, design_name, details):
+    def _get_file(self, filename, source, source_root):
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        if source == "local_fs":
+            src = os.path.join(source_root, filename)
+            shutil.copy(src, dest)
+        else:
+            raise Exception("Unknown file source")
+
+    def _get_files(self, design_name, details, source, source_root):
         firmware = False
         kernel = False
+        kernel_root = False
         dt = False
 
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
+            kernel_root = "zynqmp-common"
             dt = "system.dtb"
         elif (
             details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
             or "ADRV936" in details["carrier"]
         ):
             kernel = "uImage"
+            kernel_root = "zynq-common"
             dt = "devicetree.dtb"
         elif "PLUTO" in details["carrier"]:
             firmware = True
@@ -35,18 +49,24 @@ class downloader:
             # Get firmware
             print("Get firmware")
         else:
+            kernel_root = os.path.join(source_root, kernel_root)
+            source_root = os.path.join(source_root, design_name)
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
-
+            self._get_file(kernel, source, kernel_root)
             # Get BOOT.BIN
-
+            self._get_file("BOOT.BIN", source, source_root)
             # Get device tree
             print("Get", dt)
-
+            self._get_file(dt, source, source_root)
             # Get support files (bootgen_sysfiles.tgz)
+            print("Get support")
+            self._get_file("bootgen_sysfiles.tgz", source, source_root)
 
-    def download_boot_files(self, design_name):
+    def download_boot_files(
+        self, design_name, source="local_fs", source_root="/var/lib/tftpboot"
+    ):
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "board_table.yaml")
         with open(res) as f:
@@ -54,7 +74,7 @@ class downloader:
 
         assert design_name in board_configs, "Invalid design name"
 
-        self._get_files(design_name, board_configs[design_name])
+        self._get_files(design_name, board_configs[design_name], source, source_root)
 
     def download_sdcard_release(self, release="2019_R1"):
         rel = self.releases(release)
@@ -138,4 +158,4 @@ class downloader:
 if __name__ == "__main__":
     d = downloader()
     # d.download_sdcard_release()
-    d.download_boot_files("zynqmp-zcu102-rev10-adrv9375")
+    d.download_boot_files("zynqmp-zcu102-rev10-adrv9371")
