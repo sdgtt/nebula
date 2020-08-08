@@ -2,6 +2,7 @@ import yaml
 import os
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
+WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
 
 class utils:
@@ -12,7 +13,7 @@ class utils:
                 if os.path.exists(LINUX_DEFAULT_PATH):
                     filename = LINUX_DEFAULT_PATH
                 else:
-                    return
+                    filename = WINDOWS_DEFAULT_PATH
             else:
                 return
         if not os.path.exists(filename):

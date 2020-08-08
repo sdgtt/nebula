@@ -183,13 +183,18 @@ class helper:
                     break
         # Output
         LINUX_DEFAULT_PATH = "/etc/default/nebula"
+        WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
+        if os.name == "nt" or os.name == "posix":
+            if os.path.exists(LINUX_DEFAULT_PATH):
+                NEB_PATH = LINUX_DEFAULT_PATH
+            else:
+                NEB_PATH = WINDOWS_DEFAULT_PATH
+
         loc = input(
-            "Output config file (this not just a folder) [{}] : ".format(
-                LINUX_DEFAULT_PATH
-            )
+            "Output config file (this not just a folder) [{}] : ".format(NEB_PATH)
         )
         if not loc:
-            loc = LINUX_DEFAULT_PATH
+            loc = NEB_PATH
         self._write_config_file(loc, outconfig)
         # out = os.path.join(head_tail[0], "resources", "out.yaml")
         print("Pew pew... all set")
