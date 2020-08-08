@@ -1,0 +1,236 @@
+socfpga_arria10_socdk_ad9172_fmc:
+  addons:
+  - EVAL-AD9172
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_adrv9009:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_adrv9371:
+  addons:
+  - EVAL-ADRV9371
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_daq2:
+  addons:
+  - AD-FMCDAQ2-EBZ
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_fmclidar1:
+  addons:
+  - AD-FMCLIDAR1-EBZ
+  carrier: DK-SOC-10AS066S-A
+socfpga_cyclone5_sockit_arradio:
+  addons:
+  - Arradio board
+  carrier: Intel Cyclone 5 SoC Kit
+zynq-adrv9361-z7035-bob:
+  addons:
+  - ADRV9361
+  carrier: ADRV1CRR-BOB
+zynq-adrv9361-z7035-bob-cmos:
+  addons:
+  - ADRV9361
+  carrier: ADRV1CRR-BOB
+zynq-adrv9361-z7035-fmc:
+  addons:
+  - ADRV9361
+  carrier: ADRV1CRR-FMC
+zynq-adrv9361-z7035-packrf:
+  addons:
+  - ADRV9361
+  carrier: ADRV-PACKRF
+zynq-adrv9364-z7020-bob:
+  addons:
+  - ADRV9364
+  carrier: ADRV1CRR-BOB
+zynq-adrv9364-z7020-bob-cmos:
+  addons:
+  - ADRV9364
+  carrier: ADRV1CRR-BOB
+zynq-adrv9364-z7020-packrf:
+  addons:
+  - ADRV9364
+  carrier: ADRV1CRR-BOX
+zynq-zc702-adv7511:
+  carrier: ZC702
+zynq-zc702-adv7511-ad9361-fmcomms2-3:
+  addons:
+  - AD-FMCOMMS2-EBZ
+  - AD-FMCOMMS3-EBZ
+  carrier: ZC702
+zynq-zc702-adv7511-ad9361-fmcomms5:
+  addons:
+  - AD-FMCOMMS5-EBZ
+  carrier: ZC702
+zynq-zc702-adv7511-ad9364-fmcomms4:
+  addons:
+  - AD-FMCOMMS4-EBZ
+  carrier: ZC702
+zynq-zc706-adv7511:
+  carrier: ZC706
+zynq-zc706-adv7511-ad6676-fmc:
+  addons:
+  - AD6676-FMC-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9172-fmc-ebz:
+  addons:
+  - AD9172-FMC-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9265-fmc-125ebz:
+  addons:
+  - AD9265-FMC-125EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9361-fmcomms2-3:
+  addons:
+  - AD-FMCOMMS2-EBZ
+  - AD-FMCOMMS3-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9361-fmcomms5:
+  addons:
+  - AD-FMCOMMS5-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9361-fmcomms5-ext-lo-adf5355:
+  addons:
+  - AD-FMCOMMS5-EBZ external LO
+  carrier: ZC706
+zynq-zc706-adv7511-ad9364-fmcomms4:
+  addons:
+  - AD-FMCOMMS4-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9434-fmc-500ebz:
+  addons:
+  - AD9434-FMC-500EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9625-fmcadc2:
+  addons:
+  - AD-FMCADC2-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9625-fmcadc3:
+  addons:
+  - AD-FMCADC3-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9739a-fmc:
+  addons:
+  - EVAL-AD9739A
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9008-1:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9008-2:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9009:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9371:
+  addons:
+  - ADRV9371
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9375:
+  addons:
+  - ADRV9375
+  carrier: ZC706
+zynq-zc706-adv7511-fmcdaq2:
+  addons:
+  - AD-FMCDAQ2-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-fmcdaq3-revC:
+  addons:
+  - AD-FMCDAQ3-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-fmcjesdadc1:
+  addons:
+  - AD-FMCJESDADC1-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-fmclidar1:
+  addons:
+  - AD-FMCLIDAR1-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-fmcomms11:
+  addons:
+  - AD-FMCOMMS11-EBZ
+  carrier: ZC706
+zynq-zed-adv7511:
+  carrier: Zed-Board
+zynq-zed-adv7511-ad9361-fmcomms2-3:
+  addons:
+  - AD-FMCOMMS2-EBZ
+  - AD-FMCOMMS3-EBZ
+  carrier: Zed-Board
+zynq-zed-adv7511-ad9364-fmcomms4:
+  addons:
+  - AD-FMCOMMS4-EBZ
+  carrier: Zed-Board
+zynq-zed-adv7511-ad9467-fmc-250ebz:
+  addons:
+  - AD9467-FMC-250EBZ
+  carrier: Zed-Board
+zynq-zed-adv7511-cn0363:
+  addons:
+  - EVAL-CN0363-PMDZ
+  carrier: Zed-Board
+zynq-zed-imageon:
+  addons:
+  - FMC-IMAGEON
+  carrier: Zed-Board
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb:
+  addons:
+  - ADRV9009-ZU11EG
+  carrier: ADRV2CRR-FMC
+zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4:
+  addons:
+  - EVAL-AD9172
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9361-fmcomms2-3:
+  addons:
+  - AD-FMCOMMS2-EBZ
+  - AD-FMCOMMS3-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9361-fmcomms5:
+  addons:
+  - AD-FMCOMMS5-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9364-fmcomms4:
+  addons:
+  - AD-FMCOMMS4-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9002:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9008-1:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9008-2:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9009:
+  addons:
+  - EVAL-ADRV9008-9009
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9371:
+  addons:
+  - ADRV9371
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9375:
+  addons:
+  - ADRV9375
+  carrier: ZCU102
+zynqmp-zcu102-rev10-fmcdaq2:
+  addons:
+  - AD-FMCDAQ2-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-fmcdaq3:
+  addons:
+  - AD-FMCDAQ3-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-fmclidar1:
+  addons:
+  - AD-FMCLIDAR1-EBZ
+  carrier: ZCU102
+pluto:
+  carrier: ADALM-PLUTO

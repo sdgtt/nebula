@@ -4,11 +4,57 @@ from tqdm import tqdm
 import pathlib
 import hashlib
 import os
+import csv
+import yaml
 
 
 class downloader:
     def __init__(self):
         pass
+
+    def _get_files(self, design_name, details):
+        firmware = False
+        kernel = False
+        dt = False
+
+        if details["carrier"] in ["ZCU102"]:
+            kernel = "Image"
+            dt = "system.dtb"
+        elif (
+            details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
+            or "ADRV936" in details["carrier"]
+        ):
+            kernel = "uImage"
+            dt = "devicetree.dtb"
+        elif "PLUTO" in details["carrier"]:
+            firmware = True
+        else:
+            raise Exception("Carrier not supported")
+
+        if firmware:
+            # Get firmware
+            print("Get firmware")
+        else:
+            print("Get standard boot files")
+            # Get kernel
+            print("Get", kernel)
+
+            # Get BOOT.BIN
+
+            # Get device tree
+            print("Get", dt)
+
+            # Get support files (bootgen_sysfiles.tgz)
+
+    def download_boot_files(self, design_name):
+        path = pathlib.Path(__file__).parent.absolute()
+        res = os.path.join(path, "resources", "board_table.yaml")
+        with open(res) as f:
+            board_configs = yaml.load(f, Loader=yaml.FullLoader)
+
+        assert design_name in board_configs, "Invalid design name"
+
+        self._get_files(design_name, board_configs[design_name])
 
     def download_sdcard_release(self, release="2019_R1"):
         rel = self.releases(release)
@@ -91,4 +137,5 @@ class downloader:
 
 if __name__ == "__main__":
     d = downloader()
-    d.download_sdcard_release()
+    # d.download_sdcard_release()
+    d.download_boot_files("zynqmp-zcu102-rev10-adrv9375")
