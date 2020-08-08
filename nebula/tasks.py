@@ -4,10 +4,18 @@ import nebula
 import logging
 import time
 import yaml
+import os
 
 logging.getLogger().setLevel(logging.WARNING)
 
-DEFAULT_NEBULA_CONFIG = "/etc/default/nebula"
+LINUX_DEFAULT_PATH = "/etc/default/nebula"
+WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
+
+if os.name == "nt" or os.name == "posix":
+    if os.path.exists(LINUX_DEFAULT_PATH):
+        DEFAULT_NEBULA_CONFIG = LINUX_DEFAULT_PATH
+    else:
+        DEFAULT_NEBULA_CONFIG = WINDOWS_DEFAULT_PATH
 
 
 def load_yaml(filename):
@@ -138,11 +146,11 @@ def gen_config(c):
         "section": "Section of yaml to update",
         "field": "Field of section of yaml to update",
         "value": "New field value. If none if given field is only printed",
-        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "yamlfilename": "Path to yaml config file. Default: OS_SPECIFIC",
     },
 )
 def update_config(
-    c, section, field, value=None, yamlfilename="/etc/default/nebula",
+    c, section, field, value=None, yamlfilename=DEFAULT_NEBULA_CONFIG,
 ):
     """ Update or read field of existing yaml config file """
     h = nebula.helper()
