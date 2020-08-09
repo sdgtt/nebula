@@ -53,8 +53,18 @@ def download_sdcard(c, release="2019_R1"):
     d.download_sdcard_release(release)
 
 
+@task(
+    help={"design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",},
+)
+def download_boot_files(c, design_name):
+    """ Download, verify, and decompress SD card image """
+    d = nebula.downloader()
+    d.download_boot_files(design_name)
+
+
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
+dl.add_task(download_boot_files, "bootfiles")
 
 
 #############################################
