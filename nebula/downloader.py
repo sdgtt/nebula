@@ -35,7 +35,7 @@ class downloader:
             dt = "system.dtb"
         elif (
             details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
-            or "ADRV936" in details["carrier"]
+            or "ADRV936" in design_name.upper()
         ):
             kernel = "uImage"
             kernel_root = "zynq-common"
@@ -158,4 +158,4 @@ class downloader:
 if __name__ == "__main__":
     d = downloader()
     # d.download_sdcard_release()
-    d.download_boot_files("zynqmp-zcu102-rev10-adrv9371")
+    d.download_boot_files("zynq-adrv9361-z7035-fmc")
