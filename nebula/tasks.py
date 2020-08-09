@@ -54,12 +54,18 @@ def download_sdcard(c, release="2019_R1"):
 
 
 @task(
-    help={"design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",},
+    help={
+        "design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
+        "source": "Boot file download source. Options are: local_fs, artifactory, remote.\nDefault: local_fs",
+        "source_root": "Location of source boot files. Dependent on source. Default: /var/lib/tftpboot",
+    },
 )
-def download_boot_files(c, design_name):
+def download_boot_files(
+    c, design_name, source="local_fs", source_root="/var/lib/tftpboot"
+):
     """ Download, verify, and decompress SD card image """
     d = nebula.downloader()
-    d.download_boot_files(design_name)
+    d.download_boot_files(design_name, source, source_root)
 
 
 dl = Collection("dl")
