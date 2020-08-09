@@ -1,6 +1,8 @@
 import logging
 import os
 import time
+import glob
+import tarfile
 
 import yaml
 from nebula.driver import driver
@@ -206,6 +208,59 @@ class manager:
         # Stop and collect logs
         for mon in self.monitor:
             mon.stop_log()
+
+    def _find_boot_files(self, folder):
+        if not os.path.isdir(folder):
+            raise Exception("Boot files folder not found")
+        src = os.path.join(folder, "*")
+        files = os.listdir(folder)
+        if "BOOT.BIN" not in files:
+            raise Exception("BOOT.BIN not found")
+        if "devicetree.dtb" not in files:
+            if "system.dtb" not in files:
+                raise Exception("Device tree not found")
+            else:
+                dt = "system.dtb"
+        else:
+            dt = "devicetree.dtb"
+        if "uImage" not in files:
+            if "Image" not in files:
+                raise Exception("kernel not found")
+            else:
+                kernel = "Image"
+        else:
+            kernel = "uImage"
+        if "system_top.bit" not in files:
+            if "bootgen_sysfiles.tgz" not in files:
+                raise Exception("system_top.bit not found")
+            else:
+                tar = os.path.join(folder, "bootgen_sysfiles.tgz")
+                tf = tarfile.open(tar)
+                tf.extractall(folder)
+                tf.close()
+                files2 = os.listdir(folder)
+                if "system_top.bit" not in files2:
+                    raise Exception("system_top.bit not found")
+
+        kernel = os.path.join(folder, kernel)
+        dt = os.path.join(folder, dt)
+        bootbin = os.path.join(folder, "BOOT.BIN")
+        bit = os.path.join(folder, "system_top.bit")
+        return (bootbin, kernel, dt, bit)
+
+    def board_reboot_auto_folder(self, folder):
+        """ Automatically select loading mechanism
+            based on current class setup and automatically find boot
+            files from target folder"""
+
+        (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
+        print(bootbin, kernel, dt, bit)
+        self.board_reboot_uart_net_pdu(
+            system_top_bit_path=bit,
+            bootbinpath=bootbin,
+            uimagepath=kernel,
+            devtreepath=dt,
+        )
 
     def board_reboot_auto(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath

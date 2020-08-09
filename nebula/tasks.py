@@ -162,9 +162,11 @@ def update_config(
 #############################################
 @task(
     help={
+        "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
@@ -174,17 +176,21 @@ def update_boot_files_manager(
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
     devtreepath="devicetree.dtb",
+    folder=None,
     yamlfilename="/etc/default/nebula",
 ):
     """ Update boot files through u-boot menu (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename)
 
-    m.board_reboot_auto(
-        system_top_bit_path=system_top_bit_path,
-        bootbinpath=bootbinpath,
-        uimagepath=uimagepath,
-        devtreepath=devtreepath,
-    )
+    if not folder:
+        m.board_reboot_auto(
+            system_top_bit_path=system_top_bit_path,
+            bootbinpath=bootbinpath,
+            uimagepath=uimagepath,
+            devtreepath=devtreepath,
+        )
+    else:
+        m.board_reboot_auto_folder(folder)
 
 
 manager = Collection("manager")
