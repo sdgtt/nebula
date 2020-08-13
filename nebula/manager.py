@@ -57,7 +57,7 @@ class manager:
             configfilename = self.configfilename
         self.power = pdu(yamlfilename=configfilename)
 
-        self.boot_src = tftpboot()
+        # self.boot_src = tftpboot()
 
         self.tftp = False
 
@@ -99,6 +99,8 @@ class manager:
                 log.info("DUT IP changed to: " + str(ip))
                 self.net.dutip = ip
                 self.driver.uri = "ip:" + ip
+                # Update config file
+                self.update_yaml(self.configfilename, "network-config", "dutip", ip)
 
             # Update board over SSH and reboot
             self.net.update_boot_partition(
@@ -143,6 +145,9 @@ class manager:
                 ip = self.monitor[0].get_ip_address()
                 if not ip:
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
+                else:
+                    # Update config file
+                    self.update_yaml(self.configfilename, "network-config", "dutip", ip)
 
         # Check SSH
         if self.net.check_ssh():
@@ -169,6 +174,8 @@ class manager:
                     log.info("DUT IP changed to: " + str(ip))
                     self.net.dutip = ip
                     self.driver.uri = "ip:" + ip
+                    # Update config file
+                    self.update_yaml(self.configfilename, "network-config", "dutip", ip)
                 self.net.check_board_booted()
             except Exception as ex:
                 log.info("Still cannot get to board after power cycling")

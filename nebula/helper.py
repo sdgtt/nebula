@@ -5,6 +5,9 @@ import netifaces
 import glob
 import click
 
+LINUX_DEFAULT_PATH = "/etc/default/nebula"
+WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
+
 
 def get_uarts():
     LINUX_SERIAL_FOLDER = "/dev/serial"
@@ -182,8 +185,6 @@ class helper:
                     outconfig[key].append(d)
                     break
         # Output
-        LINUX_DEFAULT_PATH = "/etc/default/nebula"
-        WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
         if os.name == "nt" or os.name == "posix":
             if os.path.exists(LINUX_DEFAULT_PATH):
                 NEB_PATH = LINUX_DEFAULT_PATH
