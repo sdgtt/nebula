@@ -12,6 +12,7 @@ from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 import nebula.errors as ne
+import nebula.helper as helper
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -61,6 +62,8 @@ class manager:
 
         self.tftp = False
 
+        self.help = helper.helper()
+
     def get_status(self):
         pass
 
@@ -100,7 +103,9 @@ class manager:
                 self.net.dutip = ip
                 self.driver.uri = "ip:" + ip
                 # Update config file
-                self.update_yaml(self.configfilename, "network-config", "dutip", ip)
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip
+                )
 
             # Update board over SSH and reboot
             self.net.update_boot_partition(
@@ -147,7 +152,9 @@ class manager:
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
                 else:
                     # Update config file
-                    self.update_yaml(self.configfilename, "network-config", "dutip", ip)
+                    self.help.update_yaml(
+                        self.configfilename, "network-config", "dutip", ip
+                    )
 
         # Check SSH
         if self.net.check_ssh():
@@ -175,7 +182,9 @@ class manager:
                     self.net.dutip = ip
                     self.driver.uri = "ip:" + ip
                     # Update config file
-                    self.update_yaml(self.configfilename, "network-config", "dutip", ip)
+                    self.help.update_yaml(
+                        self.configfilename, "network-config", "dutip", ip
+                    )
                 self.net.check_board_booted()
             except Exception as ex:
                 log.info("Still cannot get to board after power cycling")
