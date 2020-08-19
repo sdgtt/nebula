@@ -108,13 +108,14 @@ class manager:
                 )
 
             # Update board over SSH and reboot
+            log.info("Update board over SSH and reboot")
             self.net.update_boot_partition(
                 bootbinpath=uimagepath, uimagepath=uimagepath, devtreepath=devtreepath
             )
             log.info("Waiting for reboot to complete")
             time.sleep(30)
 
-        except ne.LinuxNotReached or TimeoutError:
+        except (ne.LinuxNotReached, TimeoutError):
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on power cycle")
