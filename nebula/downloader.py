@@ -19,7 +19,11 @@ class downloader:
             os.mkdir(dest)
         if source == "local_fs":
             src = os.path.join(source_root, filename)
-            shutil.copy(src, dest)
+            if os.path.isfile(src):
+                shutil.copy(src, dest)
+            else:
+                print(os.listdir(source_root))
+                raise Exception("File not found: "+src)
         else:
             raise Exception("Unknown file source")
 
