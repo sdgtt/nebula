@@ -35,6 +35,7 @@ class network(utils):
             self.dutpassword = "analog"
         if not self.dhcp:
             self.dhcp = False
+        self.ssh_timeout = 30
 
     def ping_board(self, tries=10):
         """ Ping board and check if any received
@@ -62,7 +63,7 @@ class network(utils):
         result = fabric.Connection(
             self.dutusername + "@" + self.dutip,
             connect_kwargs={"password": self.dutpassword},
-        ).run("uname -a", hide=True)
+        ).run("uname -a", hide=True, timeout=self.ssh_timeout)
         return result.failed
 
     def check_board_booted(self):
@@ -104,7 +105,7 @@ class network(utils):
         result = fabric.Connection(
             self.dutusername + "@" + self.dutip,
             connect_kwargs={"password": self.dutpassword},
-        ).run(command, hide=True)
+        ).run(command, hide=True, timeout=self.ssh_timeout)
         if result.failed:
             raise Exception("Failed to run command:", command)
         return result
