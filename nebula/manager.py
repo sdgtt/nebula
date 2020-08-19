@@ -114,7 +114,7 @@ class manager:
             log.info("Waiting for reboot to complete")
             time.sleep(30)
 
-        except ne.LinuxNotReached:
+        except ne.LinuxNotReached or TimeoutError:
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on power cycle")
