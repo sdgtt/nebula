@@ -47,6 +47,7 @@ class uart(utils):
         bootargs="console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon rootfstype=ext4 rootwait",
         dhcp=False,
         yamlfilename=None,
+        board_name=None,
     ):
         self.com = []  # Preset incase __del__ is called before set
         self.tftpserverip = tftpserverip
@@ -61,7 +62,9 @@ class uart(utils):
         self.dhcp = dhcp
         self.max_read_time = 30
         self.fds_to_skip = ["Digilent"]
-        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(
+            yamlfilename, __class__.__name__, board_name=board_name
+        )
         if not self.address:
             raise Exception(
                 "UART address must be defined (under uart-config in yaml is one option)"
@@ -178,7 +181,7 @@ class uart(utils):
 
             def callback(total_packets, success_count, error_count):
                 bar.update(1)
-                if False:#total_packets % 1000 == 0:
+                if False:  # total_packets % 1000 == 0:
                     print(
                         "total_packets {}, success_count {}, error_count {}, total {}".format(
                             total_packets, success_count, error_count, total

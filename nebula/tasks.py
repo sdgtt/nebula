@@ -118,6 +118,7 @@ builder.add_task(repo)
         "username": "Username of PDU service (optional)",
         "password": "Password of PDU service (optional)",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def power_cycle(
@@ -128,6 +129,7 @@ def power_cycle(
     username=None,
     password=None,
     yamlfilename="/etc/default/nebula",
+    board_name=None,
 ):
     """ Reboot board with PDU """
     p = nebula.pdu(
@@ -136,7 +138,8 @@ def power_cycle(
         outlet=outlet,
         username=username,
         password=password,
-        configfilename=yamlfilename,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
     )
 
     p.power_cycle_board()
@@ -184,6 +187,7 @@ def update_config(
         "devtreepath": "Path to devicetree.",
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def update_boot_files_manager(
@@ -194,9 +198,10 @@ def update_boot_files_manager(
     devtreepath="devicetree.dtb",
     folder=None,
     yamlfilename="/etc/default/nebula",
+    board_name=None,
 ):
     """ Update boot files through u-boot menu (Assuming board is running) """
-    m = nebula.manager(configfilename=yamlfilename)
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
 
     if not folder:
         m.board_reboot_auto(
@@ -218,12 +223,17 @@ manager.add_task(update_boot_files_manager, name="update_boot_files")
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def restart_board_uart(c, address="auto", yamlfilename="/etc/default/nebula"):
+def restart_board_uart(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
+):
     """ Reboot DUT from UART connection assuming Linux is accessible"""
     try:
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         cmd = "reboot"
         u.get_uart_command_for_linux(cmd, "")
@@ -243,13 +253,16 @@ def restart_board_uart(c, address="auto", yamlfilename="/etc/default/nebula"):
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
+def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None):
     """ Get IP of DUT from UART connection """
     try:
         # YAML will override
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         addr = u.get_ip_address()
         if addr:
@@ -266,16 +279,21 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula"):
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/nebula"):
+def set_local_nic_ip_from_usbdev(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
+):
     """ Set IP of virtual NIC created from DUT based on found MAC """
     try:
         import os
 
         if not (os.name == "nt" or os.name == "posix"):
             raise Exception("This command only works on Linux currently")
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         ipaddr = u.get_ip_address()
         if not ipaddr:
@@ -327,12 +345,17 @@ def set_local_nic_ip_from_usbdev(c, address="auto", yamlfilename="/etc/default/n
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
+def get_carriername(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
+):
     """ Get Carrier (FPGA) name of DUT from UART connection """
     try:
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         cmd = "cat /sys/firmware/devicetree/base/model"
         addr = u.get_uart_command_for_linux(cmd, "")
@@ -356,12 +379,17 @@ def get_carriername(c, address="auto", yamlfilename="/etc/default/nebula"):
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def get_mezzanine(c, address="auto", yamlfilename="/etc/default/nebula"):
+def get_mezzanine(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
+):
     """ Get Mezzanine (FMC) name of DUT from UART connection """
     try:
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         cmd = "find /sys/ -name eeprom | xargs fru-dump -b -i | grep Part Number"
         addr = u.get_uart_command_for_linux(cmd, "")
@@ -382,12 +410,17 @@ def get_mezzanine(c, address="auto", yamlfilename="/etc/default/nebula"):
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def set_dhcp(c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"):
+def set_dhcp(
+    c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula", board_name=None
+):
     """ Set board to use DHCP for networking from UART connection """
     try:
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         u.request_ip_dhcp()
         del u
@@ -402,14 +435,22 @@ def set_dhcp(c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"):
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def set_static_ip(
-    c, ip, address="auto", nic="eth0", yamlfilename="/etc/default/nebula"
+    c,
+    ip,
+    address="auto",
+    nic="eth0",
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
 ):
     """ Set Static IP address of board of DUT from UART connection """
     try:
-        u = nebula.uart(address=address, yamlfilename=yamlfilename)
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
         u.print_to_console = False
         u.set_ip_static(ip, nic)
         del u
@@ -426,6 +467,7 @@ def set_static_ip(
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "reboot": "Reboot board from linux console to get to u-boot menu. Defaut False",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
 def update_boot_files_uart(
@@ -436,9 +478,10 @@ def update_boot_files_uart(
     address=None,
     yamlfilename="/etc/default/nebula",
     reboot=False,
+    board_name=None,
 ):
     """ Update boot files through u-boot menu (Assuming board is running) """
-    u = nebula.uart(address=address, yamlfilename=yamlfilename)
+    u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name)
     u.print_to_console = False
     if reboot:
         u._write_data("reboot")
@@ -466,11 +509,14 @@ uart.add_task(set_local_nic_ip_from_usbdev)
         "ip": "IP address of board",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
-def restart_board(c, ip, user="root", password="analog"):
+def restart_board(c, ip, user="root", password="analog", board_name=None):
     """ Reboot development system over IP """
-    n = nebula.network(dutip=ip, dutusername=user, dutpassword=password)
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+    )
     n.reboot_board(bypass_sleep=True)
 
 
@@ -482,6 +528,7 @@ def restart_board(c, ip, user="root", password="analog"):
         "bootbinpath": "Path to BOOT.BIN. Optional",
         "uimagepath": "Path to kernel image. Optional",
         "devtreepath": "Path to devicetree. Optional",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
 def update_boot_files(
@@ -492,9 +539,12 @@ def update_boot_files(
     bootbinpath=None,
     uimagepath=None,
     devtreepath=None,
+    board_name=None,
 ):
     """ Update boot files on SD Card over SSH """
-    n = nebula.network(dutip=ip, dutusername=user, dutpassword=password)
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+    )
     n.update_boot_partition(
         bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
     )

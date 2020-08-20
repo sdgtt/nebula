@@ -1,0 +1,38 @@
+zynq-zed-adv7511-ad9361-fmcomms2-3:
+  system-config:
+    - tftpserverip: 192.168.86.220
+    - tftpserverroot: /tftpboot
+  board-config:
+    - board-name: zynq-zed-adv7511-ad9361-fmcomms2-3
+    - reference-boot-folder: zynq-zed-adv7511-ad9361-fmcomms2-3
+    - iio_device_names: ["ad7291","ad9361-phy","xadc","cf-ad9361-dds-core-lpc","cf-ad9361-lpc"]
+    - monitoring-interface: uart
+  uart-config:
+    - address: /dev/ttyACM0
+    - baudrate: 115200
+    - logfilename: zedboard-fmcomms2-3.log
+  network-config:
+    - dutip: 192.168.86.35
+  pdu-config:
+    - pduip: 192.168.86.40
+    - pdu_type: cyberpower
+    - outlet: 1
+zynq-zc706-adv7511-ad9361-fmcomms2-3:
+  system-config:
+    - tftpserverip: 192.168.86.220
+    - tftpserverroot: /tftpboot
+  board-config:
+    - board-name: zynq-zc706-adv7511-ad9361-fmcomms2-3
+    - reference-boot-folder: zynq-zc706-adv7511-ad9361-fmcomms2-3
+    - iio_device_names: ["ad7291","ad9361-phy","xadc","cf-ad9361-dds-core-lpc","cf-ad9361-lpc"]
+    - monitoring-interface: uart
+  uart-config:
+    - address: /dev/ttyUSB1
+    - baudrate: 115200
+    - logfilename: zc706-fmcomms2-3.log
+  network-config:
+    - dutip: 192.168.86.36
+  pdu-config:
+    - pduip: 192.168.86.40
+    - pdu_type: cyberpower
+    - outlet: 1

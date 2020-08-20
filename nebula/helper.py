@@ -71,7 +71,7 @@ class helper:
                         print(value)
                     break
             if not updated:
-                raise
+                raise Exception("")
         except:
             raise Exception("Field or section does not exist")
         if new_value:

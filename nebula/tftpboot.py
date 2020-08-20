@@ -16,12 +16,15 @@ class tftpboot(utils):
         default_target="zynq-zed-adv7511-ad9361-fmcomms2-3",
         reference_files="/var/lib/tftpboot/SDCARD/",
         yamlfilename=None,
+        board_name=None,
     ):
         self.boot_files_share = boot_files_share
         self.default_target = default_target
         self.reference_files = reference_files
 
-        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(
+            yamlfilename, __class__.__name__, board_name=board_name
+        )
 
         if not self.check_service("tftpd-hpa"):
             self.start_service("tftpd-hpa")

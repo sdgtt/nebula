@@ -13,6 +13,7 @@ from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 import nebula.errors as ne
 import nebula.helper as helper
+import nebula.common as common
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -21,7 +22,9 @@ log = logging.getLogger(__name__)
 class manager:
     """ Board Manager """
 
-    def __init__(self, monitor_type="uart", configfilename=None, extras=None):
+    def __init__(
+        self, monitor_type="uart", configfilename=None, board_name=None, extras=None
+    ):
         # Check if config info exists in yaml
         self.configfilename = configfilename
         self.monitor_type = monitor_type
@@ -31,6 +34,8 @@ class manager:
             stream.close()
         else:
             configs = None
+
+        configs = common.multi_device_check(configs, board_name)
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")

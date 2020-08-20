@@ -19,11 +19,14 @@ class network(utils):
         nic=None,
         nicip=None,
         yamlfilename=None,
+        board_name=None,
     ):
         props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
         for prop in props:
             setattr(self, prop, None)
-        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(
+            yamlfilename, __class__.__name__, board_name=board_name
+        )
         props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
         for prop in props:
             if eval(prop) != None:

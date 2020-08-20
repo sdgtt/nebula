@@ -19,13 +19,16 @@ class pdu(utils):
         username="cyber",
         password="cyber",
         yamlfilename=None,
+        board_name=None,
     ):
         self.pduip = pduip
         self.outlet = outlet
         self.pdu_type = pdu_type
         self.username = username
         self.password = password
-        self.update_defaults_from_yaml(yamlfilename, __class__.__name__)
+        self.update_defaults_from_yaml(
+            yamlfilename, __class__.__name__, board_name=board_name
+        )
 
         if self.pdu_type == "cyberpower":
             if not self.pduip:
