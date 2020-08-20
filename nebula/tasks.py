@@ -533,6 +533,29 @@ uart.add_task(set_local_nic_ip_from_usbdev)
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
+def check_dmesg(c, ip, user="root", password="analog", board_name=None):
+    """ Download and parse remote board's dmesg log
+        Three log files will be produced:
+            dmesg.log - Full dmesg
+            dmesg_err.log - dmesg errors only
+            dmesg_warn.log - dmesg warnings only
+    """
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+    )
+    (e, _) = n.check_dmesg()
+    if e:
+        raise Exception("Errors found in dmesg log. Check dmesg_err.log file")
+
+
+@task(
+    help={
+        "ip": "IP address of board",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
 def restart_board(c, ip, user="root", password="analog", board_name=None):
     """ Reboot development system over IP """
     n = nebula.network(
@@ -574,6 +597,7 @@ def update_boot_files(
 net = Collection("net")
 net.add_task(restart_board)
 net.add_task(update_boot_files)
+net.add_task(check_dmesg)
 
 #############################################
 @task
