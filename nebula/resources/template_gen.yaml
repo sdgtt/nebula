@@ -26,11 +26,6 @@ board-config:
     help: "Select monitoring interface"
     options: [uart,netconsole]
     optional: False
-  field_4:
-    name: iio_device_names
-    default: ['axi-ad9144-hpc','axi-ad9680-hpc']
-    help: "List of IIO devices on board"
-    optional: False
 network-config:
   field_1:
     name: dutip
@@ -110,4 +105,10 @@ system-config:
     name: tftpserverroot
     default: /var/lib/tftpboot
     help: "TFTP folder location"
+    optional: False
+driver-config:
+  field_1:
+    name: iio_device_names
+    default: ['axi-ad9144-hpc','axi-ad9680-hpc']
+    help: "List of IIO devices on board"
     optional: False

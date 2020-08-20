@@ -35,7 +35,7 @@ def multi_device_check(configs, board_name):
 
 
 class utils:
-    def update_defaults_from_yaml(self, filename, configname, board_name=None):
+    def update_defaults_from_yaml(self, filename, configname=None, board_name=None):
         """ Utility class for processing yaml files """
         if not filename:
             if os.name == "nt" or os.name == "posix":

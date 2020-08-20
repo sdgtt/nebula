@@ -28,6 +28,28 @@ def load_yaml(filename):
 #############################################
 @task(
     help={
+        "uri": "URI of board running iiod with drivers to check",
+        "iio_device_names": "List of IIO driver names to check on board",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def check_iio_devices(
+    c, uri, iio_device_names=None, yamlfilename="/etc/default/nebula", board_name=None,
+):
+    """ Verify all IIO drivers appear on system as expected.
+        Exception is raised otherwise
+    """
+    d = nebula.driver(yamlfilename=yamlfilename, uri=uri, board_name=board_name)
+    d.check_iio_devices()
+
+
+driver = Collection("driver")
+driver.add_task(check_iio_devices, "check_iio_devices")
+
+#############################################
+@task(
+    help={
         "ip": "IP address of board with gcov enabled kernel",
         "linux_build_dir": "Build directory of kernel",
         "username": "Username of DUT. Defaults to root",
@@ -83,7 +105,6 @@ dl.add_task(download_boot_files, "bootfiles")
         "def_config": "Kernel def config",
         "githuborg": "Github organization string. Default to analogdevicesinc",
         "vivado_version": "Vivado version (ex: 2018.2). Defaults to determine from source/release",
-        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
     },
 )
 def repo(
@@ -573,3 +594,4 @@ ns.add_collection(pdu)
 ns.add_collection(manager)
 ns.add_collection(dl)
 ns.add_collection(cov)
+ns.add_collection(driver)

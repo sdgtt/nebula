@@ -1,6 +1,9 @@
 import logging
 import subprocess
 import time
+import random
+import string
+import os
 
 import fabric
 from fabric import Connection
@@ -172,3 +175,49 @@ class network(utils):
                 "cp /tmp/sdcard/" + subfolder + "/devicetree.dtb /tmp/sdcard/"
             )
         self.run_ssh_command("reboot")
+
+    def _dl_file(self, filename):
+        fabric.Connection(
+            self.dutusername + "@" + self.dutip,
+            connect_kwargs={"password": self.dutpassword},
+        ).get(filename)
+
+    def check_dmesg(self, error_on_warnings=False):
+        """ check_dmesg:
+            Download and parse remote board's dmesg log
+
+            return:
+                dmesg_log string of dmesg log
+                status: 0 if no errors found, 1 otherwise
+        """
+        tmp_filename_root = "".join(
+            random.choice(string.ascii_lowercase) for i in range(16)
+        )
+        tmp_filename = "/tmp/" + tmp_filename_root
+        tmp_filename_err = "/tmp/" + tmp_filename_root + "_err"
+        tmp_filename_war = "/tmp/" + tmp_filename_root + "_warn"
+
+        self.run_ssh_command("dmesg > " + tmp_filename)
+        self.run_ssh_command("dmesg -l warn > " + tmp_filename_war)
+        self.run_ssh_command("dmesg -l err > " + tmp_filename_err)
+        self._dl_file(tmp_filename)
+        self._dl_file(tmp_filename_war)
+        self._dl_file(tmp_filename_err)
+        os.rename(tmp_filename_root, "dmesg.log")
+        os.rename(tmp_filename_root + "_warn", "dmesg_warn.log")
+        os.rename(tmp_filename_root + "_err", "dmesg_err.log")
+        logging.info("dmesg logs collected")
+
+        # Process
+        with open("dmesg.log", "r") as f:
+            all_log = f.readlines()
+        with open("dmesg_warn.log", "r") as f:
+            warn_log = f.readlines()
+        with open("dmesg_err.log", "r") as f:
+            error_log = f.readlines()
+
+        if len(error_log) > 0:
+            logging.info("Errors found in dmesg logs")
+
+        logs = {"log": all_log, "warn": warn_log, "error": error_log}
+        return len(error_log) > 0, logs
