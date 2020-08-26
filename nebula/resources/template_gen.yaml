@@ -112,3 +112,9 @@ driver-config:
     default: ['axi-ad9144-hpc','axi-ad9680-hpc']
     help: "List of IIO devices on board"
     optional: False
+downloader-config:
+  field_1:
+    name: http_server_ip
+    default: 192.168.2.1
+    help: "IP address of build server with boot files"
+    optional: True

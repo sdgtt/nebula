@@ -7,27 +7,97 @@ import os
 import csv
 import yaml
 import shutil
+import logging
+
+from bs4 import BeautifulSoup
+import requests
+import re
+from datetime import datetime
+
+from nebula.common import utils
+
+log = logging.getLogger(__name__)
+
+url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
 
 
-class downloader:
-    def __init__(self):
-        pass
+def listFD(url):
+    page = requests.get(url).text
+    soup = BeautifulSoup(page, "html.parser")
+    return [url + "/" + node.get("href") for node in soup.find_all("a")]
 
-    def _get_file(self, filename, source, source_root):
-        dest = "outs"
-        if not os.path.isdir(dest):
-            os.mkdir(dest)
+
+def convert_to_datetime(date):
+    if len(date) == 19:
+        return datetime.strptime(date, "%Y_%m_%d-%H_%M_%S")
+    else:
+        return datetime.strptime(date[:10], "%Y_%m_%d")
+
+
+def get_newest_folder(links):
+    dates = []
+    for link in links:
+        folder = link.split("/")[-2]
+        matched = re.match("20[1-2][9,0]_[0-3][0-9]_[0-3][0-9]", folder)
+        is_match = bool(matched)
+
+        if is_match:
+            dates.append(folder)
+
+    if not dates:
+        raise Exception("No folders found")
+    dates.sort(key=lambda date: convert_to_datetime(date))
+
+    return dates[-1]
+
+
+def gen_url(ip, branch, folder, filename):
+    url = url_template.format(ip, branch, "", "")
+    folder = get_newest_folder(listFD(url[:-1]))
+    return url_template.format(ip, branch, folder, filename)
+
+
+class downloader(utils):
+    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None):
+        self.http_server_ip = http_server_ip
+        self.update_defaults_from_yaml(
+            yamlfilename, __class__.__name__, board_name=board_name
+        )
+
+    def _get_file(self, filename, source, design_source_root, source_root, branch):
         if source == "local_fs":
-            src = os.path.join(source_root, filename)
-            if os.path.isfile(src):
-                shutil.copy(src, dest)
-            else:
-                print(os.listdir(source_root))
-                raise Exception("File not found: "+src)
+            self._get_local_file(filename, design_source_root)
+        elif source == "http":
+            self._get_http_files(filename, design_source_root, source_root, branch)
         else:
             raise Exception("Unknown file source")
 
-    def _get_files(self, design_name, details, source, source_root):
+    def _get_local_file(self, filename, source_root):
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        src = os.path.join(source_root, filename)
+        if os.path.isfile(src):
+            shutil.copy(src, dest)
+        else:
+            print(os.listdir(source_root))
+            raise Exception("File not found: " + src)
+
+    def _get_http_files(self, filename, folder, ip, branch):
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        if not ip:
+            ip = self.http_server_ip
+        if not ip:
+            raise Exception(
+                "No server IP specificied. Must be defined in yaml or provided as input"
+            )
+        url = gen_url(ip, branch, folder, filename)
+        filename = os.path.join(dest, filename)
+        self.download(url, filename)
+
+    def _get_files(self, design_name, details, source, source_root, branch):
         firmware = False
         kernel = False
         kernel_root = False
@@ -53,24 +123,51 @@ class downloader:
             # Get firmware
             print("Get firmware")
         else:
-            kernel_root = os.path.join(source_root, kernel_root)
-            source_root = os.path.join(source_root, design_name)
+
+            if source == "local_fs":
+                kernel_root = os.path.join(source_root, kernel_root)
+                design_source_root = os.path.join(source_root, design_name)
+            else:
+                design_source_root = design_name
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
-            self._get_file(kernel, source, kernel_root)
+            self._get_file(kernel, source, kernel_root, source_root, branch)
             # Get BOOT.BIN
-            self._get_file("BOOT.BIN", source, source_root)
+            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
             # Get device tree
             print("Get", dt)
-            self._get_file(dt, source, source_root)
+            self._get_file(dt, source, design_source_root, source_root, branch)
             # Get support files (bootgen_sysfiles.tgz)
             print("Get support")
-            self._get_file("bootgen_sysfiles.tgz", source, source_root)
+            self._get_file(
+                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch
+            )
 
     def download_boot_files(
-        self, design_name, source="local_fs", source_root="/var/lib/tftpboot"
+        self,
+        design_name,
+        source="local_fs",
+        source_root="/var/lib/tftpboot",
+        branch="master",
     ):
+        """ download_boot_files Download bootfiles for target design.
+            This method can download or move files from different locations
+            based on the source specified.
+
+            Parameters:
+                design_name: Target design name (same as boot file folder on SD card)
+                source: Source location type. Options: local_fs, http, artifactory
+                source_root: Root location of files. Dependent on source parameter
+                    For local_fs this is a system path
+                    For http this is a IP or domain name (no http://)
+                    For artifactory TBD
+                branch: Name of branch to get related files. This is only used for
+                    http and artifactory sources. Default is master
+
+            Returns:
+                A folder with name outs is created with the downloaded boot files
+        """
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "board_table.yaml")
         with open(res) as f:
@@ -78,7 +175,9 @@ class downloader:
 
         assert design_name in board_configs, "Invalid design name"
 
-        self._get_files(design_name, board_configs[design_name], source, source_root)
+        self._get_files(
+            design_name, board_configs[design_name], source, source_root, branch
+        )
 
     def download_sdcard_release(self, release="2019_R1"):
         rel = self.releases(release)
