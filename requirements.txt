@@ -9,3 +9,6 @@ xmodem
 click>=7.0
 netifaces
 tqdm
+beautifulsoup4
+requests
+pygithub
