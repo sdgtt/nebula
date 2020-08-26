@@ -95,6 +95,7 @@ def download_sdcard(c, release="2019_R1"):
         "branch": "Name of branch to get related files. This is only used for\bhttp and artifactory sources. Default is master",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "firmware": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
     },
 )
 def download_boot_files(
@@ -105,6 +106,7 @@ def download_boot_files(
     branch="master",
     yamlfilename="/etc/default/nebula",
     board_name=None,
+    firmware=False,
 ):
     """ Download, verify, and decompress SD card image """
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)

@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 from datetime import datetime
+from github import Github
 
 from nebula.common import utils
 
@@ -64,6 +65,29 @@ class downloader(utils):
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
+    def _download_firmware(self, release=None):
+        if not release:
+            # Get latest
+            g = Github()
+            repo = g.get_repo("analogdevicesinc/plutosdr-fw")
+            rel = repo.get_releases()
+            p = rel.get_page(0)
+            r = p[0]
+            release = t.tag_name
+
+        matched = re.match("v[0-1].[0-9][0-9]", release)
+        is_match = bool(matched)
+        assert is_match, "Version name invalid"
+
+        url = "https://github.com/analogdevicesinc/plutosdr-fw/releases/download/{rel}/plutosdr-fw-{rel}.zip".format(
+            rel=release
+        )
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        release = os.path.join(dest, "plutosdr-fw-" + release + ".zip")
+        self.download(url, release)
+
     def _get_file(self, filename, source, design_source_root, source_root, branch):
         if source == "local_fs":
             self._get_local_file(filename, design_source_root)
@@ -97,8 +121,9 @@ class downloader(utils):
         filename = os.path.join(dest, filename)
         self.download(url, filename)
 
-    def _get_files(self, design_name, details, source, source_root, branch):
-        firmware = False
+    def _get_files(
+        self, design_name, details, source, source_root, branch, firmware=False
+    ):
         kernel = False
         kernel_root = False
         dt = False
@@ -121,7 +146,11 @@ class downloader(utils):
 
         if firmware:
             # Get firmware
-            print("Get firmware")
+            assert (
+                "pluto" in details["carrier"].lower()
+                or "m2k" in details["carrier"].lower()
+            ), "Firmware downloads only available for pluto and m2k"
+            self._download_firmware(branch)
         else:
 
             if source == "local_fs":
@@ -150,6 +179,7 @@ class downloader(utils):
         source="local_fs",
         source_root="/var/lib/tftpboot",
         branch="master",
+        firmware=None,
     ):
         """ download_boot_files Download bootfiles for target design.
             This method can download or move files from different locations
@@ -176,7 +206,12 @@ class downloader(utils):
         assert design_name in board_configs, "Invalid design name"
 
         self._get_files(
-            design_name, board_configs[design_name], source, source_root, branch
+            design_name,
+            board_configs[design_name],
+            source,
+            source_root,
+            branch,
+            firmware,
         )
 
     def download_sdcard_release(self, release="2019_R1"):
