@@ -26,6 +26,18 @@ def load_yaml(filename):
 
 
 #############################################
+@task(help={"filter": "Required substring in design names"},)
+def supported_boards(c, filter=None):
+    """ Print out list of supported design names
+    """
+    h = nebula.helper()
+    h.list_supported_boards(filter)
+
+
+info = Collection("info")
+info.add_task(supported_boards, "supported_boards")
+
+#############################################
 @task(
     help={
         "uri": "URI of board running iiod with drivers to check",
@@ -628,3 +640,4 @@ ns.add_collection(manager)
 ns.add_collection(dl)
 ns.add_collection(cov)
 ns.add_collection(driver)
+ns.add_collection(info)

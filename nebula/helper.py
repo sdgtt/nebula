@@ -41,6 +41,18 @@ class helper:
     def __init__(self):
         pass
 
+    def list_supported_boards(self, filter=None):
+        path = pathlib.Path(__file__).parent.absolute()
+        res = os.path.join(path, "resources", "board_table.yaml")
+        with open(res) as f:
+            board_configs = yaml.load(f, Loader=yaml.FullLoader)
+        for config in board_configs:
+            if not filter:
+                print(config)
+            else:
+                if filter in config:
+                    print(config)
+
     def update_yaml(self, configfilename, section, field, new_value):
         """ Update single field of exist config file """
 
