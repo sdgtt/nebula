@@ -154,6 +154,8 @@ class downloader(utils):
         else:
 
             if source == "local_fs":
+                if not source_root:
+                    source_root = "/var/lib/tftpboot"
                 kernel_root = os.path.join(source_root, kernel_root)
                 design_source_root = os.path.join(source_root, design_name)
             else:
