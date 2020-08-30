@@ -14,6 +14,7 @@ from nebula.uart import uart
 import nebula.errors as ne
 import nebula.helper as helper
 import nebula.common as common
+from nebula.jtag import jtag
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -62,6 +63,13 @@ class manager:
         else:
             configfilename = self.configfilename
         self.power = pdu(yamlfilename=configfilename)
+
+        self.jtag_use = False
+        self.jtag = False
+        if "board-config" in configs:
+            if "allow-jtag" in configs["board-config"]:
+                self.jtag_use = configs["board-config"]["allow-jtag"]
+                self.jtag = jtag(yamlfilename=configfilename)
 
         # self.boot_src = tftpboot()
 
@@ -125,7 +133,10 @@ class manager:
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on power cycle")
             log.info("Power cycling")
-            self.power.power_cycle_board()
+            if self.jtag_use:
+                self.jtag.restart_board()
+            else:
+                self.power.power_cycle_board()
 
             # Enter u-boot menu
             self.monitor[0]._enter_uboot_menu_from_power_cycle()

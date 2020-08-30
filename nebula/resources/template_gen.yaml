@@ -26,6 +26,12 @@ board-config:
     help: "Select monitoring interface"
     options: [uart,netconsole]
     optional: False
+  field_4:
+    name: allow-jtag
+    default: False
+    help: "Allow use of JTAG"
+    options: ['True','False']
+    optional: False
 network-config:
   field_1:
     name: dutip
