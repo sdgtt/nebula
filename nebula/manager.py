@@ -67,9 +67,10 @@ class manager:
         self.jtag_use = False
         self.jtag = False
         if "board-config" in configs:
-            if "jtag-config" in configs["board-config"]:
-                self.jtag_use = configs["board-config"]["jtag-config"]
-                self.jtag = jtag(yamlfilename=configfilename)
+            for config in configs["board-config"]:
+                if "allow-jtag" in config:
+                    self.jtag_use = config["allow-jtag"]
+                    self.jtag = jtag(yamlfilename=configfilename)
 
         # self.boot_src = tftpboot()
 
@@ -131,11 +132,12 @@ class manager:
         except (ne.LinuxNotReached, TimeoutError):
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
-            log.info("Forcing UART override on power cycle")
-            log.info("Power cycling")
+            log.info("Forcing UART override on reset")
             if self.jtag_use:
+                log.info("Reseting with JTAG")
                 self.jtag.restart_board()
             else:
+                log.info("Power cycling")
                 self.power.power_cycle_board()
 
             # Enter u-boot menu
