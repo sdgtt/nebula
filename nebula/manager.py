@@ -67,8 +67,8 @@ class manager:
         self.jtag_use = False
         self.jtag = False
         if "board-config" in configs:
-            if "allow-jtag" in configs["board-config"]:
-                self.jtag_use = configs["board-config"]["allow-jtag"]
+            if "jtag-config" in configs["board-config"]:
+                self.jtag_use = configs["board-config"]["jtag-config"]
                 self.jtag = jtag(yamlfilename=configfilename)
 
         # self.boot_src = tftpboot()
