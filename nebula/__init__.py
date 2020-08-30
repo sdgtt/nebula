@@ -14,6 +14,7 @@ from nebula.common import utils
 from nebula.helper import helper
 from nebula.downloader import downloader
 from nebula.coverage import coverage
+from nebula.jtag import jtag
 
 __version__ = "0.0.1"
 name = "Nebula: Embedded Development Tools"

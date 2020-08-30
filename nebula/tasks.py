@@ -26,6 +26,34 @@ def load_yaml(filename):
 
 
 #############################################
+@task(
+    help={
+        "vivado_version": "Set vivado version. Defauts to 2019.1",
+        "custom_vivado_path": "Full path to vivado settings64 file. When set ignores vivado version",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def jtag_reboot(
+    c,
+    vivado_version="2019.1",
+    custom_vivado_path=None,
+    yamlfilename="/etc/default/nebula",
+):
+    """ Reboot board using JTAG
+    """
+    j = nebula.jtag(
+        vivado_version=vivado_version,
+        custom_vivado_path=custom_vivado_path,
+        yamlfilename=yamlfilename,
+    )
+    j.restart_board()
+
+
+jtag = Collection("jtag")
+jtag.add_task(jtag_reboot, "reboot")
+
+#############################################
 @task(help={"filter": "Required substring in design names"},)
 def supported_boards(c, filter=None):
     """ Print out list of supported design names
@@ -643,3 +671,4 @@ ns.add_collection(dl)
 ns.add_collection(cov)
 ns.add_collection(driver)
 ns.add_collection(info)
+ns.add_collection(jtag)

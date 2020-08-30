@@ -118,3 +118,14 @@ downloader-config:
     default: 192.168.2.1
     help: "IP address of build server with boot files"
     optional: True
+jtag-config:
+  field_1:
+    name: vivado_version
+    default: 2019.1
+    help: "Version of vivado to use"
+    optional: True
+  field_2:
+    name: custom_vivado_path
+    default: None
+    help: "Custom path to vivado including version.\nEx: /opt/Xilinx/Vivado/2019.1\nOverrides vivado_version if set"
+    optional: True
