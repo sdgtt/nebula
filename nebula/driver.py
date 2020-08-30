@@ -29,6 +29,7 @@ class driver(utils):
         """ Verify all IIO drivers appear on system as expected.
             Exception is raised otherwise
         """
+        log.info("Checking uri: " + self.uri)
         ctx = iio.Context(self.uri)
         devs = []
         for d in ctx.devices:
