@@ -49,17 +49,17 @@ class network(utils):
             return: True non-zero received, False zero received
         """
         log.info("Checking for board through ping")
-        try:
-            ping = subprocess.Popen(
-                ["ping", "-c", "4", self.dutip],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except:
-            log.error("Ping failed")
-            raise Exception("Ping failed")
+        ping = subprocess.Popen(
+            ["ping", "-c", "4", self.dutip],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         for p in range(tries):
-            out, error = ping.communicate()
+            try:
+                out, error = ping.communicate()
+            except:
+                log.error("Ping creation failed")
+                raise Exception("Ping creation sfailed")
             if "0 received" not in str(out):
                 return False
         return True
