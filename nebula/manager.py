@@ -89,6 +89,39 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
+    def board_reboot_jtag_uart(self):
+        """ Reset board and load fsbl, uboot, bitstream, and kernel
+            over JTAG. Then over UART boot
+        """
+        log.info("Reseting and looking DDR with boot files")
+        self.full_boot()
+        log.info("Taking over UART control")
+        self.monitor[0]._enter_uboot_menu_from_power_cycle()
+        self.monitor[0].update_boot_args()
+        self.monitor[0].boot()
+
+        # NEED A CHECK HERE OR SOMETHING
+        log.info("Waiting for boot to complete")
+        time.sleep(30)
+
+        # Check is networking is working
+        if self.net.ping_board():
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+                if not ip:
+                    raise ne.NetworkNotFunctionalAfterBootFileUpdate
+                else:
+                    # Update config file
+                    self.help.update_yaml(
+                        self.configfilename, "network-config", "dutip", ip
+                    )
+
+        # Check SSH
+        if self.net.check_ssh():
+            raise ne.SSHNotFunctionalAfterBootFileUpdate
+
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
