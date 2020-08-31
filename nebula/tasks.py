@@ -8,6 +8,12 @@ import os
 
 logging.getLogger().setLevel(logging.WARNING)
 
+class MyFilter(logging.Filter):
+
+    def filter(self, record):
+        return "nebula" in record.name
+
+
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
@@ -654,7 +660,12 @@ net.add_task(check_dmesg)
 @task
 def show_log(c):
     """ Show log for all following tasks """
-    logging.getLogger().setLevel(logging.DEBUG)
+    log = logging.getLogger('nebula')
+    log.setLevel(logging.DEBUG)
+    log = logging.getLogger()
+    root_handler = log.handlers[0]
+    root_handler.addFilter(MyFilter())
+    root_handler.setFormatter(logging.Formatter('%(levelname)s | %(name)s : %(message)s'))
 
 
 ns = Collection()
