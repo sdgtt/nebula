@@ -336,20 +336,20 @@ def restart_board_uart(
 )
 def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None):
     """ Get IP of DUT from UART connection """
-    try:
-        # YAML will override
-        u = nebula.uart(
-            address=address, yamlfilename=yamlfilename, board_name=board_name
-        )
-        u.print_to_console = False
-        addr = u.get_ip_address()
-        if addr:
-            print(addr)
-        else:
-            raise Exception("Address not found")
-        del u
-    except Exception as ex:
-        print(ex)
+#     try:
+    # YAML will override
+    u = nebula.uart(
+        address=address, yamlfilename=yamlfilename, board_name=board_name
+    )
+    u.print_to_console = False
+    addr = u.get_ip_address()
+    del u
+    if addr:
+        print(addr)
+    else:
+        raise Exception("Address not found")
+#     except Exception as ex:
+#         print(ex)
 
 
 @task(
