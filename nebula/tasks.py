@@ -346,7 +346,7 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=Non
         if addr:
             print(addr)
         else:
-            print("Address not found")
+            raise Exception("Address not found")
         del u
     except Exception as ex:
         print(ex)
