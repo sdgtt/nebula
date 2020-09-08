@@ -76,7 +76,7 @@ class downloader(utils):
             rel = repo.get_releases()
             p = rel.get_page(0)
             r = p[0]
-            release = t.tag_name
+            release = r.tag_name
         log.info("Using release: "+release)
 
         matched = re.match("v[0-1].[0-9][0-9]", release)
