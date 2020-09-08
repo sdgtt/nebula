@@ -66,6 +66,8 @@ class downloader(utils):
         )
 
     def _download_firmware(self, release=None):
+        if release=="master":
+            release = None
         if not release:
             # Get latest
             log.info("Release not set. Checking github for latest")
