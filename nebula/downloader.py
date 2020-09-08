@@ -68,12 +68,14 @@ class downloader(utils):
     def _download_firmware(self, release=None):
         if not release:
             # Get latest
+            log.info("Release not set. Checking github for latest")
             g = Github()
             repo = g.get_repo("analogdevicesinc/plutosdr-fw")
             rel = repo.get_releases()
             p = rel.get_page(0)
             r = p[0]
             release = t.tag_name
+        log.info("Using release: "+release)
 
         matched = re.match("v[0-1].[0-9][0-9]", release)
         is_match = bool(matched)
