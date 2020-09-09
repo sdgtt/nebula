@@ -31,9 +31,10 @@ class usbdev:
         # Get mount point
         cmd = "sudo blkid -L " + name
         out = self.shell_out2(cmd)
+        out = out.replace("\n", "")
         # Do mount
         temp_dir_path = tempfile.mkdtemp()
-        log.info("Trying to auto-mount " + out + " to " + temp_dir_path)
+        log.info("Trying to auto-mount |" + out + "| to " + temp_dir_path)
         cmd = "sudo mount " + out + " " + temp_dir_path
         out = self.shell_out2(cmd)
         return temp_dir_path
