@@ -33,6 +33,7 @@ class usbdev:
         out = self.shell_out2(cmd)
         # Do mount
         temp_dir_path = tempfile.mkdtemp()
+        log.info("Trying to auto-mount " + out + " to " + temp_dir_path)
         cmd = "sudo mount " + out + " " + temp_dir_path
         out = self.shell_out2(cmd)
         return temp_dir_path
@@ -61,7 +62,7 @@ class usbdev:
             if not os.path.exists(partition):
                 raise Exception("partition not found: " + str(partition))
             if not os.path.isdir(mountpoint):
-                raise Exception("mountpoint not found" + str(mountpoint))
+                raise Exception("mountpoint not found: " + str(mountpoint))
         return mountpoint, partition
 
     def update_firmware(self, filename, device="PlutoSDR"):
