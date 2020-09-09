@@ -1,7 +1,8 @@
 import os
 import shutil
 import subprocess
-import psutil
+
+# import psutil
 import fabric
 from fabric import Connection
 import logging
