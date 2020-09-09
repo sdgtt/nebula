@@ -15,6 +15,7 @@ import nebula.errors as ne
 import nebula.helper as helper
 import nebula.common as common
 from nebula.jtag import jtag
+from nebula.usbdev import usbdev
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -77,6 +78,7 @@ class manager:
         self.tftp = False
 
         self.help = helper.helper()
+        self.usbdev = usbdev()
 
     def get_status(self):
         pass
@@ -316,19 +318,33 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder):
+    def board_reboot_auto_folder(self, folder, design_name=None):
         """ Automatically select loading mechanism
             based on current class setup and automatically find boot
             files from target folder"""
 
-        (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
-        print(bootbin, kernel, dt, bit)
-        self.board_reboot_uart_net_pdu(
-            system_top_bit_path=bit,
-            bootbinpath=bootbin,
-            uimagepath=kernel,
-            devtreepath=dt,
-        )
+        if design_name in ["pluto", "m2k"]:
+            log.info("Firmware based device selected")
+            files = glob.glob(os.path.join(folder, "*.zip"))
+            if not files:
+                raise Exception("No zip files found in folder: " + folder)
+            if len(files) > 1:
+                raise Exception("Too many zip files found in folder: " + folder)
+
+            self.usbdev.update_firmware(files[0], device=design_name)
+            time.sleep(3)
+            if not self.usbdev.wait_for_usb_mount(device=design_name):
+                raise Exception("Firmware update failed for: " + design_name)
+
+        else:
+            (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
+            print(bootbin, kernel, dt, bit)
+            self.board_reboot_uart_net_pdu(
+                system_top_bit_path=bit,
+                bootbinpath=bootbin,
+                uimagepath=kernel,
+                devtreepath=dt,
+            )
 
     def board_reboot_auto(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath

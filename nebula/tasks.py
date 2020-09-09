@@ -8,8 +8,8 @@ import os
 
 logging.getLogger().setLevel(logging.WARNING)
 
-class MyFilter(logging.Filter):
 
+class MyFilter(logging.Filter):
     def filter(self, record):
         return "nebula" in record.name
 
@@ -266,6 +266,7 @@ def update_config(
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
     },
 )
 def update_boot_files_manager(
@@ -277,6 +278,7 @@ def update_boot_files_manager(
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
+    design_name=None,
 ):
     """ Update boot files through u-boot menu (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -289,7 +291,7 @@ def update_boot_files_manager(
             devtreepath=devtreepath,
         )
     else:
-        m.board_reboot_auto_folder(folder)
+        m.board_reboot_auto_folder(folder, design_name=design_name)
 
 
 manager = Collection("manager")
@@ -336,11 +338,9 @@ def restart_board_uart(
 )
 def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None):
     """ Get IP of DUT from UART connection """
-#     try:
+    #     try:
     # YAML will override
-    u = nebula.uart(
-        address=address, yamlfilename=yamlfilename, board_name=board_name
-    )
+    u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name)
     u.print_to_console = False
     addr = u.get_ip_address()
     del u
@@ -348,6 +348,8 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=Non
         print(addr)
     else:
         raise Exception("Address not found")
+
+
 #     except Exception as ex:
 #         print(ex)
 
@@ -660,12 +662,14 @@ net.add_task(check_dmesg)
 @task
 def show_log(c):
     """ Show log for all following tasks """
-    log = logging.getLogger('nebula')
+    log = logging.getLogger("nebula")
     log.setLevel(logging.DEBUG)
     log = logging.getLogger()
     root_handler = log.handlers[0]
     root_handler.addFilter(MyFilter())
-    root_handler.setFormatter(logging.Formatter('%(levelname)s | %(name)s : %(message)s'))
+    root_handler.setFormatter(
+        logging.Formatter("%(levelname)s | %(name)s : %(message)s")
+    )
 
 
 ns = Collection()
