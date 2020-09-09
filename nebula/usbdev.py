@@ -7,6 +7,7 @@ import fabric
 from fabric import Connection
 import logging
 import time
+import tempfile
 
 log = logging.getLogger(__name__)
 
@@ -26,21 +27,38 @@ class usbdev:
         (output, err) = p.communicate()
         return output.decode("utf-8")
 
-    #
-    def _check_disk_mounted(self, name="PlutoSDR", skip_exception=False):
+    def _mount_dev(self, name):
+        # Get mount point
         cmd = "sudo blkid -L " + name
         out = self.shell_out2(cmd)
-        if len(out) == 0:
-            return False, False
-        cmd = "sudo mount -l | grep `sudo blkid -L " + name + "` | grep dev"
+        # Do mount
+        temp_dir_path = tempfile.mkdtemp()
+        os.mkdir(temp_dir_path)
+
+        cmd = "sudo mount " + out + " " + temp_dir_path
         out = self.shell_out2(cmd)
-        out = out.split(" ")
-        if len(out) > 1:
-            partition = out[0]
-            mountpoint = out[2]
-        else:
-            partition = False
-            mountpoint = False
+        return temp_dir_path
+
+    def _check_disk_mounted(
+        self, name="PlutoSDR", skip_exception=False, do_mount=False
+    ):
+        for _ in range(2):
+            cmd = "sudo blkid -L " + name
+            out = self.shell_out2(cmd)
+            if len(out) == 0:
+                return False, False
+            cmd = "sudo mount -l | grep `sudo blkid -L " + name + "` | grep dev"
+            out = self.shell_out2(cmd)
+            out = out.split(" ")
+            if len(out) > 1:
+                partition = out[0]
+                mountpoint = out[2]
+                break
+            else:
+                if do_mount:
+                    self._mount_dev(name)
+                partition = False
+                mountpoint = False
         if not skip_exception:
             if not os.path.exists(partition):
                 raise Exception("partition not found: " + str(partition))
@@ -55,7 +73,7 @@ class usbdev:
             name = "PlutoSDR"
         else:
             name = "M2K"
-        mount, partition = self._check_disk_mounted(name=name)
+        mount, partition = self._check_disk_mounted(name=name, do_mount=True)
         log.info("Found mount: " + mount + " for partition: " + partition)
         # Send
         log.info("Copy firmware over")
