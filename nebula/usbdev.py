@@ -33,8 +33,6 @@ class usbdev:
         out = self.shell_out2(cmd)
         # Do mount
         temp_dir_path = tempfile.mkdtemp()
-        os.mkdir(temp_dir_path)
-
         cmd = "sudo mount " + out + " " + temp_dir_path
         out = self.shell_out2(cmd)
         return temp_dir_path
