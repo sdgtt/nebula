@@ -65,31 +65,39 @@ class downloader(utils):
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
-    def _download_firmware(self, release=None):
-        if release=="master":
+    def _download_firmware(self, device, release=None):
+        if release == "master":
             release = None
+
+        if "m2k" in device.lower() or "adalm-2000" in device.lower():
+            dev = "m2k"
+        elif "pluto" in device.lower():
+            dev = "plutosdr"
+        else:
+            raise Exception("Unknown device " + device)
+
         if not release:
             # Get latest
             log.info("Release not set. Checking github for latest")
             g = Github()
-            repo = g.get_repo("analogdevicesinc/plutosdr-fw")
+            repo = g.get_repo("analogdevicesinc/{}-fw".format(dev))
             rel = repo.get_releases()
             p = rel.get_page(0)
             r = p[0]
             release = r.tag_name
-        log.info("Using release: "+release)
+        log.info("Using release: " + release)
 
         matched = re.match("v[0-1].[0-9][0-9]", release)
         is_match = bool(matched)
         assert is_match, "Version name invalid"
 
-        url = "https://github.com/analogdevicesinc/plutosdr-fw/releases/download/{rel}/plutosdr-fw-{rel}.zip".format(
-            rel=release
+        url = "https://github.com/analogdevicesinc/{dev}-fw/releases/download/{rel}/{dev}-fw-{rel}.zip".format(
+            dev=dev, rel=release
         )
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
-        release = os.path.join(dest, "plutosdr-fw-" + release + ".zip")
+        release = os.path.join(dest, dev + "-fw-" + release + ".zip")
         self.download(url, release)
 
     def _get_file(self, filename, source, design_source_root, source_root, branch):
@@ -143,7 +151,7 @@ class downloader(utils):
             kernel = "uImage"
             kernel_root = "zynq-common"
             dt = "devicetree.dtb"
-        elif "PLUTO" in details["carrier"]:
+        elif "ADALM" in details["carrier"]:
             firmware = True
         else:
             raise Exception("Carrier not supported")
@@ -153,8 +161,9 @@ class downloader(utils):
             assert (
                 "pluto" in details["carrier"].lower()
                 or "m2k" in details["carrier"].lower()
+                or "adalm-2000" in details["carrier"].lower()
             ), "Firmware downloads only available for pluto and m2k"
-            self._download_firmware(branch)
+            self._download_firmware(details["carrier"], branch)
         else:
 
             if source == "local_fs":

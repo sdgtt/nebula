@@ -75,7 +75,7 @@ class usbdev:
         if "pluto" in device.lower():
             name = "PlutoSDR"
         else:
-            name = "M2K"
+            name = "M2k"
         mount, partition = self._check_disk_mounted(name=name, do_mount=True)
         log.info("Found mount: " + mount + " for partition: " + partition)
         # Send
@@ -90,7 +90,7 @@ class usbdev:
         if "pluto" in device.lower():
             name = "PlutoSDR"
         else:
-            name = "M2K"
+            name = "M2k"
         for k in range(self.wait_time_seconds):
             mount, partition = self._check_disk_mounted(
                 name=name, skip_exception=True, do_mount=True

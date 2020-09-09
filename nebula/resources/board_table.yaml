@@ -234,3 +234,5 @@ zynqmp-zcu102-rev10-fmclidar1:
   carrier: ZCU102
 pluto:
   carrier: ADALM-PLUTO
+m2k:
+  carrier: ADALM-2000
