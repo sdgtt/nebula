@@ -3,10 +3,15 @@ import os
 import pathlib
 import netifaces
 import glob
+import logging
 import click
+from nebula.common import multi_device_check
+import nebula.errors as ne
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
+
+log = logging.getLogger(__name__)
 
 
 def get_uarts():
@@ -53,7 +58,7 @@ class helper:
                 if filter in config:
                     print(config)
 
-    def update_yaml(self, configfilename, section, field, new_value):
+    def update_yaml(self, configfilename, section, field, new_value, board_name=None):
         """ Update single field of exist config file """
 
         if not os.path.isfile(configfilename):
@@ -61,6 +66,28 @@ class helper:
         stream = open(configfilename, "r")
         configs = yaml.safe_load(stream)
         stream.close()
+
+        board_name_request = field == "board-name" and section == "board-config"
+
+        try:
+            cfg = multi_device_check(configs, board_name)
+        except ne.MultiDevFound:
+            if not board_name_request:
+                raise ne.MultiDevFound
+            # Print out list of boards
+            ks = configs.keys()
+            names = []
+            for config in ks:
+                for cfg in configs[config]:
+                    if cfg == "board-config":
+                        for c in configs[config][cfg]:
+                            for f in c:
+                                if f == "board-name":
+                                    names.append(c["board-name"])
+            print(", ".join(names))
+            return
+        configs = cfg
+
         updated = False
         try:
             for i, f in enumerate(configs[section]):

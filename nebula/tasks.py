@@ -244,10 +244,11 @@ def gen_config(c):
         "field": "Field of section of yaml to update",
         "value": "New field value. If none if given field is only printed",
         "yamlfilename": "Path to yaml config file. Default: OS_SPECIFIC",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def update_config(
-    c, section, field, value=None, yamlfilename=DEFAULT_NEBULA_CONFIG,
+    c, section, field, value=None, yamlfilename=DEFAULT_NEBULA_CONFIG, board_name=None
 ):
     """ Update or read field of existing yaml config file """
     h = nebula.helper()

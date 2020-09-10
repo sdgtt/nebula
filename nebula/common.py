@@ -1,5 +1,6 @@
 import yaml
 import os
+import nebula.errors as ne
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
@@ -18,7 +19,8 @@ def multi_device_check(configs, board_name):
             break
 
     if depth > 1 and not board_name:
-        raise Exception("Multi-device config found. Board name must be specificied")
+        raise ne.MultiDevFound()
+        # raise Exception("Multi-device config found. Board name must be specificied")
 
     if depth > 1:
         found = False
