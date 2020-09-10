@@ -1,7 +1,8 @@
 class Error(Exception):
     """Base class for other exceptions"""
 
-    pass
+    def __init__(self):
+        Exception.__init__(self, self.__doc__)
 
 
 class NetworkNotFunctional(Error):
@@ -41,6 +42,6 @@ class PingFailedAfterReboot(Error):
 
 
 class MultiDevFound(Error):
-    """ "Multi-device config found. Board name must be specificied """
+    """ Multi-device config found. Board name must be specificied """
 
     pass

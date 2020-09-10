@@ -253,7 +253,11 @@ def update_config(
     """ Update or read field of existing yaml config file """
     h = nebula.helper()
     h.update_yaml(
-        configfilename=yamlfilename, section=section, field=field, new_value=value
+        configfilename=yamlfilename,
+        section=section,
+        field=field,
+        new_value=value,
+        board_name=board_name,
     )
 
 
@@ -418,7 +422,7 @@ def set_local_nic_ip_from_usbdev(
         print("Local IP Set:", ipaddrs, "Remote:", ipaddr)
         del u
     except Exception as ex:
-        print(ex)
+        raise ex
 
 
 @task(
@@ -660,11 +664,13 @@ net.add_task(update_boot_files)
 net.add_task(check_dmesg)
 
 #############################################
-@task
-def show_log(c):
+@task(
+    help={"level": "Set log level. Default is DEBUG",}
+)
+def show_log(c, level="DEBUG"):
     """ Show log for all following tasks """
     log = logging.getLogger("nebula")
-    log.setLevel(logging.DEBUG)
+    log.setLevel(getattr(logging, level))
     log = logging.getLogger()
     root_handler = log.handlers[0]
     root_handler.addFilter(MyFilter())

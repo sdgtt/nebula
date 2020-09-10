@@ -1,9 +1,12 @@
 import yaml
 import os
 import nebula.errors as ne
+import logging
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
+
+log = logging.getLogger(__name__)
 
 
 def multi_device_check(configs, board_name):
@@ -18,22 +21,24 @@ def multi_device_check(configs, board_name):
         else:
             break
 
+    log.info("Depth of config: " + str(depth))
+    log.info("board_name used: " + str(board_name))
     if depth > 1 and not board_name:
         raise ne.MultiDevFound()
-        # raise Exception("Multi-device config found. Board name must be specificied")
+    if depth <= 1:
+        return configs
 
-    if depth > 1:
-        found = False
-        for config in configs:
-            if config["board-config"]["board-name"] == board_name:
-                found = True
-                configs = config
-                break
+    # Filter out config for board of interest
+    for config in configs:
+        for cfg in configs[config]:
+            if cfg == "board-config":
+                for c in configs[config][cfg]:
+                    for f in c:
+                        if f == "board-name":
+                            if c["board-name"] == board_name:
+                                return configs[config]
 
-        if not found:
-            raise Exception("Selected board not found in configuration")
-
-    return configs
+    raise Exception("Selected board not found in configuration")
 
 
 class utils:
