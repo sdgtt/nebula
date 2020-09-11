@@ -123,18 +123,16 @@ def download_sdcard(c, release="2019_R1"):
 
 @task(
     help={
-        "design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
+        "board_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
         "source": "Boot file download source. Options are: local_fs, http, artifactory, remote.\nDefault: local_fs",
         "source_root": "Location of source boot files. Dependent on source.\nFor http sources this is a IP or domain name (no http://)",
         "branch": "Name of branch to get related files. This is only used for\bhttp and artifactory sources. Default is master",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "firmware": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
     },
 )
 def download_boot_files(
     c,
-    design_name,
     source="local_fs",
     source_root=None,
     branch="master",
@@ -142,9 +140,9 @@ def download_boot_files(
     board_name=None,
     firmware=False,
 ):
-    """ Download, verify, and decompress SD card image """
+    """ Download bootfiles for a specific development system """
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(design_name, source, source_root, branch)
+    d.download_boot_files(board_name, source, source_root, branch)
 
 
 dl = Collection("dl")
