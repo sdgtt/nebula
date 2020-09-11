@@ -48,22 +48,22 @@ class manager:
                 configfilename = None
             else:
                 configfilename = self.configfilename
-            u = uart(yamlfilename=configfilename)
+            u = uart(yamlfilename=configfilename, board_name=board_name)
             self.monitor = [u]
 
-            self.driver = driver(yamlfilename=configfilename)
+            self.driver = driver(yamlfilename=configfilename, board_name=board_name)
 
         if "network-config" not in configs:
             configfilename = None
         else:
             configfilename = self.configfilename
-        self.net = network(yamlfilename=configfilename)
+        self.net = network(yamlfilename=configfilename, board_name=board_name)
 
         if "pdu-config" not in configs:
             configfilename = None
         else:
             configfilename = self.configfilename
-        self.power = pdu(yamlfilename=configfilename)
+        self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.jtag_use = False
         self.jtag = False
@@ -71,7 +71,7 @@ class manager:
             for config in configs["board-config"]:
                 if "allow-jtag" in config:
                     self.jtag_use = config["allow-jtag"]
-                    self.jtag = jtag(yamlfilename=configfilename)
+                    self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
         # self.boot_src = tftpboot()
 
