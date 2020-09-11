@@ -269,7 +269,6 @@ def update_config(
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-        "design_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
     },
 )
 def update_boot_files_manager(
@@ -281,7 +280,6 @@ def update_boot_files_manager(
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
-    design_name=None,
 ):
     """ Update boot files through u-boot menu (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -294,7 +292,7 @@ def update_boot_files_manager(
             devtreepath=devtreepath,
         )
     else:
-        m.board_reboot_auto_folder(folder, design_name=design_name)
+        m.board_reboot_auto_folder(folder, design_name=board_name)
 
 
 manager = Collection("manager")
