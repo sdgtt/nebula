@@ -1,8 +1,12 @@
 --WARNING: IIO bindings not on-path, libIIO dependent operations will not work
-Usage: nebula [--core-opts] net.restart-board [--options] [other tasks here ...]
+Usage: nebula [--core-opts] net.check-dmesg [--options] [other tasks here ...]
 
 Docstring:
-  Reboot development system over IP 
+  Download and parse remote board's dmesg log
+  Three log files will be produced:
+      dmesg.log - Full dmesg
+      dmesg_err.log - dmesg errors only
+      dmesg_warn.log - dmesg warnings only
 
 Options:
   -b STRING, --board-name=STRING

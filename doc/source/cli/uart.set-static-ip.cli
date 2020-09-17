@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] uart.set-static-ip [--options] [other tasks here ...]
 
 Docstring:
@@ -8,6 +9,7 @@ Options:
                                      yaml config exist is will override, if no
                                      yaml file exists and no address provided
                                      auto is used
+  -b STRING, --board-name=STRING
   -i STRING, --ip=STRING             IP Address to set NIC to
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0

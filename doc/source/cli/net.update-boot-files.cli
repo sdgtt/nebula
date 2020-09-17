@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] net.update-boot-files [--options] [other tasks here ...]
 
 Docstring:
@@ -8,6 +9,7 @@ Options:
   -d STRING, --devtreepath=STRING   Path to devicetree. Optional
   -i STRING, --ip=STRING            IP address of board. Default from yaml
   -m STRING, --uimagepath=STRING    Path to kernel image. Optional
+  -o STRING, --board-name=STRING
   -p STRING, --password=STRING      Password for board. Default: analog
   -u STRING, --user=STRING          Board username. Default: root
 

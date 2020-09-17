@@ -1,0 +1,15 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
+Usage: nebula [--core-opts] driver.check-iio-devices [--options] [other tasks here ...]
+
+Docstring:
+  Verify all IIO drivers appear on system as expected.
+  Exception is raised otherwise
+
+Options:
+  -b STRING, --board-name=STRING
+  -i STRING, --iio-device-names=STRING
+  -u STRING, --uri=STRING                URI of board running iiod with drivers
+                                         to check
+  -y STRING, --yamlfilename=STRING       Path to yaml config file. Default:
+                                         /etc/default/nebula
+

@@ -1,8 +1,9 @@
-Usage: nebula [--core-opts] show-log [other tasks here ...]
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
+Usage: nebula [--core-opts] show-log [--options] [other tasks here ...]
 
 Docstring:
   Show log for all following tasks 
 
 Options:
-  none
+  -l STRING, --level=STRING   Set log level. Default is DEBUG
 

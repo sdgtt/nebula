@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] uart.restart-board [--options] [other tasks here ...]
 
 Docstring:
@@ -8,6 +9,7 @@ Options:
                                      yaml config exist is will override, if no
                                      yaml file exists and no address provided
                                      auto is used
+  -b STRING, --board-name=STRING
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 

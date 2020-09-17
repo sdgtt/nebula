@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] gen-config [other tasks here ...]
 
 Docstring:

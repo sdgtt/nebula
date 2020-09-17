@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] coverage.kernel [--options] [other tasks here ...]
 
 Docstring:

@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] uart.update-boot-files [--options] [other tasks here ...]
 
 Docstring:
@@ -9,6 +10,7 @@ Options:
                                                 config exist is will override,
                                                 if no yaml file exists and no
                                                 address provided auto is used
+  -b STRING, --board-name=STRING
   -d STRING, --devtreepath=STRING               Path to devicetree.
   -r, --reboot                                  Reboot board from linux console
                                                 to get to u-boot menu. Defaut

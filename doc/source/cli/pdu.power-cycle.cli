@@ -1,3 +1,4 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] pdu.power-cycle [--options] [other tasks here ...]
 
 Docstring:
@@ -5,6 +6,7 @@ Docstring:
 
 Options:
   -a STRING, --password=STRING       Password of PDU service (optional)
+  -b STRING, --board-name=STRING
   -d STRING, --pduip=STRING          IP address of PDU (optional)
   -o STRING, --outlet=STRING         Outlet index of which dev board is
                                      connected

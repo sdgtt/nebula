@@ -1,0 +1,10 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
+Usage: nebula [--core-opts] info.supported-boards [--options] [other tasks here ...]
+
+Docstring:
+  Print out list of supported design names
+
+
+Options:
+  -f STRING, --filter=STRING   Required substring in design names
+

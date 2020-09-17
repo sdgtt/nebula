@@ -1,0 +1,13 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
+Usage: nebula [--core-opts] jtag.reboot [--options] [other tasks here ...]
+
+Docstring:
+  Reboot board using JTAG
+
+
+Options:
+  -c STRING, --custom-vivado-path=STRING
+  -v STRING, --vivado-version=STRING
+  -y STRING, --yamlfilename=STRING         Path to yaml config file. Default:
+                                           /etc/default/nebula
+

@@ -1,0 +1,22 @@
+--WARNING: IIO bindings not on-path, libIIO dependent operations will not work
+Usage: nebula [--core-opts] dl.bootfiles [--options] [other tasks here ...]
+
+Docstring:
+  Download bootfiles for a specific development system 
+
+Options:
+  -a STRING, --board-name=STRING
+  -b STRING, --branch=STRING         Name of branch to get related files. This
+                                     is only used forhttp and artifactory
+                                     sources. Default is master
+  -f, --firmware                     No arguments required. If set Pluto
+                                     firmware is downloaded from GitHub. Branch
+                                     name is used as release name. Design name
+                                     must be pluto or m2k
+  -o STRING, --source-root=STRING
+  -s STRING, --source=STRING         Boot file download source. Options are:
+                                     local_fs, http, artifactory, remote.
+                                     Default: local_fs
+  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
+                                     /etc/default/nebula
+
