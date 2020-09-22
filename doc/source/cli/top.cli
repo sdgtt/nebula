@@ -1,4 +1,3 @@
---WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Subcommands:
 
   gen-config                          Generate YAML configuration interactively

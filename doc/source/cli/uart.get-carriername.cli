@@ -1,4 +1,3 @@
---WARNING: IIO bindings not on-path, libIIO dependent operations will not work
 Usage: nebula [--core-opts] uart.get-carriername [--options] [other tasks here ...]
 
 Docstring:
