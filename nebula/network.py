@@ -59,7 +59,8 @@ class network(utils):
                 out, error = ping.communicate()
             except:
                 log.error("Ping creation failed")
-                raise Exception("Ping creation sfailed")
+                if p>=(tries-1):
+                    raise Exception("Ping creation sfailed")
             if "0 received" not in str(out):
                 return False
         return True
