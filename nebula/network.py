@@ -61,6 +61,7 @@ class network(utils):
                 log.error("Ping creation failed")
                 if p>=(tries-1):
                     raise Exception("Ping creation sfailed")
+                time.sleep(3)
             if "0 received" not in str(out):
                 return False
         return True
