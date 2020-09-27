@@ -57,6 +57,7 @@ class network(utils):
                     stderr=subprocess.PIPE,
                 )
                 out, error = ping.communicate()
+                break
             except:
                 log.error("Ping creation failed")
                 if p>=(tries-1):
@@ -79,9 +80,11 @@ class network(utils):
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
                 ).run("uname -a", hide=True, timeout=self.ssh_timeout)
+                break
             except Exception as ex:
                 log.warning("Exception raised: "+str(ex.msg))
-                if t>=(reties-1):
+                time.sleep(3)
+                if t>=(retries-1):
                     raise Exception("SSH Failed")
         return result.failed
 
@@ -104,36 +107,60 @@ class network(utils):
         """
         log.info("Rebooting board over SSH")
         # Try to reboot board with SSH if possible
-        try:
-            result = fabric.Connection(
-                self.dutusername + "@" + self.dutip,
-                connect_kwargs={"password": self.dutpassword},
-            ).run("/sbin/reboot", hide=False)
-            if result.ok:
-                print("Rebooting board with SSH")
-                if not bypass_sleep:
-                    time.sleep(30)
-            else:
-                # Use PDU
-                raise Exception("PDU reset not implemented yet")
+        retries = 3
+        for t in range(retries):
+            try:
+                result = fabric.Connection(
+                    self.dutusername + "@" + self.dutip,
+                    connect_kwargs={"password": self.dutpassword},
+                ).run("/sbin/reboot", hide=False)
+                if result.ok:
+                    print("Rebooting board with SSH")
+                    if not bypass_sleep:
+                        time.sleep(30)
+                    break
+                else:
+                    # Use PDU
+                    raise Exception("PDU reset not implemented yet")
 
-        except Exception as ex:
-            raise Exception("Exception occurred during SSH Reboot", str(ex))
-
+            except Exception as ex:
+                log.warning("Exception raised: "+str(ex.msg))
+                time.sleep(3)
+                if t>=(retries-1):
+                    raise Exception("Exception occurred during SSH Reboot", str(ex))
+    
     def run_ssh_command(self, command):
-        result = fabric.Connection(
-            self.dutusername + "@" + self.dutip,
-            connect_kwargs={"password": self.dutpassword},
-        ).run(command, hide=True, timeout=self.ssh_timeout)
-        if result.failed:
-            raise Exception("Failed to run command:", command)
+        retries = 3
+        for t in range(retries):
+            try:
+                result = fabric.Connection(
+                    self.dutusername + "@" + self.dutip,
+                    connect_kwargs={"password": self.dutpassword},
+                ).run(command, hide=True, timeout=self.ssh_timeout)
+                if result.failed:
+                    raise Exception("Failed to run command:", command)
+                break
+            except Exception as ex:
+                log.warning("Exception raised: "+str(ex.msg))
+                time.sleep(3)
+                if t>=(retries-1):
+                    raise Exception("SSH Failed")
+                
         return result
 
     def copy_file_to_remote(self, src, dest):
-        Connection(
-            self.dutusername + "@" + self.dutip,
-            connect_kwargs={"password": self.dutpassword},
-        ).put(src, remote=dest)
+        retries = 3
+        for t in range(retries):
+            try:
+                Connection(
+                    self.dutusername + "@" + self.dutip,
+                    connect_kwargs={"password": self.dutpassword},
+                ).put(src, remote=dest)
+            except Exception as ex:
+                log.warning("Exception raised: "+str(ex.msg))
+                time.sleep(3)
+                if t>=(retries-1):
+                    raise Exception("SSH Failed")
 
     def update_boot_partition(
         self, bootbinpath=None, uimagepath=None, devtreepath=None
