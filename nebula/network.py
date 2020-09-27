@@ -71,11 +71,18 @@ class network(utils):
 
             return: True working ssh, False non-working ssh
         """
-        log.info("Checking for board through SSH")
-        result = fabric.Connection(
-            self.dutusername + "@" + self.dutip,
-            connect_kwargs={"password": self.dutpassword},
-        ).run("uname -a", hide=True, timeout=self.ssh_timeout)
+        retries = 3
+        for t in range(retries):
+            try:
+                log.info("Checking for board through SSH")
+                result = fabric.Connection(
+                    self.dutusername + "@" + self.dutip,
+                    connect_kwargs={"password": self.dutpassword},
+                ).run("uname -a", hide=True, timeout=self.ssh_timeout)
+            except Exception as ex:
+                log.warning("Exception raised: "+str(ex.msg))
+                if t>=(reties-1):
+                    raise Exception("SSH Failed")
         return result.failed
 
     def check_board_booted(self):
