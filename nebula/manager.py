@@ -305,7 +305,7 @@ class manager:
                 raise Exception("system_top.bit not found")
             else:
                 tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar)
+                tf = tarfile.open(tar, "r:gz")
                 tf.extractall(folder)
                 tf.close()
                 files2 = os.listdir(folder)
