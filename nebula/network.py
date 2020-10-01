@@ -188,7 +188,7 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
-        self.run_ssh_command("reboot")
+        self.run_ssh_command("sudo reboot")
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """ update_boot_partition_existing_files:

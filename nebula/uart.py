@@ -226,6 +226,28 @@ class uart(utils):
         cmd = "bootm 0x3000000 - 0x2A00000"
         self._write_data(cmd)
 
+    def _attemp_login(self, username, password):
+        # Do login
+        cmd = username
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        cmd = password
+        self._write_data(cmd)
+        data = self._read_for_time(period=2)
+        # Check
+        cmd = ""
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        logged_in = False
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if username+"@" in c or "#" in c:
+                        logging.info("Logged in success")
+                        logged_in = True
+        return logged_in
+
     def _check_for_login(self):
         for _ in range(2):  # Check at least twice
             cmd = ""
@@ -239,26 +261,14 @@ class uart(utils):
                         logging.info(c)
                         if "login:" in c:
                             needs_login = True
+        logged_in=False
         if needs_login:
             # Do login
-            cmd = "root"
-            self._write_data(cmd)
-            data = self._read_for_time(period=1)
-            cmd = "analog"
-            self._write_data(cmd)
-            data = self._read_for_time(period=2)
-            # Check
-            cmd = ""
-            self._write_data(cmd)
-            data = self._read_for_time(period=1)
-            logged_in = False
-            for d in data:
-                if isinstance(d, list):
-                    for c in d:
-                        c = c.replace("\r", "")
-                        if "root@" in c or "#" in c:
-                            logging.info("Logged in success")
-                            logged_in = True
+            if self._attemp_login("analog","analog"):
+                return True
+            else:
+                self._write_data("")
+                logged_in = self._attemp_login("root","analog")
         else:
             return True
         return logged_in
