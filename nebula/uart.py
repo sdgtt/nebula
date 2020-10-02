@@ -327,6 +327,7 @@ class uart(utils):
         for d in data:
             if isinstance(d, list):
                 for c in d:
+                    log.info("command response: "+c)
                     c = c.replace("\r", "")
                     try:
                         if len(findstring) == 0:
@@ -338,6 +339,7 @@ class uart(utils):
                     except:
                         continue
             else:
+                log.info("command response: "+d)
                 try:
                     if len(findstring) == 0:
                         if (len(d) > 0) and (d != cmd) and (cmd not in d):

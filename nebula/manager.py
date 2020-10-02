@@ -337,6 +337,7 @@ class manager:
                 raise Exception("Firmware update failed for: " + design_name)
 
         else:
+            log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
             print(bootbin, kernel, dt, bit)
             self.board_reboot_uart_net_pdu(
