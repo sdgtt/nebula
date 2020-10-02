@@ -214,7 +214,7 @@ class network(utils):
             self.run_ssh_command(
                 "cp /tmp/sdcard/" + subfolder + "/devicetree.dtb /tmp/sdcard/"
             )
-        self.run_ssh_command("reboot")
+        self.run_ssh_command("sudo reboot")
 
     def _dl_file(self, filename):
         fabric.Connection(
