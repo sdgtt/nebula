@@ -82,7 +82,7 @@ class network(utils):
                 ).run("uname -a", hide=True, timeout=self.ssh_timeout)
                 break
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex.msg))
+                log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
                 if t>=(retries-1):
                     raise Exception("SSH Failed")
@@ -124,7 +124,7 @@ class network(utils):
                     raise Exception("PDU reset not implemented yet")
 
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex.msg))
+                log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
                 if t>=(retries-1):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
@@ -141,7 +141,7 @@ class network(utils):
                     raise Exception("Failed to run command:", command)
                 break
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex.msg))
+                log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
                 if t>=(retries-1):
                     raise Exception("SSH Failed")
@@ -157,7 +157,7 @@ class network(utils):
                     connect_kwargs={"password": self.dutpassword},
                 ).put(src, remote=dest)
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex.msg))
+                log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
                 if t>=(retries-1):
                     raise Exception("SSH Failed")
