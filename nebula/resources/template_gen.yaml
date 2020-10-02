@@ -24,13 +24,13 @@ board-config:
     name: monitoring-interface
     default: uart
     help: "Select monitoring interface"
-    options: [uart,netconsole]
+    options: [uart, netconsole]
     optional: False
   field_4:
     name: allow-jtag
     default: False
     help: "Allow use of JTAG"
-    options: ['True','False']
+    options: ["True", "False"]
     optional: False
 network-config:
   field_1:
@@ -42,7 +42,7 @@ network-config:
     name: dhcp
     help: "DHCP network to development board (False assumes static)"
     optional: False
-    options: ['True','False']
+    options: ["True", "False"]
     requires: False:nic,nicip
   field_3:
     name: nic
@@ -60,7 +60,7 @@ pdu-config:
     name: pdu_type
     default: cyberpower
     help: "PDU type"
-    options: [cyberpower,vesync]
+    options: [cyberpower, vesync]
     optional: False
     requires: vesync:username,password
   field_2:
@@ -115,7 +115,7 @@ system-config:
 driver-config:
   field_1:
     name: iio_device_names
-    default: ['axi-ad9144-hpc','axi-ad9680-hpc']
+    default: ["axi-ad9144-hpc", "axi-ad9680-hpc"]
     help: "List of IIO devices on board"
     optional: False
 downloader-config:

@@ -228,9 +228,23 @@ class uart(utils):
 
     def _attemp_login(self, username, password):
         # Do login
+        logged_in = False
         cmd = username
         self._write_data(cmd)
-        data = self._read_for_time(period=1)
+        data = self._read_for_time(period=5)
+        # using root username automatically responded with Login Incorrect
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if "Login incorrect" in c or "login:" in c:
+                        log.info("Login attempt incorrect")
+                        return False
+            else:
+                c = d.replace("\r", "")
+                if "Login incorrect" in c or "login:" in c:
+                    log.info("Login attempt incorrect")
+                    return False
         cmd = password
         self._write_data(cmd)
         data = self._read_for_time(period=2)
@@ -238,7 +252,6 @@ class uart(utils):
         cmd = ""
         self._write_data(cmd)
         data = self._read_for_time(period=1)
-        logged_in = False
         for d in data:
             if isinstance(d, list):
                 for c in d:
@@ -264,11 +277,11 @@ class uart(utils):
         logged_in=False
         if needs_login:
             # Do login
-            if self._attemp_login("analog","analog"):
+            if self._attemp_login("root","analog"):
                 return True
             else:
-                self._write_data("")
-                logged_in = self._attemp_login("root","analog")
+                log.info("Attempting to login as analog")
+                logged_in = self._attemp_login("analog","analog")
         else:
             return True
         return logged_in
