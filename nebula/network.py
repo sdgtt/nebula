@@ -129,9 +129,11 @@ class network(utils):
                 if t>=(retries-1):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
     
-    def run_ssh_command(self, command):
+    def run_ssh_command(self, command, ignore_exceptions=False):
         retries = 3
+        result=None
         for t in range(retries):
+            log.info("ssh command:" + command +"to "+self.dutusername + "@" + self.dutip)
             try:
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
@@ -142,9 +144,10 @@ class network(utils):
                 break
             except Exception as ex:
                 log.warning("Exception raised: "+str(ex))
-                time.sleep(3)
-                if t>=(retries-1):
-                    raise Exception("SSH Failed")
+                if not ignore_exceptions:
+                    time.sleep(3)
+                    if t>=(retries-1):
+                        raise Exception("SSH Failed")
                 
         return result
 
@@ -188,7 +191,7 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
-        self.run_ssh_command("sudo reboot")
+        self.run_ssh_command("sudo reboot",ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """ update_boot_partition_existing_files:
