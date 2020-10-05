@@ -305,7 +305,7 @@ class manager:
                 raise Exception("system_top.bit not found")
             else:
                 tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar)
+                tf = tarfile.open(tar, "r:gz")
                 tf.extractall(folder)
                 tf.close()
                 files2 = os.listdir(folder)
@@ -337,6 +337,7 @@ class manager:
                 raise Exception("Firmware update failed for: " + design_name)
 
         else:
+            log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
             print(bootbin, kernel, dt, bit)
             self.board_reboot_uart_net_pdu(

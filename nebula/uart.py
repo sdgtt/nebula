@@ -226,6 +226,41 @@ class uart(utils):
         cmd = "bootm 0x3000000 - 0x2A00000"
         self._write_data(cmd)
 
+    def _attemp_login(self, username, password):
+        # Do login
+        logged_in = False
+        cmd = username
+        self._write_data(cmd)
+        data = self._read_for_time(period=5)
+        # using root username automatically responded with Login Incorrect
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if "Login incorrect" in c or "login:" in c:
+                        log.info("Login attempt incorrect")
+                        return False
+            else:
+                c = d.replace("\r", "")
+                if "Login incorrect" in c or "login:" in c:
+                    log.info("Login attempt incorrect")
+                    return False
+        cmd = password
+        self._write_data(cmd)
+        data = self._read_for_time(period=2)
+        # Check
+        cmd = ""
+        self._write_data(cmd)
+        data = self._read_for_time(period=1)
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    c = c.replace("\r", "")
+                    if username+"@" in c or "#" in c:
+                        logging.info("Logged in success")
+                        logged_in = True
+        return logged_in
+
     def _check_for_login(self):
         for _ in range(2):  # Check at least twice
             cmd = ""
@@ -239,26 +274,14 @@ class uart(utils):
                         logging.info(c)
                         if "login:" in c:
                             needs_login = True
+        logged_in=False
         if needs_login:
             # Do login
-            cmd = "root"
-            self._write_data(cmd)
-            data = self._read_for_time(period=1)
-            cmd = "analog"
-            self._write_data(cmd)
-            data = self._read_for_time(period=2)
-            # Check
-            cmd = ""
-            self._write_data(cmd)
-            data = self._read_for_time(period=1)
-            logged_in = False
-            for d in data:
-                if isinstance(d, list):
-                    for c in d:
-                        c = c.replace("\r", "")
-                        if "root@" in c or "#" in c:
-                            logging.info("Logged in success")
-                            logged_in = True
+            if self._attemp_login("root","analog"):
+                return True
+            else:
+                log.info("Attempting to login as analog")
+                logged_in = self._attemp_login("analog","analog")
         else:
             return True
         return logged_in
@@ -317,6 +340,7 @@ class uart(utils):
         for d in data:
             if isinstance(d, list):
                 for c in d:
+                    log.info("command response: "+c)
                     c = c.replace("\r", "")
                     try:
                         if len(findstring) == 0:
@@ -328,6 +352,7 @@ class uart(utils):
                     except:
                         continue
             else:
+                log.info("command response: "+d)
                 try:
                     if len(findstring) == 0:
                         if (len(d) > 0) and (d != cmd) and (cmd not in d):

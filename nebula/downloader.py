@@ -54,7 +54,8 @@ def get_newest_folder(links):
 
 def gen_url(ip, branch, folder, filename):
     url = url_template.format(ip, branch, "", "")
-    folder = get_newest_folder(listFD(url[:-1]))
+    # folder = BUILD_DATE/PROJECT_FOLDER
+    folder = get_newest_folder(listFD(url[:-1]))+'/'+folder
     return url_template.format(ip, branch, folder, filename)
 
 
