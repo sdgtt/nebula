@@ -15,10 +15,10 @@ log = logging.getLogger(__name__)
 
 
 def get_uarts():
-    LINUX_SERIAL_FOLDER = "/dev/serial"
     strs = "\n(Found: "
     default = None
-    if os.name == "nt" or os.name == "posix":
+    if os.name in ["nt", "posix"]:
+        LINUX_SERIAL_FOLDER = "/dev/serial"
         if os.path.isdir(LINUX_SERIAL_FOLDER):
             fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
             for fd in fds:
@@ -52,21 +52,16 @@ class helper:
         with open(res) as f:
             board_configs = yaml.load(f, Loader=yaml.FullLoader)
         for config in board_configs:
-            if not filter:
+            if filter in config or not filter:
                 print(config)
-            else:
-                if filter in config:
-                    print(config)
 
     def update_yaml(self, configfilename, section, field, new_value, board_name=None):
         """ Update single field of exist config file """
 
         if not os.path.isfile(configfilename):
             raise Exception("Specificied yaml file does not exist")
-        stream = open(configfilename, "r")
-        configs = yaml.safe_load(stream)
-        stream.close()
-
+        with open(configfilename, "r") as stream:
+            configs = yaml.safe_load(stream)
         board_name_request = field == "board-name" and section == "board-config"
 
         try:

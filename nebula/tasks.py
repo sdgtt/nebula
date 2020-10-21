@@ -17,7 +17,7 @@ class MyFilter(logging.Filter):
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
-if os.name == "nt" or os.name == "posix":
+if os.name in ["nt", "posix"]:
     if os.path.exists(LINUX_DEFAULT_PATH):
         DEFAULT_NEBULA_CONFIG = LINUX_DEFAULT_PATH
     else:
@@ -25,9 +25,8 @@ if os.name == "nt" or os.name == "posix":
 
 
 def load_yaml(filename):
-    stream = open(filename, "r")
-    configs = yaml.safe_load(stream)
-    stream.close()
+    with open(filename, "r") as stream:
+        configs = yaml.safe_load(stream)
     return configs
 
 
@@ -370,7 +369,7 @@ def set_local_nic_ip_from_usbdev(
     try:
         import os
 
-        if not (os.name == "nt" or os.name == "posix"):
+        if not os.name in ["nt", "posix"]:
             raise Exception("This command only works on Linux currently")
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name

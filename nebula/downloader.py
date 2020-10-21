@@ -102,10 +102,10 @@ class downloader(utils):
         self.download(url, release)
 
     def _get_file(self, filename, source, design_source_root, source_root, branch):
-        if source == "local_fs":
-            self._get_local_file(filename, design_source_root)
-        elif source == "http":
+        if source == "http":
             self._get_http_files(filename, design_source_root, source_root, branch)
+        elif source == "local_fs":
+            self._get_local_file(filename, design_source_root)
         else:
             raise Exception("Unknown file source")
 
@@ -239,16 +239,16 @@ class downloader(utils):
         print("Image file available:", rel["imgname"])
 
     def releases(self, release="2019_R1"):
-        rel = dict()
-        if release == "2019_R1":
+        rel = {}
+        if release == "2018_R2":
+            rel["imgname"] = "2018_R2-2019_05_23.img"
+            rel["xzmd5"] = "c377ca95209f0f3d6901fd38ef2b4dfd"
+            rel["imgmd5"] = "59c2fe68118c3b635617e36632f5db0b"
+        elif release == "2019_R1":
             rel["imgname"] = "2019_R1-2020_02_04.img"
             rel["xzmd5"] = "49c121d5e7072ab84760fed78812999f"
             rel["imgmd5"] = "40aa0cd80144a205fc018f479eff5fce"
 
-        elif release == "2018_R2":
-            rel["imgname"] = "2018_R2-2019_05_23.img"
-            rel["xzmd5"] = "c377ca95209f0f3d6901fd38ef2b4dfd"
-            rel["imgmd5"] = "59c2fe68118c3b635617e36632f5db0b"
         else:
             raise Exception("Unknown release")
         rel["link"] = "http://swdownloads.analog.com/cse/" + rel["imgname"] + ".xz"
@@ -291,8 +291,8 @@ class downloader(utils):
         tlfile = pathlib.Path(inname)
 
         decompressor = lzma.LZMADecompressor()
-        total = 0
         with open(tlfile, "rb") as ifile:
+            total = 0
             with open(outname, "wb") as file, tqdm(
                 desc="Decompressing: " + outname,
                 total=total,

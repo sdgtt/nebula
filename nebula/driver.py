@@ -31,9 +31,7 @@ class driver(utils):
         """
         log.info("Checking uri: " + self.uri)
         ctx = iio.Context(self.uri)
-        devs = []
-        for d in ctx.devices:
-            devs.append(d.name)
+        devs = [d.name for d in ctx.devices]
         for dev in self.iio_device_names:
             log.info("Checking for: " + str(dev))
             if dev not in devs:
