@@ -145,8 +145,8 @@ class manager:
             if not ip:
                 self.monitor[0].request_ip_dhcp()
                 ip = self.monitor[0].get_ip_address()
-                if not ip:
-                    raise ne.NetworkNotFunctional
+            if not ip:
+                raise ne.NetworkNotFunctional
             if ip != self.net.dutip:
                 log.info("DUT IP changed to: " + str(ip))
                 self.net.dutip = ip
@@ -249,7 +249,7 @@ class manager:
                     log.info("Power cycling")
                     self.power.power_cycle_board()
                     log.info("Spamming ENTER to get UART console")
-                    for k in range(60):
+                    for _ in range(60):
                         self.monitor[0]._write_data("\r\n")
                         time.sleep(0.1)
 

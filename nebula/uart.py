@@ -82,7 +82,7 @@ class uart(utils):
 
     def _auto_set_address(self):
         """ Try to set yaml automatically """
-        if os.name == "nt" or os.name == "posix":
+        if os.name in ["nt", "posix"]:
             if os.path.isdir(LINUX_SERIAL_FOLDER):
                 fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
                 found = False
@@ -126,12 +126,11 @@ class uart(utils):
         ws = "w"
         if logappend:
             ws = "a"
-        file = open(self.logfilename, ws)
-        while self.listen_thread_run:
-            data = self._read_until_stop()
-            for d in data:
-                file.writelines(d + "\n")
-        file.close()
+        with open(self.logfilename, ws) as file:
+            while self.listen_thread_run:
+                data = self._read_until_stop()
+                for d in data:
+                    file.writelines(d + "\n")
         logging.info("UART listening thread closing")
 
     def _read_until_stop(self):
@@ -296,8 +295,8 @@ class uart(utils):
             raise Exception("Console inaccessible due to login failure")
         cmd = "/usr/local/bin/enable_static_ip.sh " + address + " " + nic
         self._write_data(cmd)
-        data = self._read_for_time(period=1)
         if restart:
+            data = self._read_for_time(period=1)
             self.start_log(logappend=True)
 
     def request_ip_dhcp(self, nic="eth0"):
@@ -331,9 +330,8 @@ class uart(utils):
             raise Exception("Console inaccessible due to login failure")
         self._write_data(cmd)
         data = self._read_for_time(period=1)
-        if isinstance(data, list):
-            if isinstance(data[0], list):
-                data = data[0]
+        if isinstance(data, list) and isinstance(data[0], list):
+            data = data[0]
         data = data[1:]  # Remove command itself
         if restart:
             self.start_log(logappend=True)
@@ -405,15 +403,15 @@ class uart(utils):
 
     def _read_for_time(self, period):
         data = []
-        for k in range(period):
+        for _ in range(period):
             data.append(self._read_until_stop())
             time.sleep(1)
         return data
 
     def _read_until_done(self, done_string="done", max_time=None):
         data = []
-        mt = max_time if max_time else self.max_read_time
-        for k in range(mt):
+        mt = max_time or self.max_read_time
+        for _ in range(mt):
             data = self._read_until_stop()
             if isinstance(data, list):
                 for d in data:
@@ -456,7 +454,7 @@ class uart(utils):
         # if not self.listen_thread_run:
         #    stop_at_done = True
         #    self.stop_log()
-        for k in range(30):
+        for _ in range(30):
             self._write_data("\r\n")
             data = self._read_for_time(1)
             # Check uboot console reached
@@ -522,7 +520,7 @@ class uart(utils):
         """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM) from a running system """
         # Spam enter while reboot to get to u-boot menu
         log.info("Spamming ENTER to get UART console")
-        for k in range(60):
+        for _ in range(60):
             self._write_data("\r\n")
             time.sleep(0.1)
         log.info("Loading boot files from UART")

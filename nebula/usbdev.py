@@ -72,10 +72,7 @@ class usbdev:
     def update_firmware(self, filename, device="PlutoSDR"):
         if not os.path.isfile(filename):
             raise Exception("File not found: " + filename)
-        if "pluto" in device.lower():
-            name = "PlutoSDR"
-        else:
-            name = "M2k"
+        name = "PlutoSDR" if "pluto" in device.lower() else "M2k"
         mount, partition = self._check_disk_mounted(name=name, do_mount=True)
         log.info("Found mount: " + mount + " for partition: " + partition)
         # Send
@@ -87,10 +84,7 @@ class usbdev:
         time.sleep(5)
 
     def wait_for_usb_mount(self, device):
-        if "pluto" in device.lower():
-            name = "PlutoSDR"
-        else:
-            name = "M2k"
+        name = "PlutoSDR" if "pluto" in device.lower() else "M2k"
         for k in range(self.wait_time_seconds):
             mount, partition = self._check_disk_mounted(
                 name=name, skip_exception=True, do_mount=True

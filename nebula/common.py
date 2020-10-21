@@ -34,9 +34,8 @@ def multi_device_check(configs, board_name):
             if cfg == "board-config":
                 for c in configs[config][cfg]:
                     for f in c:
-                        if f == "board-name":
-                            if c["board-name"] == board_name:
-                                return configs[config]
+                        if f == "board-name" and c["board-name"] == board_name:
+                            return configs[config]
 
     raise Exception("Selected board not found in configuration")
 
@@ -45,7 +44,7 @@ class utils:
     def update_defaults_from_yaml(self, filename, configname=None, board_name=None):
         """ Utility class for processing yaml files """
         if not filename:
-            if os.name == "nt" or os.name == "posix":
+            if os.name in ["nt", "posix"]:
                 if os.path.exists(LINUX_DEFAULT_PATH):
                     filename = LINUX_DEFAULT_PATH
                 else:
@@ -55,10 +54,8 @@ class utils:
         if not os.path.exists(filename):
             return
 
-        stream = open(filename, "r")
-        configs = yaml.safe_load(stream)
-        stream.close()
-
+        with open(filename, "r") as stream:
+            configs = yaml.safe_load(stream)
         configs = multi_device_check(configs, board_name)
 
         if configname + "-config" not in configs:
