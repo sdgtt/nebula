@@ -58,6 +58,7 @@ class usbdev:
                 log.info("Waiting for automount first")
                 time.sleep(15)
             else:
+                log.info("Partition from USB does not appear to be mounted. Trying to mount...")
                 if do_mount:
                     self._mount_dev(name)
                 partition = False
