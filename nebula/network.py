@@ -177,7 +177,7 @@ class network(utils):
             self.run_ssh_command("ls /tmp/sdcard")
             dir_exists = True
         except:
-            log.info("Existing /tmp/sdcard directory found. Will try to unmount")
+            log.info("Existing /tmp/sdcard directory not found. Will need to create it")
             dir_exists = False
         if dir_exists:
             try:
