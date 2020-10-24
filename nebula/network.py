@@ -153,6 +153,7 @@ class network(utils):
 
     def copy_file_to_remote(self, src, dest):
         retries = 3
+        log.info("Copying file to remote: "+src)
         for t in range(retries):
             try:
                 Connection(
