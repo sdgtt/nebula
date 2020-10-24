@@ -133,7 +133,7 @@ class network(utils):
         retries = 3
         result=None
         for t in range(retries):
-            log.info("ssh command:" + command +"to "+self.dutusername + "@" + self.dutip)
+            log.info("ssh command:" + command +" to "+self.dutusername + "@" + self.dutip)
             try:
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
@@ -176,11 +176,14 @@ class network(utils):
             self.run_ssh_command("ls /tmp/sdcard")
             dir_exists = True
         except:
+            log.info("Existing /tmp/sdcard directory found. Will try to unmount")
             dir_exists = False
         if dir_exists:
             try:
+                log.info("Trying to unmounting directory")
                 self.run_ssh_command("umount /tmp/sdcard")
             except:
+                log.info("Unmount failed... Likely not mounted")
                 pass
         else:
             self.run_ssh_command("mkdir /tmp/sdcard")
