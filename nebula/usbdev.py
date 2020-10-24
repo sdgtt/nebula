@@ -49,6 +49,7 @@ class usbdev:
                 return False, False
             cmd = "sudo mount -l | grep `sudo blkid -L " + name + "` | grep dev"
             out = self.shell_out2(cmd)
+            log.info("Partition query result: "+out)
             out = out.split(" ")
             if len(out) > 1:
                 partition = out[0]
