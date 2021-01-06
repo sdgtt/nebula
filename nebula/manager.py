@@ -162,7 +162,7 @@ class manager:
                 bootbinpath=uimagepath, uimagepath=uimagepath, devtreepath=devtreepath
             )
             log.info("Waiting for reboot to complete")
-            time.sleep(30)
+            time.sleep(60)
 
         except (ne.LinuxNotReached, TimeoutError):
             # Power cycle
@@ -194,7 +194,7 @@ class manager:
                 )
             # NEED A CHECK HERE OR SOMETHING
             log.info("Waiting for boot to complete")
-            time.sleep(30)
+            time.sleep(60)
 
         # Check is networking is working
         if self.net.ping_board():

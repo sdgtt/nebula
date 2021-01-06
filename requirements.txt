@@ -1,6 +1,6 @@
 pyfiglet
 fabric
-pyyaml
+pyyaml>=5.1
 pyserial
 pytest
 pyvesync_v2
