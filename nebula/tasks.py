@@ -44,6 +44,7 @@ def jtag_reboot(
     vivado_version="2019.1",
     custom_vivado_path=None,
     yamlfilename="/etc/default/nebula",
+    board_name=None,
 ):
     """ Reboot board using JTAG
     """
@@ -51,6 +52,7 @@ def jtag_reboot(
         vivado_version=vivado_version,
         custom_vivado_path=custom_vivado_path,
         yamlfilename=yamlfilename,
+        board_name=board_name,
     )
     j.restart_board()
 
