@@ -79,6 +79,7 @@ class manager:
 
         self.help = helper.helper()
         self.usbdev = usbdev()
+        self.board_name = board_name
 
     def get_status(self):
         pass
