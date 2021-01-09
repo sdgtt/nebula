@@ -92,8 +92,8 @@ class manager:
                 raise Exception(filename + " not found or does not exist")
 
     def board_reboot_jtag_uart(self):
-        """ Reset board and load fsbl, uboot, bitstream, and kernel
-            over JTAG. Then over UART boot
+        """Reset board and load fsbl, uboot, bitstream, and kernel
+        over JTAG. Then over UART boot
         """
         log.info("Reseting and looking DDR with boot files")
         self.full_boot()
@@ -117,7 +117,11 @@ class manager:
                 else:
                     # Update config file
                     self.help.update_yaml(
-                        self.configfilename, "network-config", "dutip", ip
+                        self.configfilename,
+                        "network-config",
+                        "dutip",
+                        ip,
+                        self.board_name,
                     )
 
         # Check SSH
@@ -319,9 +323,9 @@ class manager:
         return (bootbin, kernel, dt, bit)
 
     def board_reboot_auto_folder(self, folder, design_name=None):
-        """ Automatically select loading mechanism
-            based on current class setup and automatically find boot
-            files from target folder"""
+        """Automatically select loading mechanism
+        based on current class setup and automatically find boot
+        files from target folder"""
 
         if design_name in ["pluto", "m2k"]:
             log.info("Firmware based device selected")
@@ -350,8 +354,8 @@ class manager:
     def board_reboot_auto(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
-        """ Automatically select loading mechanism
-            based on current class setup """
+        """Automatically select loading mechanism
+        based on current class setup"""
         self.board_reboot_uart_net_pdu(
             system_top_bit_path=system_top_bit_path,
             bootbinpath=bootbinpath,
