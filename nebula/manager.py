@@ -157,7 +157,7 @@ class manager:
                 self.driver.uri = "ip:" + ip
                 # Update config file
                 self.help.update_yaml(
-                    self.configfilename, "network-config", "dutip", ip
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
                 )
 
             # Update board over SSH and reboot
@@ -211,7 +211,11 @@ class manager:
                 else:
                     # Update config file
                     self.help.update_yaml(
-                        self.configfilename, "network-config", "dutip", ip
+                        self.configfilename,
+                        "network-config",
+                        "dutip",
+                        ip,
+                        self.board_name,
                     )
 
         # Check SSH
@@ -241,7 +245,11 @@ class manager:
                     self.driver.uri = "ip:" + ip
                     # Update config file
                     self.help.update_yaml(
-                        self.configfilename, "network-config", "dutip", ip
+                        self.configfilename,
+                        "network-config",
+                        "dutip",
+                        ip,
+                        self.board_name,
                     )
                 self.net.check_board_booted()
             except Exception as ex:
