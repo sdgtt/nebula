@@ -31,9 +31,8 @@ class manager:
         self.configfilename = configfilename
         self.monitor_type = monitor_type
         if configfilename:
-            stream = open(configfilename, "r")
-            configs = yaml.safe_load(stream)
-            stream.close()
+            with open(configfilename, "r") as stream:
+                configs = yaml.safe_load(stream)
         else:
             configs = None
 
@@ -44,25 +43,16 @@ class manager:
             monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
             self.monitor = [monitor_uboot, monitor_kernel]
         elif "uart" in monitor_type.lower():
-            if "uart-config" not in configs:
-                configfilename = None
-            else:
-                configfilename = self.configfilename
+            configfilename = None if "uart-config" not in configs else self.configfilename
             u = uart(yamlfilename=configfilename, board_name=board_name)
             self.monitor = [u]
 
             self.driver = driver(yamlfilename=configfilename, board_name=board_name)
 
-        if "network-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
+        configfilename = self.configfilename if "network-config" in configs else None
         self.net = network(yamlfilename=configfilename, board_name=board_name)
 
-        if "pdu-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
+        configfilename = None if "pdu-config" not in configs else self.configfilename
         self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.jtag_use = False
@@ -316,14 +306,13 @@ class manager:
         if "system_top.bit" not in files:
             if "bootgen_sysfiles.tgz" not in files:
                 raise Exception("system_top.bit not found")
-            else:
-                tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar, "r:gz")
-                tf.extractall(folder)
-                tf.close()
-                files2 = os.listdir(folder)
-                if "system_top.bit" not in files2:
-                    raise Exception("system_top.bit not found")
+            tar = os.path.join(folder, "bootgen_sysfiles.tgz")
+            tf = tarfile.open(tar, "r:gz")
+            tf.extractall(folder)
+            tf.close()
+            files2 = os.listdir(folder)
+            if "system_top.bit" not in files2:
+                raise Exception("system_top.bit not found")
 
         kernel = os.path.join(folder, kernel)
         dt = os.path.join(folder, dt)
