@@ -164,7 +164,7 @@ class manager:
             # Update board over SSH and reboot
             log.info("Update board over SSH and reboot")
             self.net.update_boot_partition(
-                bootbinpath=uimagepath, uimagepath=uimagepath, devtreepath=devtreepath
+                bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
             )
             log.info("Waiting for reboot to complete")
             time.sleep(60)
