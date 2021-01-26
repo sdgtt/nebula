@@ -19,8 +19,6 @@ from nebula.common import utils
 
 log = logging.getLogger(__name__)
 
-url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
-
 
 def listFD(url):
     page = requests.get(url).text
@@ -39,7 +37,7 @@ def get_newest_folder(links):
     dates = []
     for link in links:
         folder = link.split("/")[-2]
-        matched = re.match("20[1-2][9,0]_[0-3][0-9]_[0-3][0-9]", folder)
+        matched = re.match("20[1-2][9,0,1]_[0-3][0-9]_[0-3][0-9]", folder)
         is_match = bool(matched)
 
         if is_match:
@@ -52,7 +50,7 @@ def get_newest_folder(links):
     return dates[-1]
 
 
-def gen_url(ip, branch, folder, filename):
+def gen_url(ip, branch, folder, filename, url_template):
     url = url_template.format(ip, branch, "", "")
     # folder = BUILD_DATE/PROJECT_FOLDER
     folder = get_newest_folder(listFD(url[:-1]))+'/'+folder
@@ -103,7 +101,11 @@ class downloader(utils):
 
     def _get_file(self, filename, source, design_source_root, source_root, branch):
         if source == "http":
-            self._get_http_files(filename, design_source_root, source_root, branch)
+            url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
+            self._get_http_files(filename, design_source_root, source_root, branch, url_template)
+        elif source == "artifactory":
+            url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+            self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
         else:
@@ -120,7 +122,7 @@ class downloader(utils):
             print(os.listdir(source_root))
             raise Exception("File not found: " + src)
 
-    def _get_http_files(self, filename, folder, ip, branch):
+    def _get_http_files(self, filename, folder, ip, branch, url_template):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -128,9 +130,9 @@ class downloader(utils):
             ip = self.http_server_ip
         if not ip:
             raise Exception(
-                "No server IP specificied. Must be defined in yaml or provided as input"
+                "No server IP or domain name specificied. Must be defined in yaml or provided as input"
             )
-        url = gen_url(ip, branch, folder, filename)
+        url = gen_url(ip, branch, folder, filename, url_template)
         filename = os.path.join(dest, filename)
         self.download(url, filename)
 
@@ -179,6 +181,7 @@ class downloader(utils):
             print("Get", kernel)
             self._get_file(kernel, source, kernel_root, source_root, branch)
             # Get BOOT.BIN
+            print("Get BOOT.BIN")
             self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
             # Get device tree
             print("Get", dt)
@@ -207,7 +210,8 @@ class downloader(utils):
                 source_root: Root location of files. Dependent on source parameter
                     For local_fs this is a system path
                     For http this is a IP or domain name (no http://)
-                    For artifactory TBD
+                    For artifactory this is a domain name of the artifactory server 
+                    (ex. artifactory.analog.com, no http://)
                 branch: Name of branch to get related files. This is only used for
                     http and artifactory sources. Default is master
 
