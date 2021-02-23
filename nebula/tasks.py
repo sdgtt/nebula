@@ -124,7 +124,7 @@ def download_sdcard(c, release="2019_R1"):
 
 @task(
     help={
-        "board_name": "Board configuration name. Ex: zynqmp-zcu102-rev10-adrv9371",
+        "board_name": "Board configuration name. Ex: zynq-zc702-adv7511-ad9361-fmcomms2-3",
         "source": "Boot file download source. Options are: local_fs, http, artifactory, remote.\nDefault: local_fs",
         "source_root": "Location of source boot files. Dependent on source.\nFor http sources this is a IP or domain name (no http://)",
         "branch": "Name of branch to get related files. This is only used for\bhttp and artifactory sources. Default is master",
@@ -143,7 +143,7 @@ def download_boot_files(
 ):
     """ Download bootfiles for a specific development system """
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(board_name, source, source_root, branch)
+    d.download_boot_files(board_name,  source, source_root, branch)
 
 
 dl = Collection("dl")
