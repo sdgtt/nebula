@@ -15,13 +15,13 @@ board-config:
     default: zynq-zc702-adv7511-ad9361-fmcomms2-3
     help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD."
     optional: False
-  field_4:
+  field_2:
     name: monitoring-interface
     default: uart
     help: "Select monitoring interface"
     options: [uart, netconsole]
     optional: False
-  field_5:
+  field_3:
     name: allow-jtag
     default: False
     help: "Allow use of JTAG"

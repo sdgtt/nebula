@@ -54,7 +54,6 @@ def gen_url(ip, branch, folder, filename, url_template):
     url = url_template.format(ip, branch, "", "")
     # folder = BUILD_DATE/PROJECT_FOLDER
     folder = get_newest_folder(listFD(url[:-1]))+'/'+folder
-    print(url_template.format(ip, branch, folder, filename))
     return url_template.format(ip, branch, folder, filename)
 
 
@@ -183,7 +182,6 @@ class downloader(utils):
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
-            print(design_source_root)
             self._get_file(kernel, source, kernel_root, source_root, branch)
             
             if boot_subfolder is not None:
@@ -191,7 +189,6 @@ class downloader(utils):
             else:
                 design_source_root = reference_boot_folder
             # Get BOOT.BIN
-            print(design_source_root)
             print("Get BOOT.BIN")
             self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
             # Get support files (bootgen_sysfiles.tgz)
@@ -205,7 +202,6 @@ class downloader(utils):
                 design_source_root = reference_boot_folder+ '/' +str(devicetree_subfolder)
             else:
                 design_source_root = reference_boot_folder
-            print(design_source_root)
             self._get_file(dt, source, design_source_root, source_root, branch)
 
     def download_boot_files(
@@ -222,7 +218,6 @@ class downloader(utils):
 
             Parameters:
                 design_name: Target design name (same as boot file folder on SD card)
-                dtb_folder: Applicable to target design name with sub-folder for devicetree (name of sub-folder)
                 source: Source location type. Options: local_fs, http, artifactory
                 source_root: Root location of files. Dependent on source parameter
                     For local_fs this is a system path
