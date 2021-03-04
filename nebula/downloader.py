@@ -58,7 +58,10 @@ def gen_url(ip, branch, folder, filename, url_template):
 
 
 class downloader(utils):
-    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None):
+    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None):
+        self.reference_boot_folder = None
+        self.devicetree_subfolder = None
+        self.boot_subfolder = None
         self.http_server_ip = http_server_ip
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -137,7 +140,7 @@ class downloader(utils):
         self.download(url, filename)
 
     def _get_files(
-        self, design_name, details, source, source_root, branch, firmware=False
+        self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, details, source, source_root, branch, firmware=False
     ):
         kernel = False
         kernel_root = False
@@ -175,22 +178,31 @@ class downloader(utils):
                 kernel_root = os.path.join(source_root, kernel_root)
                 design_source_root = os.path.join(source_root, design_name)
             else:
-                design_source_root = design_name
+                design_source_root = reference_boot_folder
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
             self._get_file(kernel, source, kernel_root, source_root, branch)
+            
+            if boot_subfolder is not None:
+                design_source_root = reference_boot_folder+ '/' +str(boot_subfolder)
+            else:
+                design_source_root = reference_boot_folder
             # Get BOOT.BIN
             print("Get BOOT.BIN")
             self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
-            # Get device tree
-            print("Get", dt)
-            self._get_file(dt, source, design_source_root, source_root, branch)
             # Get support files (bootgen_sysfiles.tgz)
             print("Get support")
             self._get_file(
                 "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch
             )
+            # Get device tree
+            print("Get", dt)
+            if devicetree_subfolder is not None:
+                design_source_root = reference_boot_folder+ '/' +str(devicetree_subfolder)
+            else:
+                design_source_root = reference_boot_folder
+            self._get_file(dt, source, design_source_root, source_root, branch)
 
     def download_boot_files(
         self,
@@ -225,8 +237,15 @@ class downloader(utils):
 
         assert design_name in board_configs, "Invalid design name"
 
+        reference_boot_folder = self.reference_boot_folder
+        devicetree_subfolder = self.devicetree_subfolder
+        boot_subfolder = self.boot_subfolder
+
         self._get_files(
             design_name,
+            reference_boot_folder,
+            devicetree_subfolder,
+            boot_subfolder,
             board_configs[design_name],
             source,
             source_root,
