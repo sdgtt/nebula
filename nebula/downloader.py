@@ -58,10 +58,11 @@ def gen_url(ip, branch, folder, filename, url_template):
 
 
 class downloader(utils):
-    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None):
+    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None, hdl_folder=None):
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
         self.boot_subfolder = None
+        self.hdl_folder = None
         self.http_server_ip = http_server_ip
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -102,12 +103,11 @@ class downloader(utils):
         release = os.path.join(dest, dev + "-fw-" + release + ".zip")
         self.download(url, release)
 
-    def _get_file(self, filename, source, design_source_root, source_root, branch):
+    def _get_file(self, filename, source, design_source_root, source_root, branch, url_template):
         if source == "http":
             url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
             self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         elif source == "artifactory":
-            url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
             self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
@@ -136,8 +136,12 @@ class downloader(utils):
                 "No server IP or domain name specificied. Must be defined in yaml or provided as input"
             )
         url = gen_url(ip, branch, folder, filename, url_template)
+        #dapat hindi boot partition  = so kunin ung name ng dtb tapos icheck kung equal ba sa system.dtb 
+        #get architechture from url - findstring if .dtb tapos move ng isang / to the left, get architecture
+        #if else dtb and arch is arm or arm64 filename = system.dtb or devicetree.dtb
         filename = os.path.join(dest, filename)
-        self.download(url, filename)
+        self.download(url, filename)                                                                                                                                                                                                                                
+                                       
 
     def _get_files(
         self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, details, source, source_root, branch, firmware=False
@@ -146,6 +150,8 @@ class downloader(utils):
         kernel_root = False
         dt = False
 
+        url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+        
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
             kernel_root = "zynqmp-common"
@@ -183,7 +189,7 @@ class downloader(utils):
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
-            self._get_file(kernel, source, kernel_root, source_root, branch)
+            self._get_file(kernel, source, kernel_root, source_root, branch, url_template)
             
             if boot_subfolder is not None:
                 design_source_root = reference_boot_folder+ '/' +str(boot_subfolder)
@@ -191,11 +197,11 @@ class downloader(utils):
                 design_source_root = reference_boot_folder
             # Get BOOT.BIN
             print("Get BOOT.BIN")
-            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
+            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, url_template)
             # Get support files (bootgen_sysfiles.tgz)
             print("Get support")
             self._get_file(
-                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch
+                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, url_template
             )
             # Get device tree
             print("Get", dt)
@@ -203,14 +209,92 @@ class downloader(utils):
                 design_source_root = reference_boot_folder+ '/' +str(devicetree_subfolder)
             else:
                 design_source_root = reference_boot_folder
-            self._get_file(dt, source, design_source_root, source_root, branch)
+            self._get_file(dt, source, design_source_root, source_root, branch, url_template)
+
+    def _get_files_daily(
+        self, design_name, hdl_folder, details, source, source_root, branch=[], firmware=False
+    ):
+        kernel = False
+        kernel_root = False
+        dt = False
+        dt_dl = False
+        architecture = False
+
+        #set url_template
+        if branch[0]=="master": #linux is master
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/master/{}/{}/{}"
+        else:
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}/{}"
+
+        if branch[1]=="master": #hdl is master
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/master/boot_files/{}/{}/{}"
+        else:
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/boot_files/{}/{}/{}"
+
+        if details["carrier"] in ["ZCU102"]:
+            kernel = "Image"
+            kernel_root = "zynq-u"
+            dt = "system.dtb"
+            architecture = "arm64"
+        elif (
+            details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
+            or "ADRV936" in design_name.upper()
+        ):
+            kernel = "uImage"
+            kernel_root = "zynq"
+            dt = "devicetree.dtb"
+            architecture = "arm"
+        elif "ADALM" in details["carrier"]:
+            firmware = True
+        else:
+            raise Exception("Carrier not supported")
+
+        if firmware:
+            # Get firmware
+            assert (
+                "pluto" in details["carrier"].lower()
+                or "m2k" in details["carrier"].lower()
+                or "adalm-2000" in details["carrier"].lower()
+            ), "Firmware downloads only available for pluto and m2k"
+            self._download_firmware(details["carrier"], branch)
+        else:
+
+            if source == "local_fs":
+                if not source_root:
+                    source_root = "/var/lib/tftpboot"
+                kernel_root = os.path.join(source_root, kernel_root)
+                design_source_root = os.path.join(source_root, design_name)
+            else:
+                design_source_root = architecture + "/" + kernel_root
+
+            print("Get standard boot files")
+            # Get kernel
+            print("Get", kernel)
+            self._get_file(kernel, source, design_source_root, source_root, branch[0], url_template_linux)
+            # Get device tree
+            print("Get", dt)
+            dt_dl = design_name + ".dtb"
+            design_source_root = architecture
+            self._get_file(dt_dl, source, design_source_root, source_root, branch[0], url_template_linux)
+
+            #how to add the folder names of hdl = pwede ba na iadd nalang sa download config? total isa lang naman
+            design_source_root = hdl_folder
+            # Get BOOT.BIN
+            print("Get BOOT.BIN")
+            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch[1], url_template_hdl)
+            # Get support files (bootgen_sysfiles.tgz)
+            print("Get support")
+            self._get_file(
+                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch[1], url_template_hdl
+            )
+            
 
     def download_boot_files(
         self,
         design_name,
         source="local_fs",
         source_root="/var/lib/tftpboot",
-        branch="master",
+        branch=["boot_partition", "release"],
         firmware=None,
     ):
         """ download_boot_files Download bootfiles for target design.
@@ -241,8 +325,11 @@ class downloader(utils):
         reference_boot_folder = self.reference_boot_folder
         devicetree_subfolder = self.devicetree_subfolder
         boot_subfolder = self.boot_subfolder
+        hdl_folder = self.hdl_folder
 
-        self._get_files(
+        if branch[0] == 'boot_partition':
+            #get files from boot partition folder
+            self._get_files(
             design_name,
             reference_boot_folder,
             devicetree_subfolder,
@@ -250,8 +337,19 @@ class downloader(utils):
             board_configs[design_name],
             source,
             source_root,
-            branch,
+            branch[1],
             firmware,
+        )
+        else:
+            #get files from linux+hdl folder
+            self._get_files_daily(
+            design_name,
+            hdl_folder,
+            board_configs[design_name],
+            source,
+            source_root,
+            branch,
+            firmware
         )
 
     def download_sdcard_release(self, release="2019_R1"):
