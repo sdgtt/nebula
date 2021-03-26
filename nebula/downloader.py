@@ -32,6 +32,17 @@ def convert_to_datetime(date):
     else:
         return datetime.strptime(date[:10], "%Y_%m_%d")
 
+def get_latest_release(links):
+    latest = "0000_r1"
+    for link in links:
+        hdl_release = re.findall("hdl_[0-9]{4}_r[1-2]", link, re.IGNORECASE)
+        release = re.findall("[0-9]{4}_r[1-2]", link, re.IGNORECASE)
+        if len(hdl_release) == 1 and hdl_release[0].lower() > latest.lower():
+            latest = hdl_release[0]
+        else: 
+            if len(release) == 1 and release[0].lower() > latest:
+                latest = release[0]   
+    return latest
 
 def get_newest_folder(links):
     dates = []
