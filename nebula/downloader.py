@@ -147,12 +147,18 @@ class downloader(utils):
                 "No server IP or domain name specificied. Must be defined in yaml or provided as input"
             )
         url = gen_url(ip, branch, folder, filename, url_template)
-        #dapat hindi boot partition  = so kunin ung name ng dtb tapos icheck kung equal ba sa system.dtb 
-        #get architechture from url - findstring if .dtb tapos move ng isang / to the left, get architecture
-        #if else dtb and arch is arm or arm64 filename = system.dtb or devicetree.dtb
         filename = os.path.join(dest, filename)
-        self.download(url, filename)                                                                                                                                                                                                                                
-                                       
+        self.download(url, filename)
+
+        if bool(re.search("/linux/", url)):
+            is_generic = (filename == ("system.dtb" or "devicetree.dtb"))
+            if not is_generic:
+                old_fname = str(dest + "/" + filename)
+                if bool(re.search("/arm/", url)):
+                    new_fname = str(dest + "/devicetree.dtb")
+                elif bool(re.search("/arm64/", url)):
+                    new_fname = str(dest + "/system.dtb")
+                os.rename(old_fname, new_fname)
 
     def _get_files(
         self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, details, source, source_root, branch, firmware=False
@@ -299,7 +305,6 @@ class downloader(utils):
                 "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch[1], url_template_hdl
             )
             
-
     def download_boot_files(
         self,
         design_name,
