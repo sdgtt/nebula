@@ -176,7 +176,8 @@ class downloader(utils):
                 if not source_root:
                     source_root = "/var/lib/tftpboot"
                 kernel_root = os.path.join(source_root, kernel_root)
-                design_source_root = os.path.join(source_root, design_name)
+                # design_source_root = os.path.join(source_root, design_name)
+                reference_boot_folder = os.path.join(source_root, design_name)
             else:
                 design_source_root = reference_boot_folder
             print("Get standard boot files")
