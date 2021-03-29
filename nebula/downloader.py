@@ -62,11 +62,31 @@ def get_newest_folder(links):
 
 
 def gen_url(ip, branch, folder, filename, url_template):
-    url = url_template.format(ip, branch, "", "")
-    # folder = BUILD_DATE/PROJECT_FOLDER
-    folder = get_newest_folder(listFD(url[:-1]))+'/'+folder
-    return url_template.format(ip, branch, folder, filename)
-
+    print(folder)
+    if branch == "master":
+        if bool(re.search("/boot_partition/", url_template)):
+            url = url_template.format(ip, branch, "", "")
+            # folder = BUILD_DATE/PROJECT_FOLDER
+            folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+            print(folder)
+            return url_template.format(ip, branch, folder, filename)
+        else:
+            url = url_template.format(ip, "", "")
+            # folder = BUILD_DATE/PROJECT_FOLDER
+            folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+            print(folder)
+            return url_template.format(ip, folder, filename)
+    else:
+        url = url_template.format(ip, "", "", "")
+        if bool(re.search("/hdl/", url_template)):
+            release_folder = get_latest_release(listFD(url))+'/'+"boot_files"
+        else:
+            release_folder = get_latest_release(listFD(url))
+        url = url_template.format(ip, release_folder, "", "")
+        # folder = BUILD_DATE/PROJECT_FOLDER
+        folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+        print(folder)
+        return url_template.format(ip, release_folder, folder, filename)
 
 class downloader(utils):
     def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None, hdl_folder=None):
@@ -150,16 +170,20 @@ class downloader(utils):
         filename = os.path.join(dest, filename)
         self.download(url, filename)
 
-        if bool(re.search("/linux/", url)):
+        if bool(re.search("linux", url)) and bool(re.search(".dtb", url)):
             is_generic = (filename == ("system.dtb" or "devicetree.dtb"))
             if not is_generic:
-                old_fname = str(dest + "/" + filename)
+                old_fname = filename
                 if bool(re.search("/arm/", url)):
-                    new_fname = str(dest + "/devicetree.dtb")
+                    new_fname = os.path.join(dest,"devicetree.dtb")
                 elif bool(re.search("/arm64/", url)):
-                    new_fname = str(dest + "/system.dtb")
-                os.rename(old_fname, new_fname)
-
+                    new_fname = os.path.join(dest,"system.dtb")
+                try:
+                    os.rename(old_fname, new_fname)
+                except WindowsError:
+                    os.remove(new_fname)
+                    os.rename(old_fname, new_fname)
+                
     def _get_files(
         self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, details, source, source_root, branch, firmware=False
     ):
@@ -237,16 +261,17 @@ class downloader(utils):
         dt_dl = False
         architecture = False
 
-        #set url_template
-        if branch[0]=="master": #linux is master
-            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/master/{}/{}/{}"
+        #set linux url template
+        if branch[0]=="master":
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/master/{}/{}"
         else:
-            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}/{}"
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
 
-        if branch[1]=="master": #hdl is master
-            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/master/boot_files/{}/{}/{}"
+        #set hdl url template
+        if branch[1]=="master": 
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/master/boot_files/{}/{}"
         else:
-            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/boot_files/{}/{}/{}"
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"
 
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
@@ -284,6 +309,7 @@ class downloader(utils):
             else:
                 design_source_root = architecture + "/" + kernel_root
 
+            #Get files from linux folder
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
@@ -294,7 +320,7 @@ class downloader(utils):
             design_source_root = architecture
             self._get_file(dt_dl, source, design_source_root, source_root, branch[0], url_template_linux)
 
-            #how to add the folder names of hdl = pwede ba na iadd nalang sa download config? total isa lang naman
+            #Get files from hdl folder
             design_source_root = hdl_folder
             # Get BOOT.BIN
             print("Get BOOT.BIN")
@@ -310,7 +336,7 @@ class downloader(utils):
         design_name,
         source="local_fs",
         source_root="/var/lib/tftpboot",
-        branch=["boot_partition", "release"],
+        branch='[boot_partition, master]',
         firmware=None,
     ):
         """ download_boot_files Download bootfiles for target design.
@@ -343,6 +369,8 @@ class downloader(utils):
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
 
+        branch = branch.strip('][').split(', ')
+
         if branch[0] == 'boot_partition':
             #get files from boot partition folder
             self._get_files(
@@ -365,7 +393,7 @@ class downloader(utils):
             source,
             source_root,
             branch,
-            firmware
+            firmware,
         )
 
     def download_sdcard_release(self, release="2019_R1"):
