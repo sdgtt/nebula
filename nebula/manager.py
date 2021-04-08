@@ -139,6 +139,7 @@ class manager:
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
+            self.monitor[0].start_log()
             # Check if Linux is accessible
             log.info("Checking if Linux is accessible")
             out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
@@ -208,6 +209,7 @@ class manager:
                 self.monitor[0].request_ip_dhcp()
                 ip = self.monitor[0].get_ip_address()
                 if not ip:
+                    self.monitor[0].stop_log()
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
                 else:
                     # Update config file
@@ -221,6 +223,7 @@ class manager:
 
         # Check SSH
         if self.net.check_ssh():
+            self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
         print("Home sweet home")
