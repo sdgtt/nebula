@@ -227,6 +227,7 @@ class manager:
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
         print("Home sweet home")
+        self.monitor[0].stop_log()
 
     def board_reboot(self):
         # Try to reboot over SSH first
