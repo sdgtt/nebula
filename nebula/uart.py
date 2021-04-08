@@ -109,6 +109,7 @@ class uart(utils):
     def start_log(self, logappend=False):
         """ Trigger monitoring with UART interface """
         self.listen_thread_run = True
+        print("STARTING UART LOG")
         logging.info("Launching UART listening thread")
         if not self.print_to_console:
             logging.info("UART console saving to file: " + self.logfilename)
