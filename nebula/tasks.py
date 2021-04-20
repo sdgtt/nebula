@@ -261,6 +261,16 @@ def update_config(
 
 
 #############################################
+@task()
+def update_boot_files_jtag_manager(c,
+    yamlfilename="/etc/default/nebula",
+    board_name=None
+):
+    """ Update boot files through JTAG (Assuming board is running) """
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m.board_reboot_jtag_uart()
+
+
 @task(
     help={
         "system_top_bit_path": "Path to system_top.bit",
@@ -298,6 +308,7 @@ def update_boot_files_manager(
 
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
+manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 
 #############################################
 @task(
