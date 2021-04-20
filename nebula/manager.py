@@ -96,12 +96,25 @@ class manager:
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
+        # self.monitor[0].start_log()
         log.info("Reseting and looking DDR with boot files")
-        self.full_boot()
+        # self.jtag.full_boot()
+        self.jtag.boot_to_uboot()
         log.info("Taking over UART control")
         self.monitor[0]._enter_uboot_menu_from_power_cycle()
-        self.monitor[0].update_boot_args()
-        self.monitor[0].boot()
+        self.monitor[0].copy_reference(reference="BOOT.BIN.ORG",target="BOOT.BIN")
+        # self.jtag.load_post_uboot_files()
+        # self.monitor[0].update_boot_args()
+        # self.monitor[0].boot()
+        # self.monitor[0].load_system_uart(
+        #     system_top_bit_filename="system_top.bit",
+        #     kernel_filename="uImage",
+        #     devtree_filename="devicetree.dtb",
+        # )
+
+        log.info("Power cycling")
+        # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
+        self.power.power_cycle_board()
 
         # NEED A CHECK HERE OR SOMETHING
         log.info("Waiting for boot to complete")
@@ -114,6 +127,7 @@ class manager:
                 self.monitor[0].request_ip_dhcp()
                 ip = self.monitor[0].get_ip_address()
                 if not ip:
+                    self.monitor[0].stop_log()
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
                 else:
                     # Update config file
@@ -127,7 +141,11 @@ class manager:
 
         # Check SSH
         if self.net.check_ssh():
+            self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
+
+        self.monitor[0].stop_log()
+
 
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
