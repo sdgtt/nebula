@@ -11,6 +11,8 @@ import logging
 
 from bs4 import BeautifulSoup
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import re
 from datetime import datetime
 from github import Github
@@ -421,8 +423,25 @@ class downloader(utils):
         rel["xzname"] = rel["imgname"] + ".xz"
         return rel
 
+    def retry_session(self, retries=3, backoff_factor=0.3, 
+        status_forcelist=(429, 500, 502, 504),
+        session=None,
+    ):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
     def download(self, url, fname):
-        resp = requests.get(url, stream=True)
+        resp = self.retry_session().get(url, stream=True)
         total = int(resp.headers.get("content-length", 0))
         with open(fname, "wb") as file, tqdm(
             desc=fname, total=total, unit="iB", unit_scale=True, unit_divisor=1024,
