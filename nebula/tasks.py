@@ -371,7 +371,7 @@ def set_local_nic_ip_from_usbdev(
     try:
         import os
 
-        if not os.name in ["nt", "posix"]:
+        if os.name not in ["nt", "posix"]:
             raise Exception("This command only works on Linux currently")
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
