@@ -11,6 +11,8 @@ import logging
 
 from bs4 import BeautifulSoup
 import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 import re
 from datetime import datetime
 from github import Github
@@ -32,6 +34,17 @@ def convert_to_datetime(date):
     else:
         return datetime.strptime(date[:10], "%Y_%m_%d")
 
+def get_latest_release(links):
+    latest = "0000_r1"
+    for link in links:
+        hdl_release = re.findall("hdl_[0-9]{4}_r[1-2]", link, re.IGNORECASE)
+        release = re.findall("[0-9]{4}_r[1-2]", link, re.IGNORECASE)
+        if len(hdl_release) == 1 and hdl_release[0].lower() > latest.lower():
+            latest = hdl_release[0]
+        else: 
+            if len(release) == 1 and release[0].lower() > latest:
+                latest = release[0]   
+    return latest
 
 def get_newest_folder(links):
     dates = []
@@ -51,17 +64,38 @@ def get_newest_folder(links):
 
 
 def gen_url(ip, branch, folder, filename, url_template):
-    url = url_template.format(ip, branch, "", "")
-    # folder = BUILD_DATE/PROJECT_FOLDER
-    folder = get_newest_folder(listFD(url[:-1]))+'/'+folder
-    return url_template.format(ip, branch, folder, filename)
-
+    print(folder)
+    if branch == "master":
+        if bool(re.search("/boot_partition/", url_template)):
+            url = url_template.format(ip, branch, "", "")
+            # folder = BUILD_DATE/PROJECT_FOLDER
+            folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+            print(folder)
+            return url_template.format(ip, branch, folder, filename)
+        else:
+            url = url_template.format(ip, "", "")
+            # folder = BUILD_DATE/PROJECT_FOLDER
+            folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+            print(folder)
+            return url_template.format(ip, folder, filename)
+    else:
+        url = url_template.format(ip, "", "", "")
+        if bool(re.search("/hdl/", url_template)):
+            release_folder = get_latest_release(listFD(url))+'/'+"boot_files"
+        else:
+            release_folder = get_latest_release(listFD(url))
+        url = url_template.format(ip, release_folder, "", "")
+        # folder = BUILD_DATE/PROJECT_FOLDER
+        folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
+        print(folder)
+        return url_template.format(ip, release_folder, folder, filename)
 
 class downloader(utils):
-    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None):
+    def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None, hdl_folder=None):
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
         self.boot_subfolder = None
+        self.hdl_folder = None
         self.http_server_ip = http_server_ip
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -102,12 +136,11 @@ class downloader(utils):
         release = os.path.join(dest, dev + "-fw-" + release + ".zip")
         self.download(url, release)
 
-    def _get_file(self, filename, source, design_source_root, source_root, branch):
+    def _get_file(self, filename, source, design_source_root, source_root, branch, url_template):
         if source == "http":
             url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
             self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         elif source == "artifactory":
-            url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
             self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
@@ -139,6 +172,20 @@ class downloader(utils):
         filename = os.path.join(dest, filename)
         self.download(url, filename)
 
+        if bool(re.search("linux", url)) and bool(re.search(".dtb", url)):
+            is_generic = (filename == ("system.dtb" or "devicetree.dtb"))
+            if not is_generic:
+                old_fname = filename
+                if bool(re.search("/arm/", url)):
+                    new_fname = os.path.join(dest,"devicetree.dtb")
+                elif bool(re.search("/arm64/", url)):
+                    new_fname = os.path.join(dest,"system.dtb")
+                try:
+                    os.rename(old_fname, new_fname)
+                except WindowsError:
+                    os.remove(new_fname)
+                    os.rename(old_fname, new_fname)
+                
     def _get_files(
         self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, details, source, source_root, branch, firmware=False
     ):
@@ -146,6 +193,8 @@ class downloader(utils):
         kernel_root = False
         dt = False
 
+        url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+        
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
             kernel_root = "zynqmp-common"
@@ -183,7 +232,7 @@ class downloader(utils):
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
-            self._get_file(kernel, source, kernel_root, source_root, branch)
+            self._get_file(kernel, source, kernel_root, source_root, branch, url_template)
             
             if boot_subfolder is not None:
                 design_source_root = reference_boot_folder+ '/' +str(boot_subfolder)
@@ -191,11 +240,11 @@ class downloader(utils):
                 design_source_root = reference_boot_folder
             # Get BOOT.BIN
             print("Get BOOT.BIN")
-            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch)
+            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, url_template)
             # Get support files (bootgen_sysfiles.tgz)
             print("Get support")
             self._get_file(
-                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch
+                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, url_template
             )
             # Get device tree
             print("Get", dt)
@@ -203,14 +252,93 @@ class downloader(utils):
                 design_source_root = reference_boot_folder+ '/' +str(devicetree_subfolder)
             else:
                 design_source_root = reference_boot_folder
-            self._get_file(dt, source, design_source_root, source_root, branch)
+            self._get_file(dt, source, design_source_root, source_root, branch, url_template)
 
+    def _get_files_daily(
+        self, design_name, hdl_folder, details, source, source_root, branch=[], firmware=False
+    ):
+        kernel = False
+        kernel_root = False
+        dt = False
+        dt_dl = False
+        architecture = False
+
+        #set linux url template
+        if branch[0]=="master":
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/master/{}/{}"
+        else:
+            url_template_linux = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
+
+        #set hdl url template
+        if branch[1]=="master": 
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/master/boot_files/{}/{}"
+        else:
+            url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"
+
+        if details["carrier"] in ["ZCU102"]:
+            kernel = "Image"
+            kernel_root = "zynq-u"
+            dt = "system.dtb"
+            architecture = "arm64"
+        elif (
+            details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
+            or "ADRV936" in design_name.upper()
+        ):
+            kernel = "uImage"
+            kernel_root = "zynq"
+            dt = "devicetree.dtb"
+            architecture = "arm"
+        elif "ADALM" in details["carrier"]:
+            firmware = True
+        else:
+            raise Exception("Carrier not supported")
+
+        if firmware:
+            # Get firmware
+            assert (
+                "pluto" in details["carrier"].lower()
+                or "m2k" in details["carrier"].lower()
+                or "adalm-2000" in details["carrier"].lower()
+            ), "Firmware downloads only available for pluto and m2k"
+            self._download_firmware(details["carrier"], branch)
+        else:
+
+            if source == "local_fs":
+                if not source_root:
+                    source_root = "/var/lib/tftpboot"
+                kernel_root = os.path.join(source_root, kernel_root)
+                design_source_root = os.path.join(source_root, design_name)
+            else:
+                design_source_root = architecture + "/" + kernel_root
+
+            #Get files from linux folder
+            print("Get standard boot files")
+            # Get kernel
+            print("Get", kernel)
+            self._get_file(kernel, source, design_source_root, source_root, branch[0], url_template_linux)
+            # Get device tree
+            print("Get", dt)
+            dt_dl = design_name + ".dtb"
+            design_source_root = architecture
+            self._get_file(dt_dl, source, design_source_root, source_root, branch[0], url_template_linux)
+
+            #Get files from hdl folder
+            design_source_root = hdl_folder
+            # Get BOOT.BIN
+            print("Get BOOT.BIN")
+            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch[1], url_template_hdl)
+            # Get support files (bootgen_sysfiles.tgz)
+            print("Get support")
+            self._get_file(
+                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch[1], url_template_hdl
+            )
+            
     def download_boot_files(
         self,
         design_name,
         source="local_fs",
         source_root="/var/lib/tftpboot",
-        branch="master",
+        branch='[boot_partition, master]',
         firmware=None,
     ):
         """ download_boot_files Download bootfiles for target design.
@@ -241,12 +369,28 @@ class downloader(utils):
         reference_boot_folder = self.reference_boot_folder
         devicetree_subfolder = self.devicetree_subfolder
         boot_subfolder = self.boot_subfolder
+        hdl_folder = self.hdl_folder
 
-        self._get_files(
+        branch = branch.strip('][').split(', ')
+
+        if branch[0] == 'boot_partition':
+            #get files from boot partition folder
+            self._get_files(
             design_name,
             reference_boot_folder,
             devicetree_subfolder,
             boot_subfolder,
+            board_configs[design_name],
+            source,
+            source_root,
+            branch[1],
+            firmware,
+        )
+        else:
+            #get files from linux+hdl folder
+            self._get_files_daily(
+            design_name,
+            hdl_folder,
             board_configs[design_name],
             source,
             source_root,
@@ -279,8 +423,25 @@ class downloader(utils):
         rel["xzname"] = rel["imgname"] + ".xz"
         return rel
 
+    def retry_session(self, retries=3, backoff_factor=0.3, 
+        status_forcelist=(429, 500, 502, 504),
+        session=None,
+    ):
+        session = session or requests.Session()
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        session.mount('http://', adapter)
+        session.mount('https://', adapter)
+        return session
+
     def download(self, url, fname):
-        resp = requests.get(url, stream=True)
+        resp = self.retry_session().get(url, stream=True)
         total = int(resp.headers.get("content-length", 0))
         with open(fname, "wb") as file, tqdm(
             desc=fname, total=total, unit="iB", unit_scale=True, unit_divisor=1024,

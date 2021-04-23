@@ -32,10 +32,14 @@ class driver(utils):
         log.info("Checking uri: " + self.uri)
         ctx = iio.Context(self.uri)
         devs = [d.name for d in ctx.devices]
+        missing_devs = []
         for dev in self.iio_device_names:
             log.info("Checking for: " + str(dev))
             if dev not in devs:
-                raise Exception("Device not found " + str(dev))
+                missing_devs.append(dev)
+            
+        if len(missing_devs) != 0:
+            raise Exception("Device(s) not found " + str(missing_devs))
 
     def run_all_checks(self):
         self.check_iio_devices()

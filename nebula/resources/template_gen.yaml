@@ -134,6 +134,11 @@ downloader-config:
     default: boot_bin_CMOS
     help: "Subfolder name where boot files exist for specific boards."
     optional: False
+  field_5:
+    name: hdl_folder
+    default: fmcomms2_zc702
+    help: "Folder name where hdl files exist for specific boards."
+    optional: False
 jtag-config:
   field_1:
     name: vivado_version
