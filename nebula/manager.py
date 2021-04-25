@@ -92,8 +92,119 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
-    def recover_board(self):
-        pass
+    def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath):
+        """ Recover boards with UART, PDU, JTAG, and Network are available """
+        self._check_files_exist(
+            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        )
+        try:
+            # Flush UART
+            self.monitor[0]._read_until_stop()  # Flush
+            self.monitor[0].start_log()
+            # Check if Linux is accessible
+            log.info("Checking if Linux is accessible")
+            out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+            if not out:
+                raise ne.LinuxNotReached
+
+            # Get IP over UART
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+            if not ip:
+                raise ne.NetworkNotFunctional
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+                # Update config file
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
+                )
+
+            self.monitor[0].stop_log()
+            log.info("Linux accessible over Ethernet. System is good as is")
+            return
+
+        except (ne.LinuxNotReached, TimeoutError):
+            try:
+                # Power cycle
+                log.info("SSH reboot failed again after power cycling")
+                log.info("Forcing UART override on reset")
+                if self.jtag_use:
+                    log.info("Reseting with JTAG")
+                    self.jtag.restart_board()
+                else:
+                    log.info("Power cycling")
+                    self.power.power_cycle_board()
+
+                # Enter u-boot menu
+                self.monitor[0]._enter_uboot_menu_from_power_cycle()
+
+                if self.tftp:
+                    # Move files to correct position for TFTP
+                    # self.monitor[0].load_system_uart_from_tftp()
+
+                    # Load boot files over tftp
+                    self.monitor[0].load_system_uart_from_tftp()
+
+                else:
+                    # Load boot files
+                    self.monitor[0].load_system_uart(
+                        system_top_bit_filename=system_top_bit_path,
+                        kernel_filename=uimagepath,
+                        devtree_filename=devtreepath,
+                    )
+
+                log.info("Waiting for boot to complete")
+
+                # Verify uboot anad linux are reached
+                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+
+                if len(results)==1:
+                    # raise Exception("u-boot not reached")
+                    raise ne.LinuxNotReached
+                elif not results[1]:
+                    # raise Exception("u-boot menu cannot boot kernel")
+                    raise ne.LinuxNotReached
+                elif not results[2]:
+                    # raise Exception("Linux not fully booting")
+                    raise ne.LinuxNotReached
+
+                log.info("Linux fully booted")
+
+                # Check is networking is working
+                if self.net.ping_board():
+                    ip = self.monitor[0].get_ip_address()
+                    if not ip:
+                        self.monitor[0].request_ip_dhcp()
+                        ip = self.monitor[0].get_ip_address()
+                        if not ip:
+                            self.monitor[0].stop_log()
+                            raise ne.NetworkNotFunctionalAfterBootFileUpdate
+                        else:
+                            # Update config file
+                            self.help.update_yaml(
+                                self.configfilename,
+                                "network-config",
+                                "dutip",
+                                ip,
+                                self.board_name,
+                            )
+
+                # Check SSH
+                if self.net.check_ssh():
+                    self.monitor[0].stop_log()
+                    raise ne.SSHNotFunctionalAfterBootFileUpdate
+
+                print("Home sweet home")
+                self.monitor[0].stop_log()
+
+            #JTAG RECOVERY
+            except:
+                self.board_reboot_jtag_uart()
+
 
     def board_reboot_jtag_uart(self):
         """Reset board and load fsbl, uboot, bitstream, and kernel
@@ -111,6 +222,7 @@ class manager:
             self.jtag.boot_to_uboot()
         log.info("Taking over UART control")
         self.monitor[0]._enter_uboot_menu_from_power_cycle()
+        log.warning("FIXME Still defaulting to BOOT.BIN.ORG")
         self.monitor[0].copy_reference(reference="BOOT.BIN.ORG",target="BOOT.BIN")
         # self.jtag.load_post_uboot_files()
         # self.monitor[0].update_boot_args()
@@ -129,7 +241,14 @@ class manager:
 
         # NEED A CHECK HERE OR SOMETHING
         log.info("Waiting for boot to complete")
-        time.sleep(30)
+        results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+
+        if len(results)==1:
+            raise Exception("u-boot not reached")
+        elif not results[1]:
+            raise Exception("u-boot menu cannot boot kernel")
+        elif not results[2]:
+            raise Exception("Linux not fully booting")
 
         # Check is networking is working
         if self.net.ping_board():
@@ -384,7 +503,7 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder, design_name=None):
+    def board_reboot_auto_folder(self, folder, design_name=None,recover=False):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
         files from target folder"""
@@ -406,15 +525,23 @@ class manager:
             log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
             print(bootbin, kernel, dt, bit)
-            self.board_reboot_uart_net_pdu(
-                system_top_bit_path=bit,
-                bootbinpath=bootbin,
-                uimagepath=kernel,
-                devtreepath=dt,
-            )
-
+            if not recover:
+                self.board_reboot_uart_net_pdu(
+                    system_top_bit_path=bit,
+                    bootbinpath=bootbin,
+                    uimagepath=kernel,
+                    devtreepath=dt,
+                )
+            else:
+                self.recover_board(
+                    system_top_bit_path=bit,
+                    bootbinpath=bootbin,
+                    uimagepath=kernel,
+                    devtreepath=dt,
+                )
+                
     def board_reboot_auto(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath,recover=False
     ):
         """Automatically select loading mechanism
         based on current class setup"""
@@ -423,6 +550,7 @@ class manager:
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
+            recover=recover,
         )
 
 
