@@ -140,7 +140,9 @@ class manager:
                     self.power.power_cycle_board()
 
                 # Enter u-boot menu
-                self.monitor[0]._enter_uboot_menu_from_power_cycle()
+                if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
+                    raise ne.LinuxNotReached
+
 
                 if self.tftp:
                     # Move files to correct position for TFTP
@@ -214,11 +216,14 @@ class manager:
         log.info("Reseting and looking DDR with boot files")
         # self.jtag.full_boot()
         # Check if u-boot loads first
+        log.info("Reseting with JTAG and checking if u-boot is reachable")
         self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
+            log.info("u-boot accessible after JTAG reset")
             self.jtag.restart_board()
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
-        else:        
+        else:
+            log.info("u-boot not reachable, manually loading u-boot over JTAG")
             self.jtag.boot_to_uboot()
         log.info("Taking over UART control")
         self.monitor[0]._enter_uboot_menu_from_power_cycle()
