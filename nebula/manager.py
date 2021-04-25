@@ -92,6 +92,9 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
+    def recover_board(self):
+        pass
+
     def board_reboot_jtag_uart(self):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
@@ -99,7 +102,13 @@ class manager:
         # self.monitor[0].start_log()
         log.info("Reseting and looking DDR with boot files")
         # self.jtag.full_boot()
-        self.jtag.boot_to_uboot()
+        # Check if u-boot loads first
+        self.jtag.restart_board()
+        if self.monitor[0]._enter_uboot_menu_from_power_cycle():
+            self.jtag.restart_board()
+            self.monitor[0]._enter_uboot_menu_from_power_cycle()
+        else:        
+            self.jtag.boot_to_uboot()
         log.info("Taking over UART control")
         self.monitor[0]._enter_uboot_menu_from_power_cycle()
         self.monitor[0].copy_reference(reference="BOOT.BIN.ORG",target="BOOT.BIN")
@@ -113,6 +122,8 @@ class manager:
         # )
 
         log.info("Power cycling")
+        # self.monitor[0].stop_log()
+        # return
         # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
         self.power.power_cycle_board()
 
@@ -123,6 +134,14 @@ class manager:
         # Check is networking is working
         if self.net.ping_board():
             ip = self.monitor[0].get_ip_address()
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+                # Update config file
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
+                )
             if not ip:
                 self.monitor[0].request_ip_dhcp()
                 ip = self.monitor[0].get_ip_address()
@@ -186,7 +205,19 @@ class manager:
                 bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
             )
             log.info("Waiting for reboot to complete")
-            time.sleep(60)
+
+            # Verify uboot anad linux are reached
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+
+            if len(results)==1:
+                raise Exception("u-boot not reached")
+            elif not results[1]:
+                raise Exception("u-boot menu cannot boot kernel")
+            elif not results[2]:
+                raise Exception("Linux not fully booting")
+
+            log.info("Linux fully booted")
+
 
         except (ne.LinuxNotReached, TimeoutError):
             # Power cycle
