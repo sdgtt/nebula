@@ -1,4 +1,4 @@
-manager
+nebula.manager module
 =====================
 
 .. automodule:: nebula.manager

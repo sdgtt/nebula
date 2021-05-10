@@ -24,6 +24,12 @@ MANAGER
 .. literalinclude:: cli/manager.update-boot-files.cli
   :language: none
 
+.. literalinclude:: cli/manager.update-boot-files-jtag.cli
+  :language: none
+
+.. literalinclude:: cli/manager.recovery-device-manager.cli
+  :language: none
+
 UART
 ----
 
@@ -51,7 +57,7 @@ UART
 .. literalinclude:: cli/uart.update-boot-files.cli
   :language: none
 
-Network
+NETWORK
 -------
 
 .. literalinclude:: cli/net.check-dmesg.cli

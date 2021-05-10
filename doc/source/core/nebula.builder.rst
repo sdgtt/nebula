@@ -1,4 +1,4 @@
-builder
+nebula.builder module
 =====================
 
 .. automodule:: nebula.builder

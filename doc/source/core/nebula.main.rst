@@ -1,7 +1,7 @@
-nebula.uart module
+nebula.main module
 ==================
 
-.. automodule:: nebula.uart
+.. automodule:: nebula.main
    :members:
    :undoc-members:
    :show-inheritance:

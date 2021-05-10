@@ -1,4 +1,4 @@
-network
+nebula.network module
 =====================
 
 .. automodule:: nebula.network

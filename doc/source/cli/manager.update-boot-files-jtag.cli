@@ -1,0 +1,8 @@
+Usage: nebula [--core-opts] manager.update-boot-files-jtag [--options] [other tasks here ...]
+
+Docstring:
+  Update boot files through JTAG (Assuming board is running)
+
+Options:
+  -b STRING, --board-name=STRING
+  -y STRING, --yamlfilename=STRING

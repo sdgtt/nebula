@@ -1,7 +1,7 @@
-nebula.driver module
+nebula.usbdev module
 ====================
 
-.. automodule:: nebula.driver
+.. automodule:: nebula.usbdev
    :members:
    :undoc-members:
    :show-inheritance:

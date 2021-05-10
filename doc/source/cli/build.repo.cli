@@ -5,11 +5,12 @@ Docstring:
 
 Options:
   -b STRING, --branch=STRING           Git branch name. Default is master
-  -d STRING, --def-config=STRING
+  -d STRING, --def-config=STRING       Kernel def config
   -g STRING, --githuborg=STRING        Github organization string. Default to
                                        analogdevicesinc
   -o STRING, --board=STRING            Name of development board
   -p STRING, --project=STRING          Name of HDL project
   -r STRING, --repo=STRING             Name of repo
-  -v STRING, --vivado-version=STRING
+  -v STRING, --vivado-version=STRING   Vivado version (ex: 2018.2). 
+                                       Defaults to determine from source/release
 

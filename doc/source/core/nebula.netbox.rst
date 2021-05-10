@@ -1,7 +1,7 @@
-nebula.driver module
+nebula.netbox module
 ====================
 
-.. automodule:: nebula.driver
+.. automodule:: nebula.netbox
    :members:
    :undoc-members:
    :show-inheritance:

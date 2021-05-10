@@ -18,6 +18,10 @@ Subcommands:
   jtag.reboot                         Reboot board using JTAG
   manager.update-boot-files           Update boot files through u-boot menu
                                       (Assuming board is running)
+  manager.update-boot-files-jtag      Update boot files through JTAG 
+                                      (Assuming board is running)
+  manager.recovery-device-manager     Recover device through many methods
+                                      (Assuming board is running)
   net.check-dmesg                     Download and parse remote board's dmesg
                                       log
   net.restart-board                   Reboot development system over IP

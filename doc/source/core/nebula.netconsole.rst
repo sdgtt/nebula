@@ -1,4 +1,4 @@
-netconsole
+nebula.netconsole module
 ========================
 
 .. automodule:: nebula.netconsole

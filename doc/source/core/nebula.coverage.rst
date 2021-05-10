@@ -1,7 +1,7 @@
-nebula.tftpboot module
+nebula.coverage module
 ======================
 
-.. automodule:: nebula.tftpboot
+.. automodule:: nebula.coverage
    :members:
    :undoc-members:
    :show-inheritance:

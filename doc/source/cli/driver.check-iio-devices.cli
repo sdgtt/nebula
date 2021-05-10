@@ -6,7 +6,7 @@ Docstring:
 
 Options:
   -b STRING, --board-name=STRING
-  -i STRING, --iio-device-names=STRING
+  -i STRING, --iio-device-names=STRING   List of IIO driver names to check on board
   -u STRING, --uri=STRING                URI of board running iiod with drivers
                                          to check
   -y STRING, --yamlfilename=STRING       Path to yaml config file. Default:
