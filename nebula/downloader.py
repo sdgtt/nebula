@@ -385,6 +385,10 @@ class downloader(utils):
                 firmware,
             )
         else:
+            matched = re.match("v[0-1].[0-9][0-9]", branch)
+            if bool(matched) and design_name=='pluto':
+                raise Exception("Add --firmware to command")
+
             branch = branch.strip('][').split(', ')
 
             if branch[0] == 'boot_partition':
