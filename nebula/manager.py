@@ -162,7 +162,7 @@ class manager:
                 log.info("Waiting for boot to complete")
 
                 # Verify uboot anad linux are reached
-                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
                 if len(results)==1:
                     # raise Exception("u-boot not reached")
@@ -248,7 +248,7 @@ class manager:
         self.power.power_cycle_board()
         try:
             log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=60)
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
         except Exception as ex:
             # Try to reinitialize uart and manually boot via u-boot 
             log.warning("UART is unavailable.")
@@ -258,7 +258,7 @@ class manager:
             self.monitor[0].reinitialize_uart()
             self.jtag.restart_board()
             log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=60)
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
 
         if len(results)==1:
@@ -344,7 +344,7 @@ class manager:
             log.info("Waiting for reboot to complete")
 
             # Verify uboot anad linux are reached
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
             if len(results)==1:
                 raise Exception("u-boot not reached")
