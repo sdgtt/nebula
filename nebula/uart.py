@@ -80,6 +80,13 @@ class uart(utils):
         if self.com:
             self.com.close()
 
+    def reinitialize_uart(self):
+        log.info("Reinitializing UART")
+        if self.com:
+            self.com.close()
+            self.com = serial.Serial(self.address, self.baudrate, timeout=5)
+            self.com.reset_input_buffer()
+
     def _auto_set_address(self):
         """ Try to set yaml automatically """
         if os.name in ["nt", "posix"]:

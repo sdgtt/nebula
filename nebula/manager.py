@@ -243,10 +243,20 @@ class manager:
         # return
         # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
         self.power.power_cycle_board()
+        try:
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=60)
+        except Exception as ex:
+            # Try to reinitialize uart and manually boot via u-boot 
+            log.warning("UART is unavailable.")
+            log.warning(str(ex))
+            # wait longer and restart board using jtag
+            time.sleep(10)
+            self.monitor[0].reinitialize_uart()
+            self.jtag.restart_board()
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=60)
 
-        # NEED A CHECK HERE OR SOMETHING
-        log.info("Waiting for boot to complete")
-        results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
 
         if len(results)==1:
             raise Exception("u-boot not reached")
