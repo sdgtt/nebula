@@ -143,7 +143,7 @@ def download_boot_files(
 ):
     """ Download bootfiles for a specific development system """
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(board_name, source, source_root, branch)
+    d.download_boot_files(board_name, source, source_root, branch, firmware)
 
 
 dl = Collection("dl")

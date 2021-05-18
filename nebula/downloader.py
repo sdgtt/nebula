@@ -371,32 +371,50 @@ class downloader(utils):
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
 
-        branch = branch.strip('][').split(', ')
-
-        if branch[0] == 'boot_partition':
-            #get files from boot partition folder
+        if firmware:
+            branch = branch
             self._get_files(
-            design_name,
-            reference_boot_folder,
-            devicetree_subfolder,
-            boot_subfolder,
-            board_configs[design_name],
-            source,
-            source_root,
-            branch[1],
-            firmware,
-        )
+                design_name,
+                reference_boot_folder,
+                devicetree_subfolder,
+                boot_subfolder,
+                board_configs[design_name],
+                source,
+                source_root,
+                branch,
+                firmware,
+            )
         else:
-            #get files from linux+hdl folder
-            self._get_files_daily(
-            design_name,
-            hdl_folder,
-            board_configs[design_name],
-            source,
-            source_root,
-            branch,
-            firmware,
-        )
+            matched = re.match("v[0-1].[0-9][0-9]", branch)
+            if bool(matched) and design_name=='pluto':
+                raise Exception("Add --firmware to command")
+
+            branch = branch.strip('][').split(', ')
+
+            if branch[0] == 'boot_partition':
+                #get files from boot partition folder
+                self._get_files(
+                design_name,
+                reference_boot_folder,
+                devicetree_subfolder,
+                boot_subfolder,
+                board_configs[design_name],
+                source,
+                source_root,
+                branch[1],
+                firmware,
+            )
+            else:
+                #get files from linux+hdl folder
+                self._get_files_daily(
+                design_name,
+                hdl_folder,
+                board_configs[design_name],
+                source,
+                source_root,
+                branch,
+                firmware,
+            )
 
     def download_sdcard_release(self, release="2019_R1"):
         rel = self.releases(release)
