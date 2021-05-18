@@ -193,8 +193,6 @@ class downloader(utils):
         kernel_root = False
         dt = False
 
-        url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-        
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
             kernel_root = "zynqmp-common"
@@ -232,8 +230,10 @@ class downloader(utils):
             print("Get standard boot files")
             # Get kernel
             print("Get", kernel)
+            url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+
             self._get_file(kernel, source, kernel_root, source_root, branch, url_template)
-            
+
             if boot_subfolder is not None:
                 design_source_root = reference_boot_folder+ '/' +str(boot_subfolder)
             else:
