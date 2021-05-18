@@ -242,6 +242,23 @@ class uart(utils):
         self._write_data(cmd)
         self._read_until_done(done_string="zynq-uboot")
 
+    def load_system_uart_copy_to_sdcard(
+        self, bootbin, devtree_filename, kernel_filename
+    ):
+        """ Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
+        and to SD card
+        """
+        filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
+        source_fn = [bootbin, kernel_filename, devtree_filename]
+        for i, target in enumerate(filenames):
+            log.info("Copying over: "+source_fn[i])
+            self._send_file(source_fn[i], "0x8000000")
+            self._read_until_done(done_string="zynq-uboot")
+            log.info("Writing over: "+target)
+            cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
+            self._write_data(cmd)
+            self._read_until_done(done_string="zynq-uboot")
+
     def _attemp_login(self, username, password):
         # Do login
         logged_in = False

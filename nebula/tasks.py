@@ -261,14 +261,42 @@ def update_config(
 
 
 #############################################
-@task()
+@task(
+    help={
+        "system_top_bit_path": "Path to system_top.bit",
+        "bootbinpath": "Path to BOOT.BIN.",
+        "uimagepath": "Path to kernel image.",
+        "devtreepath": "Path to devicetree.",
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
 def update_boot_files_jtag_manager(c,
+    system_top_bit_path="system_top.bit",
+    bootbinpath="BOOT.BIN",
+    uimagepath="uImage",
+    devtreepath="devicetree.dtb",
+    folder=None,
     yamlfilename="/etc/default/nebula",
-    board_name=None
+    board_name=None,
+
 ):
     """ Update boot files through JTAG (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
-    m.board_reboot_jtag_uart()
+    # m.board_reboot_jtag_uart()
+
+    if not folder:
+        m.board_reboot_auto(
+            system_top_bit_path=system_top_bit_path,
+            bootbinpath=bootbinpath,
+            uimagepath=uimagepath,
+            devtreepath=devtreepath,
+        )
+    else:
+        m.board_reboot_auto_folder(folder, design_name=board_name, jtag_mode=True)
+
+
 
 @task(
     help={

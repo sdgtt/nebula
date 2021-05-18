@@ -208,7 +208,7 @@ class manager:
                 self.board_reboot_jtag_uart()
 
 
-    def board_reboot_jtag_uart(self):
+    def board_reboot_jtag_uart(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
@@ -221,14 +221,17 @@ class manager:
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
             self.jtag.restart_board()
+            log.info("Taking over UART control")
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
         else:
             log.info("u-boot not reachable, manually loading u-boot over JTAG")
             self.jtag.boot_to_uboot()
-        log.info("Taking over UART control")
-        self.monitor[0]._enter_uboot_menu_from_power_cycle()
-        log.warning("FIXME Still defaulting to BOOT.BIN.ORG")
-        self.monitor[0].copy_reference(reference="BOOT.BIN.ORG",target="BOOT.BIN")
+            log.info("Taking over UART control")
+            self.monitor[0]._enter_uboot_menu_from_power_cycle()
+        # Copy over and write to disk
+        log.info("Copying boot files over UART to SD card")
+        self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
+        
         # self.jtag.load_post_uboot_files()
         # self.monitor[0].update_boot_args()
         # self.monitor[0].boot()
@@ -508,13 +511,15 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder, design_name=None,recover=False):
+    def board_reboot_auto_folder(self, folder, design_name=None,recover=False, jtag_mode=False):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
         files from target folder"""
 
         if design_name in ["pluto", "m2k"]:
             log.info("Firmware based device selected")
+            if jtag_mode:
+                raise Exception("jtag_mode not supported for firmware device")
             files = glob.glob(os.path.join(folder, "*.zip"))
             if not files:
                 raise Exception("No zip files found in folder: " + folder)
@@ -530,6 +535,13 @@ class manager:
             log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
             print(bootbin, kernel, dt, bit)
+            if jtag_mode:
+                self.board_reboot_jtag_uart(
+                    system_top_bit_path=bit,
+                    bootbinpath=bootbin,
+                    uimagepath=kernel,
+                    devtreepath=dt,
+                )
             if not recover:
                 self.board_reboot_uart_net_pdu(
                     system_top_bit_path=bit,
