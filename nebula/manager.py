@@ -220,7 +220,7 @@ class manager:
                 self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
 
 
-    def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard):
+    def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
@@ -558,7 +558,7 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder, sdcard, design_name=None,recover=False, jtag_mode=False):
+    def board_reboot_auto_folder(self, folder, sdcard=False, design_name=None,recover=False, jtag_mode=False):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
         files from target folder"""
