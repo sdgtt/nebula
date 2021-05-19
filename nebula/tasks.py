@@ -307,6 +307,7 @@ def update_boot_files_jtag_manager(c,
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "sdcard": "No arguments required. If set, reference files is obtained from SD card."
     },
 )
 def recovery_device_manager(
@@ -318,6 +319,7 @@ def recovery_device_manager(
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
+    sdcard=False,
 ):
     """ Recover device through many methods (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -328,10 +330,10 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
-            recover=true,
+            recover=True,
         )
     else:
-        m.board_reboot_auto_folder(folder, design_name=board_name,recover=True)
+        m.board_reboot_auto_folder(folder, sdcard, design_name=board_name,recover=True)
 
 
 @task(
