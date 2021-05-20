@@ -18,10 +18,12 @@ class jtag(utils):
         yamlfilename=None,
         board_name=None,
         jtag_cable_id=None,
+        jtag_cpu_target_name=None,
     ):
         self.vivado_version = vivado_version
         self.custom_vivado_path = custom_vivado_path
         self.jtag_cable_id = jtag_cable_id
+        self.jtag_cpu_target_name = jtag_cpu_target_name
 
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -78,7 +80,7 @@ class jtag(utils):
         pass
 
     def target_set_str(self,target_name):
-        return 'targets -set -filter {jtag_cable_name =~ {*'+self.jtag_cable_id+'} && name =~ {'+target_name+'}} -index 0; '
+        return 'targets -set -filter {jtag_cable_name =~ {*'+self.jtag_cable_id+'} && name =~ {'+target_name+'}} ; '
 
     def boot_to_uboot(self):
         """ From JTAG reset board and load up FSBL and uboot
@@ -97,7 +99,7 @@ class jtag(utils):
         cmd += "con; "
         cmd += "after 1000; "
 
-        cmd += self.target_set_str("ARM*#0")
+        cmd += self.target_set_str(self.jtag_cpu_target_name)
         # cmd += "con; "
         # cmd += "stop; "
         cmd += "after 1000; "

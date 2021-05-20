@@ -155,3 +155,8 @@ jtag-config:
     default: 210299A567FE
     help: "Substring of JTAG cable ID. Run 'jtag target' through xsdb to get it.\n Just really need code not full name."
     optional: True
+  field_4:
+    name: jtag_cpu_target_name
+    default: ARM*#0
+    help: "Name use to identify jtag target\n. This will be used for filtering jtag target.\n Can use wildcards e.x *"
+    optional: True
