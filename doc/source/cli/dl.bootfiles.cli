@@ -5,14 +5,19 @@ Docstring:
 
 Options:
   -a STRING, --board-name=STRING
-  -b STRING, --branch=STRING         Name of branch to get related files. This
-                                     is only used forhttp and artifactory
-                                     sources. Default is master
+  -b STRING, --branch=STRING         Name of branches to get related files. It can 
+                                     be from Linux+HDL folders or from the 
+                                     boot partition folder.
+                                     For Linx+HDL, enterstring [<linuxbranch>, <hdlbranch>].
+                                     For boot partition, enter [boot_partition, <bootpartitionbranch>]. 
+                                     This is only used for http and artifactory sources.
+                                     Default is [boot_partition, master]
   -f, --firmware                     No arguments required. If set Pluto
                                      firmware is downloaded from GitHub. Branch
                                      name is used as release name. Design name
                                      must be pluto or m2k
-  -o STRING, --source-root=STRING
+  -o STRING, --source-root=STRING    Location of source boot files. Dependent on source.
+                                     For http and artifactory sources this is a IP or domain name (no http://)
   -s STRING, --source=STRING         Boot file download source. Options are:
                                      local_fs, http, artifactory, remote.
                                      Default: local_fs

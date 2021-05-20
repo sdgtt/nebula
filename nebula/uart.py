@@ -44,7 +44,7 @@ class uart(utils):
         fmc="fmcomms2",
         baudrate=115200,
         logfilename="uart.log",
-        bootargs="console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon rootfstype=ext4 rootwait",
+        bootargs="console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlycon earlyprintk rootfstype=ext4 rootwait",
         dhcp=False,
         yamlfilename=None,
         board_name=None,
@@ -58,7 +58,7 @@ class uart(utils):
         self.listen_thread_run = False
         self.logfilename = logfilename
         self.thread = None
-        self.print_to_console = True
+        self.print_to_console = False
         self.dhcp = dhcp
         self.max_read_time = 30
         self.fds_to_skip = ["Digilent"]
@@ -76,9 +76,16 @@ class uart(utils):
         self.com.reset_input_buffer()
 
     def __del__(self):
-        logging.info("Closing UART")
+        log.info("Closing UART")
         if self.com:
             self.com.close()
+
+    def reinitialize_uart(self):
+        log.info("Reinitializing UART")
+        if self.com:
+            self.com.close()
+            self.com = serial.Serial(self.address, self.baudrate, timeout=5)
+            self.com.reset_input_buffer()
 
     def _auto_set_address(self):
         """ Try to set yaml automatically """
@@ -106,22 +113,28 @@ class uart(utils):
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
         self.com.reset_input_buffer()
 
-    def start_log(self, logappend=False):
+    def start_log(self, logappend=False, force=False):
         """ Trigger monitoring with UART interface """
-        self.listen_thread_run = True
-        print("STARTING UART LOG")
-        logging.info("Launching UART listening thread")
-        if not self.print_to_console:
-            logging.info("UART console saving to file: " + self.logfilename)
-        self.thread = threading.Thread(target=self._listen, args=(logappend,))
-        self.thread.start()
+        if not self.listen_thread_run or force: 
+            self.listen_thread_run = True
+            print("STARTING UART LOG")
+            log.info("Launching UART listening thread")
+            if not self.print_to_console:
+                log.info("UART console saving to file: " + self.logfilename)
+            self.thread = threading.Thread(target=self._listen, args=(logappend,))
+            self.thread.start()
+        else:
+            log.info("UART console is already running... Skipping setting on")
 
-    def stop_log(self):
+    def stop_log(self, force=False):
         """ Stop monitoring with UART interface """
-        self.listen_thread_run = False
-        logging.info("Waiting for UART reading thread")
-        self.thread.join()
-        logging.info("UART reading thread joined")
+        if self.listen_thread_run or force:
+            self.listen_thread_run = False
+            log.info("Waiting for UART reading thread")
+            self.thread.join()
+            log.info("UART reading thread joined")
+        else:
+            log.info("UART logging thread not running. Skipping setting off")
 
     def _listen(self, logappend=False):
         ws = "w"
@@ -132,7 +145,7 @@ class uart(utils):
                 data = self._read_until_stop()
                 for d in data:
                     file.writelines(d + "\n")
-        logging.info("UART listening thread closing")
+        log.info("UART listening thread closing")
 
     def _read_until_stop(self):
         buffer = []
@@ -141,20 +154,20 @@ class uart(utils):
                 data = self.com.readline()
                 data = str(data[:-1].decode("ASCII"))
             except Exception as ex:
-                logging.warning("Exception occurred during data decode")
-                logging.warning(str(ex))
+                log.warning("Exception occurred during data decode")
+                log.warning(str(ex))
                 continue
-            if self.print_to_console:
-                print(data)
+            # if self.print_to_console:
+            #     print(data)
             buffer.append(data)
         return buffer
 
     def _write_data(self, data):
         data = data + "\n"
         bdata = data.encode()
-        logging.info("--------Sending Data-----------")
-        logging.info(bdata)
-        logging.info("-------------------------------")
+        log.info("--------Sending Data-----------")
+        log.info(bdata)
+        log.info("-------------------------------")
         self.com.write(bdata)
         time.sleep(1)
 
@@ -188,7 +201,7 @@ class uart(utils):
                         )
                     )
 
-            logging.info("Starting UART file transfer for: " + filename)
+            log.info("Starting UART file transfer for: " + filename)
             modem = xmodem.XMODEM(getc, putc)
             return modem.send(infile, timeout=10, quiet=True, callback=callback)
 
@@ -224,7 +237,34 @@ class uart(utils):
     def boot(self):
         """ Boot kernel from uboot menu """
         cmd = "bootm 0x3000000 - 0x2A00000"
+        # cmd = "bootm 0x3000000 0x2000000 0x2a000000"
         self._write_data(cmd)
+
+    def copy_reference(self,reference="BOOT.BIN.ORG",target="BOOT.BIN"):
+        """ Using reference files """
+        cmd = "fatload mmc 0 0x8000000 {}".format(reference)
+        self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
+        cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
+        self._write_data(cmd)
+        self._read_until_done(done_string="zynq-uboot")
+
+    def load_system_uart_copy_to_sdcard(
+        self, bootbin, devtree_filename, kernel_filename
+    ):
+        """ Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
+        and to SD card
+        """
+        filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
+        source_fn = [bootbin, kernel_filename, devtree_filename]
+        for i, target in enumerate(filenames):
+            log.info("Copying over: "+source_fn[i])
+            self._send_file(source_fn[i], "0x8000000")
+            self._read_until_done(done_string="zynq-uboot")
+            log.info("Writing over: "+target)
+            cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
+            self._write_data(cmd)
+            self._read_until_done(done_string="zynq-uboot")
 
     def _attemp_login(self, username, password):
         # Do login
@@ -257,7 +297,7 @@ class uart(utils):
                 for c in d:
                     c = c.replace("\r", "")
                     if username+"@" in c or "#" in c:
-                        logging.info("Logged in success")
+                        log.info("Logged in success")
                         logged_in = True
         return logged_in
 
@@ -271,7 +311,7 @@ class uart(utils):
                 if isinstance(d, list):
                     for c in d:
                         c = c.replace("\r", "")
-                        logging.info(c)
+                        log.info(c)
                         if "login:" in c:
                             needs_login = True
         logged_in=False
@@ -346,7 +386,7 @@ class uart(utils):
                             if (len(c) > 0) and (c != cmd) and (cmd not in c):
                                 return c
                         elif findstring in c:
-                            logging.info("Found substring: " + str(c))
+                            log.info("Found substring: " + str(c))
                             return c
                     except:
                         continue
@@ -357,7 +397,7 @@ class uart(utils):
                         if (len(d) > 0) and (d != cmd) and (cmd not in d):
                             return d
                     elif findstring in d:
-                        logging.info("Found substring: " + str(d))
+                        log.info("Found substring: " + str(d))
                         return d
                 except:
                     continue
@@ -389,14 +429,14 @@ class uart(utils):
                     c = c.replace("\r", "")
                     try:
                         ipaddress.ip_address(c)
-                        logging.info("Found IP: " + str(c))
+                        log.info("Found IP: " + str(c))
                         return c
                     except:
                         continue
             else:
                 try:
                     ipaddress.ip_address(d)
-                    logging.info("Found IP: " + str(d))
+                    log.info("Found IP: " + str(d))
                     return d
                 except:
                     continue
@@ -409,7 +449,70 @@ class uart(utils):
             time.sleep(1)
         return data
 
+    def _read_until_done_multi(self, done_strings=["done","done"], max_time=None):
+        if self.listen_thread_run:
+            restart_log = True
+            self.stop_log()
+        else:
+            restart_log = False
+        data = []
+        mt = max_time or self.max_read_time
+        founds = []
+        lastd = ''
+        for indx, done_string in enumerate(done_strings):
+            log.info("Looking for: "+done_string)
+            for t in range(mt):
+                breakbreak = False
+                data = self._read_until_stop()
+                if isinstance(data, list):
+                    for d in data:
+                        d = lastd+d
+                        lastd = ''
+                        if done_string in d:
+                            log.info(done_string+" found in data")
+                            founds.append(True)
+                            if indx == len(done_strings)-1:
+                                if restart_log:
+                                    self.start_log()
+                                return founds
+                            lastd = d[d.find(done_string):]
+                            breakbreak = True
+                            break
+                    if breakbreak:
+                        break
+                elif done_string in lastd+data:
+                    log.info(done_string+" found in data")
+                    founds.append(True)
+                    if indx == len(done_strings)-1:
+                        if restart_log:
+                            self.start_log()
+                        return founds
+                    else:
+                        lastd = lastd+data
+                        lastd = lastd[lastd.find(done_string):]
+                        break
+                else:
+                    lastd = ''
+                    log.info("Still waiting")
+                time.sleep(1)
+            if t == mt-1:
+                log.info(done_string+" not found in time")
+                if restart_log:
+                    self.start_log()
+                founds.append(False)
+                return founds
+        # if restart_log:
+        #     self.start_log()
+        # founds.append(False)
+        # return founds
+
+
     def _read_until_done(self, done_string="done", max_time=None):
+        if self.listen_thread_run:
+            restart_log = True
+            self.stop_log()
+        else:
+            restart_log = False
         data = []
         mt = max_time or self.max_read_time
         for _ in range(mt):
@@ -417,14 +520,20 @@ class uart(utils):
             if isinstance(data, list):
                 for d in data:
                     if done_string in d:
-                        logging.info("done found in data")
+                        log.info("done found in data")
+                        if restart_log:
+                            self.start_log()
                         return True
             elif done_string in data:
-                logging.info("done found in data")
+                log.info("done found in data")
+                if restart_log:
+                    self.start_log()
                 return True
             else:
-                logging.info("Still waiting")
+                log.info("Still waiting")
             time.sleep(1)
+        if restart_log:
+            self.start_log()
         return False
 
     def _check_for_string_console(self, console_out, string):
@@ -434,6 +543,7 @@ class uart(utils):
             if isinstance(d, list):
                 for c in d:
                     c = c.replace("\r", "")
+                    log.info("RAW: "+str(c)+" | Looking for: "+string)
                     if string in c:
                         return True
         return False
@@ -452,18 +562,24 @@ class uart(utils):
     def _enter_uboot_menu_from_power_cycle(self):
         log.info("Spamming ENTER to get UART console")
         # stop_at_done = False
-        # if not self.listen_thread_run:
-        #    stop_at_done = True
-        #    self.stop_log()
+        if self.listen_thread_run:
+           restart = True
+           self.stop_log()
+        else:
+            restart = False
         for _ in range(30):
             self._write_data("\r\n")
             data = self._read_for_time(1)
             # Check uboot console reached
             if self._check_for_string_console(data, "zynq-uboot"):
-                logging.info("u-boot menu reached")
+                log.info("u-boot menu reached")
+                if restart:
+                    self.start_log()
                 return True
             time.sleep(0.1)
-        logging.info("u-boot menu not reached")
+        log.info("u-boot menu not reached")
+        if restart:
+            self.start_log()
         return False
 
     def load_system_uart_from_tftp(self):

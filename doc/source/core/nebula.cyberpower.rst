@@ -1,4 +1,4 @@
-cyberpower
+nebula.cyberpower module
 ========================
 
 .. automodule:: nebula.cyberpower

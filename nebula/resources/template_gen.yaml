@@ -127,12 +127,12 @@ downloader-config:
   field_3:
     name: devicetree_subfolder
     default: zynq-zc702-adv7511-ad9361-fmcomms2-3
-    help: "Subfolder name where devicetree files exists for specific boards."
+    help: "Subfolder name under reference boot folder\nwhere devicetree files exists for specific boards."
     optional: False
   field_4:
     name: boot_subfolder
-    default: boot_bin_CMOS
-    help: "Subfolder name where boot files exist for specific boards."
+    default: null
+    help: "Subfolder name under reference boot folder\nwhere boot files exist for specific boards."
     optional: False
   field_5:
     name: hdl_folder
@@ -149,4 +149,9 @@ jtag-config:
     name: custom_vivado_path
     default: None
     help: "Custom path to vivado including version.\nEx: /opt/Xilinx/Vivado/2019.1\nOverrides vivado_version if set"
+    optional: True
+  field_3:
+    name: jtag_cable_id
+    default: 210299A567FE
+    help: "Substring of JTAG cable ID. Run 'jtag target' through xsdb to get it.\n Just really need code not full name."
     optional: True

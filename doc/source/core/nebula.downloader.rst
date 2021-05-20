@@ -1,4 +1,4 @@
-downloader
+nebula.downloader module
 ========================
 
 .. automodule:: nebula.downloader

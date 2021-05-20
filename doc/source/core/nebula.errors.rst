@@ -1,7 +1,7 @@
-nebula.driver module
+nebula.errors module
 ====================
 
-.. automodule:: nebula.driver
+.. automodule:: nebula.errors
    :members:
    :undoc-members:
    :show-inheritance:

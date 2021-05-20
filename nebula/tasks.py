@@ -126,7 +126,7 @@ def download_sdcard(c, release="2019_R1"):
     help={
         "board_name": "Board configuration name. Ex: zynq-zc702-adv7511-ad9361-fmcomms2-3",
         "source": "Boot file download source. Options are: local_fs, http, artifactory, remote.\nDefault: local_fs",
-        "source_root": "Location of source boot files. Dependent on source.\nFor http sources this is a IP or domain name (no http://)",
+        "source_root": "Location of source boot files. Dependent on source.\nFor http and artifactory sources this is a IP or domain name (no http://)",
         "branch": "Name of branches to get related files. It can be from Linux+HDL folders or from the boot partition folder.\nFor Linx+HDL, enter string [<linuxbranch>, <hdlbranch>]. For boot partition, enter [boot_partition, <bootpartitionbranch>]. \nThis is only used for\bhttp and artifactory sources. Default is [boot_partition, master]",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "firmware": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
@@ -272,6 +272,81 @@ def update_config(
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
+def update_boot_files_jtag_manager(c,
+    system_top_bit_path="system_top.bit",
+    bootbinpath="BOOT.BIN",
+    uimagepath="uImage",
+    devtreepath="devicetree.dtb",
+    folder=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+
+):
+    """ Update boot files through JTAG (Assuming board is running) """
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    # m.board_reboot_jtag_uart()
+
+    if not folder:
+        m.board_reboot_auto(
+            system_top_bit_path=system_top_bit_path,
+            bootbinpath=bootbinpath,
+            uimagepath=uimagepath,
+            devtreepath=devtreepath,
+        )
+    else:
+        m.board_reboot_auto_folder(folder, design_name=board_name, jtag_mode=True)
+
+
+
+@task(
+    help={
+        "system_top_bit_path": "Path to system_top.bit",
+        "bootbinpath": "Path to BOOT.BIN.",
+        "uimagepath": "Path to kernel image.",
+        "devtreepath": "Path to devicetree.",
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "sdcard": "No arguments required. If set, reference files is obtained from SD card."
+    },
+)
+def recovery_device_manager(
+    c,
+    system_top_bit_path="system_top.bit",
+    bootbinpath="BOOT.BIN",
+    uimagepath="uImage",
+    devtreepath="devicetree.dtb",
+    folder=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    sdcard=False,
+):
+    """ Recover device through many methods (Assuming board is running) """
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+
+    if not folder:
+        m.board_reboot_auto(
+            system_top_bit_path=system_top_bit_path,
+            bootbinpath=bootbinpath,
+            uimagepath=uimagepath,
+            devtreepath=devtreepath,
+            recover=True,
+        )
+    else:
+        m.board_reboot_auto_folder(folder, sdcard, design_name=board_name,recover=True)
+
+
+@task(
+    help={
+        "system_top_bit_path": "Path to system_top.bit",
+        "bootbinpath": "Path to BOOT.BIN.",
+        "uimagepath": "Path to kernel image.",
+        "devtreepath": "Path to devicetree.",
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
 def update_boot_files_manager(
     c,
     system_top_bit_path="system_top.bit",
@@ -298,11 +373,13 @@ def update_boot_files_manager(
 
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
+manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
+manager.add_task(recovery_device_manager, name="recovery_device_manager")
 
 #############################################
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -332,7 +409,7 @@ def restart_board_uart(
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -358,7 +435,7 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=Non
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -424,7 +501,7 @@ def set_local_nic_ip_from_usbdev(
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -458,7 +535,7 @@ def get_carriername(
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -489,7 +566,7 @@ def get_mezzanine(
 @task(
     help={
         "nic": "Network interface name to set. Default is eth0",
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -514,7 +591,7 @@ def set_dhcp(
     help={
         "ip": "IP Address to set NIC to",
         "nic": "Network interface name to set. Default is eth0",
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -545,7 +622,7 @@ def set_static_ip(
         "system_top_bit_filename": "Path to system_top.bit.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist is will override,"
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "reboot": "Reboot board from linux console to get to u-boot menu. Defaut False",

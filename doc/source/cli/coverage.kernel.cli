@@ -6,7 +6,7 @@ Docstring:
 Options:
   -i STRING, --ip=STRING                IP address of board with gcov enabled
                                         kernel
-  -l STRING, --linux-build-dir=STRING
+  -l STRING, --linux-build-dir=STRING   Build directory of kernel
   -p STRING, --password=STRING          Password of DUT. Defaults to analog
   -u STRING, --username=STRING          Username of DUT. Defaults to root
 

@@ -1,7 +1,7 @@
-nebula.uart module
+nebula.jtag module
 ==================
 
-.. automodule:: nebula.uart
+.. automodule:: nebula.jtag
    :members:
    :undoc-members:
    :show-inheritance:

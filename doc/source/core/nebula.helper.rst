@@ -1,7 +1,7 @@
-nebula.driver module
+nebula.helper module
 ====================
 
-.. automodule:: nebula.driver
+.. automodule:: nebula.helper
    :members:
    :undoc-members:
    :show-inheritance:

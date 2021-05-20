@@ -4,9 +4,20 @@ system-config:
   - tftpserverroot: /tftpboot # Directory of TFTP share on server
 ### Local hardware settings
 board-config:
-  - reference-boot-folder: zynq-zc706-adv7511-fmcdaq2 # Location of golden bootfiles in TFTP share
-  - iio_device_names: ["axi-ad9144-hpc","axi-ad9680-hpc"] #
+  - board-name: zynq-zc706-adv7511-fmcdaq2
   - monitoring-interface: uart # Console monitoring type. Options: uart, netconsole
+  - allow-jtag: False
+### Downloader Settings
+downloader-config:
+  - reference_boot_folder: zynq-zc706-adv7511-fmcdaq2 # Location of bootfiles
+  - hdl_folder: daq2_zc706
+### Driver Settings
+driver-config:
+  - iio_device_names:
+    - ad7291
+    - ad9523-1
+    - axi-ad9680-hpc
+    - axi-ad9144-hpc
 ### UART settings
 uart-config:
   - address: /dev/ttyUSB0 # File descriptor for UART console (auto will try to find, but linux only)

@@ -1,0 +1,14 @@
+Usage: nebula [--core-opts] manager.recovery-device-manager [--options] [other tasks here ...]
+
+Docstring:
+  Recover device through many methods (Assuming board is running)
+
+Options:
+  -b STRING, --bootbinpath=STRING           Path to BOOT.BIN.
+  -c         --sdcard                       No arguments required. If set, reference files is obtained from SD card.
+  -d STRING, --devtreepath=STRING           Path to devicetree.
+  -f STRING, --folder=STRING                Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit. Overrides other setting
+  -o STRING, --board-name=STRING            
+  -s STRING, --system-top-bit-path=STRING   Path to system_top.bit
+  -u STRING, --uimagepath=STRING            Path to kernel image.
+  -y STRING, --yamlfilename=STRING          Path to yaml config file. Default: /etc/default/nebula

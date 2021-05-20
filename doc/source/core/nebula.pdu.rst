@@ -1,4 +1,4 @@
-pdu
+nebula.pdu module
 =================
 
 .. automodule:: nebula.pdu

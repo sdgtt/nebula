@@ -1,4 +1,4 @@
-common
+nebula.common module
 ====================
 
 .. automodule:: nebula.common
