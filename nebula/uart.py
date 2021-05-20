@@ -89,25 +89,23 @@ class uart(utils):
 
     def _auto_set_address(self):
         """ Try to set yaml automatically """
-        if os.name in ["nt", "posix"]:
-            if os.path.isdir(LINUX_SERIAL_FOLDER):
-                fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
-                found = False
-                for fd in fds:
-                    for skip in self.fds_to_skip:
-                        if skip.lower() in fd.lower():
-                            continue
-                        print("Automatic UART selected:", fd)
-                        self.address = fd
-                        found = True
-                        break
-                    if found:
-                        break
-            else:
-                raise Exception("No serial devices connected")
-
-        else:
+        if os.name not in ["nt", "posix"]:
             raise Exception("Automatic UART detection is not possible in Windows yet")
+        if not os.path.isdir(LINUX_SERIAL_FOLDER):
+            raise Exception("No serial devices connected")
+
+        fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
+        found = False
+        for fd in fds:
+            for skip in self.fds_to_skip:
+                if skip.lower() in fd.lower():
+                    continue
+                print("Automatic UART selected:", fd)
+                self.address = fd
+                found = True
+                break
+            if found:
+                break
         if self.com:
             self.com.close()
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
@@ -302,8 +300,8 @@ class uart(utils):
         return logged_in
 
     def _check_for_login(self):
+        cmd = ""
         for _ in range(2):  # Check at least twice
-            cmd = ""
             self._write_data(cmd)
             data = self._read_for_time(period=1)
             needs_login = False
@@ -315,15 +313,13 @@ class uart(utils):
                         if "login:" in c:
                             needs_login = True
         logged_in=False
-        if needs_login:
-            # Do login
-            if self._attemp_login("root","analog"):
-                return True
-            else:
-                log.info("Attempting to login as analog")
-                logged_in = self._attemp_login("analog","analog")
-        else:
+        if not needs_login:
             return True
+            # Do login
+        if self._attemp_login("root","analog"):
+            return True
+        log.info("Attempting to login as analog")
+        logged_in = self._attemp_login("analog","analog")
         return logged_in
 
     def set_ip_static(self, address, nic="eth0"):
