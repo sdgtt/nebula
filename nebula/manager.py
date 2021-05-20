@@ -73,6 +73,18 @@ class manager:
                     self.jtag_use = config["allow-jtag"]
                     self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
+        self.reference_boot_folder = None
+        self.devicetree_subfolder = None
+        self.boot_subfolder = None
+        if "downloader-config" in configs:
+            for config in configs["downloader-config"]:
+                if "reference_boot_folder" in config:
+                    self.reference_boot_folder = config["reference_boot_folder"]
+                if "devicetree_subfolder" in config:
+                    self.devicetree_subfolder = config["devicetree_subfolder"]
+                if "boot_subfolder" in config:
+                    self.boot_subfolder = config["boot_subfolder"]
+        
         # self.boot_src = tftpboot()
 
         self.tftp = False
@@ -92,7 +104,7 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
-    def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath):
+    def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """ Recover boards with UART, PDU, JTAG, and Network are available """
         self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
@@ -162,7 +174,7 @@ class manager:
                 log.info("Waiting for boot to complete")
 
                 # Verify uboot anad linux are reached
-                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
                 if len(results)==1:
                     # raise Exception("u-boot not reached")
@@ -205,10 +217,10 @@ class manager:
 
             #JTAG RECOVERY
             except:
-                self.board_reboot_jtag_uart()
+                self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
 
 
-    def board_reboot_jtag_uart(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath):
+    def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
@@ -228,9 +240,34 @@ class manager:
             self.jtag.boot_to_uboot()
             log.info("Taking over UART control")
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
-        # Copy over and write to disk
-        log.info("Copying boot files over UART to SD card")
-        self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
+        #Get SD card file directory
+        if not sdcard:
+            # Copy over and write to disk
+            log.info("Copying boot files over UART to SD card")
+            self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
+        else:
+            if self.boot_subfolder is not None:
+                ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
+            else:
+                ref = self.reference_boot_folder
+            target = bootbinpath.split("/")[1]
+            ref = ref + '/' + str(target)
+            self.monitor[0].copy_reference(ref,target)
+
+            if self.devicetree_subfolder is not None:
+                ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
+            else:
+                ref = self.reference_boot_folder
+            target = devtreepath.split("/")[1]
+            ref = ref + '/' + str(target)
+            self.monitor[0].copy_reference(ref,target)
+
+            target = uimagepath.split("/")[1]
+            if "uImage" in str(uimagepath):
+                ref = "zynq-common/" + str(target)
+            else:
+                ref = "zynqmp-common/" + str(target)
+            self.monitor[0].copy_reference(ref,target)
         
         # self.jtag.load_post_uboot_files()
         # self.monitor[0].update_boot_args()
@@ -246,10 +283,20 @@ class manager:
         # return
         # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
         self.power.power_cycle_board()
+        try:
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+        except Exception as ex:
+            # Try to reinitialize uart and manually boot via u-boot 
+            log.warning("UART is unavailable.")
+            log.warning(str(ex))
+            # wait longer and restart board using jtag
+            time.sleep(10)
+            self.monitor[0].reinitialize_uart()
+            self.jtag.restart_board()
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
-        # NEED A CHECK HERE OR SOMETHING
-        log.info("Waiting for boot to complete")
-        results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
 
         if len(results)==1:
             raise Exception("u-boot not reached")
@@ -334,7 +381,7 @@ class manager:
             log.info("Waiting for reboot to complete")
 
             # Verify uboot anad linux are reached
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=30)
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
             if len(results)==1:
                 raise Exception("u-boot not reached")
@@ -511,7 +558,7 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder, design_name=None,recover=False, jtag_mode=False):
+    def board_reboot_auto_folder(self, folder, sdcard=False, design_name=None,recover=False, jtag_mode=False):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
         files from target folder"""
@@ -555,6 +602,7 @@ class manager:
                     bootbinpath=bootbin,
                     uimagepath=kernel,
                     devtreepath=dt,
+                    sdcard=sdcard,
                 )
                 
     def board_reboot_auto(
@@ -566,8 +614,7 @@ class manager:
             system_top_bit_path=system_top_bit_path,
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
-            devtreepath=devtreepath,
-            recover=recover,
+            devtreepath=devtreepath
         )
 
 

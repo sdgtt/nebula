@@ -5,6 +5,7 @@ Docstring:
 
 Options:
   -b STRING, --bootbinpath=STRING           Path to BOOT.BIN.
+  -c         --sdcard                       No arguments required. If set, reference files is obtained from SD card.
   -d STRING, --devtreepath=STRING           Path to devicetree.
   -f STRING, --folder=STRING                Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit. Overrides other setting
   -o STRING, --board-name=STRING            

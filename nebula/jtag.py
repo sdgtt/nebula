@@ -64,8 +64,12 @@ class jtag(utils):
     def restart_board(self):
         cmd = "connect; "
         cmd += "after 3000; "
-        cmd += "targets 1; "
+        cmd += "puts [jtag target]; "
+        cmd += self.target_set_str("APU")
+        cmd += "puts {Reset System}; "
+        cmd += "after 1000; "
         cmd += "rst -system; "
+        cmd += "after 1000; "
         cmd += "con"
         self.run_xsdb(cmd)
 
