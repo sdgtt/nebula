@@ -240,14 +240,14 @@ class uart(utils):
         # cmd = "bootm 0x3000000 0x2000000 0x2a000000"
         self._write_data(cmd)
 
-    def copy_reference(self,reference="BOOT.BIN.ORG",target="BOOT.BIN"):
+    def copy_reference(self, reference="BOOT.BIN.ORG",target="BOOT.BIN", done_string = "zynq_uboot"):
         """ Using reference files """
         cmd = "fatload mmc 0 0x8000000 {}".format(reference)
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string)
         cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string)
 
     def load_system_uart_copy_to_sdcard(
         self, bootbin, devtree_filename, kernel_filename
@@ -255,16 +255,21 @@ class uart(utils):
         """ Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
         and to SD card
         """
-        filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
+        if "uImage" in str(kernel_filename):
+            filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
+            done_string = "zynq-uboot"
+        else:
+            filenames = ["BOOT.BIN","Image","system.dtb"]
+            done_string = "ZynqMP"
         source_fn = [bootbin, kernel_filename, devtree_filename]
         for i, target in enumerate(filenames):
             log.info("Copying over: "+source_fn[i])
             self._send_file(source_fn[i], "0x8000000")
-            self._read_until_done(done_string="zynq-uboot")
+            self._read_until_done(done_string)
             log.info("Writing over: "+target)
             cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
             self._write_data(cmd)
-            self._read_until_done(done_string="zynq-uboot")
+            self._read_until_done(done_string)
 
     def _attemp_login(self, username, password):
         # Do login
@@ -572,6 +577,11 @@ class uart(utils):
             data = self._read_for_time(1)
             # Check uboot console reached
             if self._check_for_string_console(data, "zynq-uboot"):
+                log.info("u-boot menu reached")
+                if restart:
+                    self.start_log()
+                return True
+            elif self._check_for_string_console(data, "ZynqMP"):
                 log.info("u-boot menu reached")
                 if restart:
                     self.start_log()
