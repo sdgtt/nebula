@@ -30,7 +30,7 @@ class jtag(utils):
         )
 
         # Check target device available
-        cmd = "connect; after 1000; "+self.target_set_str("APU")
+        cmd = "connect; after 1000; "+self.target_set_str("APU*")
         if not self.run_xsdb(cmd):
             raise Exception("JTAG connection cannot find target HW: {}".format(self.jtag_cable_id))
         
@@ -67,7 +67,7 @@ class jtag(utils):
         cmd = "connect; "
         cmd += "after 3000; "
         cmd += "puts [jtag target]; "
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         cmd += "puts {Reset System}; "
         cmd += "after 1000; "
         cmd += "rst -system; "
@@ -91,7 +91,7 @@ class jtag(utils):
         cmd = "connect; "
         cmd += "after 3000; "
         cmd += "puts [jtag target]; "
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         cmd += "puts {Reset System}; "
         cmd += "after 1000; "
         cmd += "rst -system; "
@@ -127,7 +127,7 @@ class jtag(utils):
         # cmd += "con; "
         # cmd += "after 3000; "
 
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         # cmd += "target 1; "
         cmd += "puts {STOPPING}; "
         cmd += "stop; "
