@@ -20,7 +20,6 @@ from nebula.usbdev import usbdev
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-
 class manager:
     """ Board Manager """
 
@@ -93,6 +92,18 @@ class manager:
         self.usbdev = usbdev()
         self.board_name = board_name
 
+    def _release_thread_lock(func):
+        """ A decorator to force a method to close thread resource """
+
+        def inner(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                # close any open threading locks
+                self.monitor[0].stop_log()
+
+        return inner
+
     def get_status(self):
         pass
 
@@ -104,6 +115,7 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
+    @_release_thread_lock
     def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """ Recover boards with UART, PDU, JTAG, and Network are available """
         self._check_files_exist(
@@ -219,7 +231,7 @@ class manager:
             except:
                 self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
 
-
+    @_release_thread_lock
     def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
@@ -341,7 +353,7 @@ class manager:
 
         self.monitor[0].stop_log()
 
-
+    @_release_thread_lock
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
