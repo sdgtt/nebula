@@ -9,6 +9,7 @@ import pathlib
 import fabric
 from fabric import Connection
 from nebula.common import utils
+import nebula.errors as ne
 
 log = logging.getLogger(__name__)
 
@@ -165,7 +166,7 @@ class network(utils):
                 log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
                 if t>=(retries-1):
-                    raise Exception("SSH Failed")
+                    raise ne.SSHError
 
     def update_boot_partition(
         self, bootbinpath=None, uimagepath=None, devtreepath=None
