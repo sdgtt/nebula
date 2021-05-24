@@ -70,7 +70,8 @@ class manager:
             for config in configs["board-config"]:
                 if "allow-jtag" in config:
                     self.jtag_use = config["allow-jtag"]
-                    self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                    if self.jtag_use:
+                        self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
