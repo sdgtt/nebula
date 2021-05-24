@@ -407,7 +407,7 @@ class manager:
             log.info("Linux fully booted")
 
 
-        except (ne.LinuxNotReached, TimeoutError):
+        except (ne.LinuxNotReached, ne.SSHError, TimeoutError):
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on reset")

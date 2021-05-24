@@ -45,3 +45,8 @@ class MultiDevFound(Error):
     """ Multi-device config found. Board name must be specificied """
 
     pass
+
+class SSHError(Error):
+    """ SSH transaction failed """
+
+    pass
