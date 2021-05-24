@@ -115,15 +115,14 @@ class network(utils):
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
                 ).run("/sbin/reboot", hide=False)
-                if result.ok:
-                    print("Rebooting board with SSH")
-                    if not bypass_sleep:
-                        time.sleep(30)
-                    break
-                else:
+                if not result.ok:
                     # Use PDU
                     raise Exception("PDU reset not implemented yet")
 
+                print("Rebooting board with SSH")
+                if not bypass_sleep:
+                    time.sleep(30)
+                break
             except Exception as ex:
                 log.warning("Exception raised: "+str(ex))
                 time.sleep(3)
@@ -186,7 +185,6 @@ class network(utils):
                 self.run_ssh_command("umount /tmp/sdcard")
             except:
                 log.info("Unmount failed... Likely not mounted")
-                pass
         else:
             self.run_ssh_command("mkdir /tmp/sdcard")
         self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
