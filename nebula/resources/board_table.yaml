@@ -167,7 +167,7 @@ zynq-zed-adv7511-ad9467-fmc-250ebz:
   addons:
   - AD9467-FMC-250EBZ
   carrier: Zed-Board
-zynq-zed-adrv9002:
+zynq-zed-adv7511-adrv9002:
   addons:
   - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
   carrier: Zed-Board
