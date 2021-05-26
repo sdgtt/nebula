@@ -4,6 +4,7 @@ import time
 import random
 import string
 import os
+import pathlib
 
 import fabric
 from fabric import Connection
@@ -262,9 +263,25 @@ class network(utils):
             warn_log = f.readlines()
         with open("dmesg_err.log", "r") as f:
             error_log = f.readlines()
+            errors = []
+            for err in error_log:
+                error = err.split("]", 1)[1].strip()
+                errors.append(error+"\n")
 
-        if len(error_log) > 0:
-            logging.info("Errors found in dmesg logs")
+        path = pathlib.Path(__file__).parent.absolute()
+        res = os.path.join(path, "resources", "err_rejects.log")
+        with open(res) as f:
+            error_rejects = f.readlines()
+        
+        error_log_filetered = [i for i in errors if i not in error_rejects]
 
-        logs = {"log": all_log, "warn": warn_log, "error": error_log}
-        return len(error_log) > 0, logs
+        with open('dmesg_err_filtered.log', 'w') as outfile:
+            if error_log_filetered:
+                for line in error_log_filetered:
+                    outfile.write(line)
+  
+        if len(error_log_filetered) > 0:
+            log.info("Errors found in dmesg logs")
+
+        logs = {"log": all_log, "warn": warn_log, "error": error_log_filetered}
+        return len(error_log_filetered) > 0, logs
