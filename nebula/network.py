@@ -269,7 +269,7 @@ class network(utils):
                 errors.append(error+"\n")
 
         path = pathlib.Path(__file__).parent.absolute()
-        res = os.path.join(path, "resources", "err_rejects.log")
+        res = os.path.join(path, "resources", "err_rejects.txt")
         with open(res) as f:
             error_rejects = f.readlines()
         
