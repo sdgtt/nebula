@@ -524,6 +524,15 @@ class manager:
             raise Exception("Boot files folder not found")
         src = os.path.join(folder, "*")
         files = os.listdir(folder)
+        res = []
+        for file in files:
+            path = os.path.join(folder, file)
+            filesize = os.stat(path).st_size
+            if filesize <= 80:
+                res.append(file)
+        if len(res) != 0:
+            raise Exception("Empty files:" +str(res))
+
         if "BOOT.BIN" not in files:
             raise Exception("BOOT.BIN not found")
         if "devicetree.dtb" not in files:
