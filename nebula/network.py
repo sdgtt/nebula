@@ -265,8 +265,8 @@ class network(utils):
             error_log = f.readlines()
             errors = []
             for err in error_log:
-                error = err.split("]", 1)[1].strip()
-                errors.append(error+"\n")
+                error = err.split("]", 1)[1].lstrip()
+                errors.append(error)
 
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "err_rejects.txt")
