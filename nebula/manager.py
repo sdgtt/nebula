@@ -259,7 +259,7 @@ class manager:
             log.info("Copying boot files over UART to SD card")
             self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
         else:
-            target = uimagepath.split("/")[1]
+            target = uimagepath.split("/")[1].rstrip()
             if "uImage" in str(uimagepath):
                 ref = "zynq-common/" + str(target)
                 done_string = "zynq-uboot"
@@ -272,7 +272,7 @@ class manager:
                 ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
             else:
                 ref = self.reference_boot_folder
-            target = bootbinpath.split("/")[1]
+            target = bootbinpath.split("/")[1].rstrip()
             ref = ref + '/' + str(target)
             self.monitor[0].copy_reference(ref, target, done_string)
             
@@ -280,7 +280,7 @@ class manager:
                 ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
             else:
                 ref = self.reference_boot_folder
-            target = devtreepath.split("/")[1]
+            target = devtreepath.split("/")[1].rstrip()
             ref = ref + '/' + str(target)
             self.monitor[0].copy_reference(ref, target, done_string)
 
