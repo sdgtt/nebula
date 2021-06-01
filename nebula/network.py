@@ -44,6 +44,7 @@ class network(utils):
         if not self.dhcp:
             self.dhcp = False
         self.ssh_timeout = 30
+        self.board_name = board_name
 
     def ping_board(self, tries=10):
         """ Ping board and check if any received
@@ -246,12 +247,21 @@ class network(utils):
         tmp_filename_err = "/tmp/" + tmp_filename_root + "_err"
         tmp_filename_war = "/tmp/" + tmp_filename_root + "_warn"
 
-        self.run_ssh_command("dmesg > " + tmp_filename)
-        self.run_ssh_command("dmesg -l warn > " + tmp_filename_war)
-        self.run_ssh_command("dmesg -l err > " + tmp_filename_err)
-        self._dl_file(tmp_filename)
-        self._dl_file(tmp_filename_war)
-        self._dl_file(tmp_filename_err)
+        if self.board_name == 'pluto':
+            with open(tmp_filename_root, 'w') as outfile:
+                outfile.write(self.run_ssh_command("dmesg").stdout)
+            with open(tmp_filename_root + "_warn", 'w') as outfile:
+                outfile.write(self.run_ssh_command('dmesg -r | { grep "^.4" || true; }').stdout)
+            with open(tmp_filename_root + "_err", 'w') as outfile:
+                outfile.write(self.run_ssh_command('dmesg -r | { grep "^.3" || true; }').stdout)
+        else:
+            self.run_ssh_command("dmesg > " + tmp_filename)
+            self.run_ssh_command("dmesg -l warn > " + tmp_filename_war)
+            self.run_ssh_command("dmesg -l err > " + tmp_filename_err)
+            self._dl_file(tmp_filename)
+            self._dl_file(tmp_filename_war)
+            self._dl_file(tmp_filename_err)
+
         os.rename(tmp_filename_root, "dmesg.log")
         os.rename(tmp_filename_root + "_warn", "dmesg_warn.log")
         os.rename(tmp_filename_root + "_err", "dmesg_err.log")
