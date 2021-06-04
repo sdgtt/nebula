@@ -2,6 +2,7 @@ import os
 import logging
 import shutil
 import subprocess
+import time
 
 from nebula.common import utils
 
@@ -19,21 +20,31 @@ class jtag(utils):
         board_name=None,
         jtag_cable_id=None,
         jtag_cpu_target_name=None,
+        jtag_connect_retries = 3
     ):
         self.vivado_version = vivado_version
         self.custom_vivado_path = custom_vivado_path
         self.jtag_cable_id = jtag_cable_id
         self.jtag_cpu_target_name = jtag_cpu_target_name
+        self.jtag_connect_retries = jtag_connect_retries
 
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
         # Check target device available
-        cmd = "connect; after 1000; "+self.target_set_str("APU*")
-        if not self.run_xsdb(cmd):
+        jtag_connected = False
+        for c in range(self.jtag_connect_retries):
+            cmd = "connect; after 1000; "+self.target_set_str("APU*")
+            jtag_connected = self.run_xsdb(cmd)
+            if jtag_connected:
+                log.info("JTAG {} connection attempt succesful".format(self.jtag_cable_id))
+                break
+            log.warning("JTAG {} connection attempt failed.  Attempt {}".format(self.jtag_cable_id, c+1))
+            time.sleep(1)
+
+        if not jtag_connected:
             raise Exception("JTAG connection cannot find target HW: {}".format(self.jtag_cable_id))
-        
 
     def _shell_out2(self, script):
         logging.info("Running command: " + script)
