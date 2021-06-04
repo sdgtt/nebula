@@ -47,17 +47,17 @@ class jtag(utils):
             raise Exception("JTAG connection cannot find target HW: {}".format(self.jtag_cable_id))
 
     def _shell_out2(self, script):
-        logging.info("Running command: " + script)
+        log.info("Running command: " + script)
         # p = subprocess.Popen(script, shell=True, executable="/bin/bash",stdout=subprocess.PIPE)
         # p = subprocess.Popen([script], executable="/bin/bash",stdout=subprocess.PIPE)
         # output, err = p.communicate()
         try:
             output = subprocess.check_output(script, shell=True, executable="/bin/bash",stderr=subprocess.STDOUT)
-            logging.info(output)
+            log.info(output)
             return True
         except Exception as ex:
-            logging.error("XSDB failed on command: "+script)
-            logging.error("msg: "+str(ex))
+            log.error("XSDB failed on command: "+script)
+            log.error("msg: "+str(ex))
         return False
         # logging.info(output.decode("utf-8"))
         # return output.decode("utf-8")
