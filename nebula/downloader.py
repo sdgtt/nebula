@@ -340,7 +340,7 @@ class downloader(utils):
 
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
-            kernel_root = "zynq-u"
+            kernel_root = "zynq_u"
             dt = "system.dtb"
             architecture = "arm64"
         elif (
@@ -524,7 +524,7 @@ class downloader(utils):
     def download(self, url, fname):
         resp = self.retry_session().get(url, stream=True)
         if not resp.ok:
-            raise Exception("File not found!")
+            raise Exception(fname.lstrip("outs/") + " - File not found!" )
         total = int(resp.headers.get("content-length", 0))
         with open(fname, "wb") as file, tqdm(
             desc=fname, total=total, unit="iB", unit_scale=True, unit_divisor=1024,
