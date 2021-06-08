@@ -83,7 +83,8 @@ def get_gitsha(branch, link, daily=False):
             folder = get_newest_folder(listFD(url[:-1]))
         url = url +"/"+str(folder)
         path = ArtifactoryPath(url)
-        bootpartition = {"bootpartition_folder": ntpath.basename(path), "bootpartition_git_props": path.properties}
+        git_props = path.properties
+        bootpartition = {"bootpartition_folder": ntpath.basename(path), "linux_git_sha": git_props["linux_git_sha"][0], "hdl_git_sha": git_props["hdl_git_sha"][0]}
         yaml.dump(bootpartition, f)
         f.close()
     else:
@@ -113,8 +114,10 @@ def get_gitsha(branch, link, daily=False):
 
         path_linux = ArtifactoryPath(url_linux)
         path_hdl = ArtifactoryPath(url_hdl)
-        linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_props": path_linux.properties}
-        hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_props": path_hdl.properties}
+        linux_git_props = path_linux.properties
+        hdl_git_props = path_hdl.properties
+        linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_sha": linux_git_props["git_sha"][0]}
+        hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_sha": hdl_git_props["git_sha"][0]}
         properties = linux_props.copy()
         properties.update(hdl_props)
         yaml.dump(properties, f)
