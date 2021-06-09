@@ -70,58 +70,55 @@ def get_gitsha(branch, link, daily=False):
     if not os.path.isdir(dest):
         os.mkdir(dest)
     file = os.path.join(dest, "properties.yaml")
-    f = open(file, "w")
+    with open(file, "w") as f:
+        if not daily:
+            if branch == "master":
+                url = link.format(server, branch, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))            
+            else:
+                url = link.format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url))
+                url = link.format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+            url = url +"/"+str(folder)
+            path = ArtifactoryPath(url)
+            git_props = path.properties
+            bootpartition = {"bootpartition_folder": ntpath.basename(path), "linux_git_sha": git_props["linux_git_sha"][0], "hdl_git_sha": git_props["hdl_git_sha"][0]}
+            yaml.dump(bootpartition, f)
+        else:
+            #linux
+            if branch[0] == "master":
+                url = link[0].format(server, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_linux = url +"/"+str(folder)
+            else:
+                url = link[0].format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url))
+                url = link[0].format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_linux = url +"/"+str(folder)
+            
+            #hdl
+            if branch[1] == "master":
+                url = link[1].format(server, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_hdl = url +"/"+str(folder)
+            else:
+                url = link[1].format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url)) +'/'+"boot_files"
+                url = link[1].format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_hdl = url +"/"+str(folder)
 
-    if not daily:
-        if branch == "master":
-            url = link.format(server, branch, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))            
-        else:
-            url = link.format(server, "", "", "")
-            release_folder = get_latest_release(listFD(url))
-            url = link.format(server, release_folder, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))
-        url = url +"/"+str(folder)
-        path = ArtifactoryPath(url)
-        git_props = path.properties
-        bootpartition = {"bootpartition_folder": ntpath.basename(path), "linux_git_sha": git_props["linux_git_sha"][0], "hdl_git_sha": git_props["hdl_git_sha"][0]}
-        yaml.dump(bootpartition, f)
-        f.close()
-    else:
-        #linux
-        if branch[0] == "master":
-            url = link[0].format(server, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))
-            url_linux = url +"/"+str(folder)
-        else:
-            url = link[0].format(server, "", "", "")
-            release_folder = get_latest_release(listFD(url))
-            url = link[0].format(server, release_folder, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))
-            url_linux = url +"/"+str(folder)
-        
-        #hdl
-        if branch[1] == "master":
-            url = link[1].format(server, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))
-            url_hdl = url +"/"+str(folder)
-        else:
-            url = link[1].format(server, "", "", "")
-            release_folder = get_latest_release(listFD(url)) +'/'+"boot_files"
-            url = link[1].format(server, release_folder, "", "")
-            folder = get_newest_folder(listFD(url[:-1]))
-            url_hdl = url +"/"+str(folder)
-
-        path_linux = ArtifactoryPath(url_linux)
-        path_hdl = ArtifactoryPath(url_hdl)
-        linux_git_props = path_linux.properties
-        hdl_git_props = path_hdl.properties
-        linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_sha": linux_git_props["git_sha"][0]}
-        hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_sha": hdl_git_props["git_sha"][0]}
-        properties = linux_props.copy()
-        properties.update(hdl_props)
-        yaml.dump(properties, f)
-        f.close()
+            path_linux = ArtifactoryPath(url_linux)
+            path_hdl = ArtifactoryPath(url_hdl)
+            linux_git_props = path_linux.properties
+            hdl_git_props = path_hdl.properties
+            linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_sha": linux_git_props["git_sha"][0]}
+            hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_sha": hdl_git_props["git_sha"][0]}
+            properties = linux_props.copy()
+            properties.update(hdl_props)
+            yaml.dump(properties, f)
 
 def gen_url(ip, branch, folder, filename, url_template):
     if branch == "master":
