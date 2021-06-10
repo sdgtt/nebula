@@ -5,6 +5,7 @@ import random
 import string
 import os
 import pathlib
+import re
 
 import fabric
 from fabric import Connection
@@ -280,7 +281,7 @@ class network(utils):
         with open(res) as f:
             error_rejects = f.readlines()
         
-        error_log_filetered = [i for i in error_log if i not in error_rejects]
+        error_log_filetered = [i for i in error_log if re.sub( r'^\[[\s\.\d]*\] ', '',i) not in error_rejects]
 
         with open('dmesg_err_filtered.log', 'w') as outfile:
             if error_log_filetered:
