@@ -274,17 +274,13 @@ class network(utils):
             warn_log = f.readlines()
         with open("dmesg_err.log", "r") as f:
             error_log = f.readlines()
-            errors = []
-            for err in error_log:
-                error = err.split("]", 1)[1].lstrip()
-                errors.append(error)
 
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "err_rejects.txt")
         with open(res) as f:
             error_rejects = f.readlines()
         
-        error_log_filetered = [i for i in errors if i not in error_rejects]
+        error_log_filetered = [i for i in error_log if i not in error_rejects]
 
         with open('dmesg_err_filtered.log', 'w') as outfile:
             if error_log_filetered:
