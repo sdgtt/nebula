@@ -146,9 +146,30 @@ def download_boot_files(
     d.download_boot_files(board_name, source, source_root, branch, firmware)
 
 
+@task(
+    help={
+        "board_name": "Board configuration name. Ex: zynq-zc702-adv7511-ad9361-fmcomms2-3"+
+          " If left blank a list of available boards with artifacts will be printed",
+    },
+)
+def download_public_artifacts(c, board_name=None):
+    """ Download build artifacts for development systems """
+    d = nebula.downloader()
+    boards = d.get_board_list()
+    if board_name not in boards:
+        # Get board name and list
+        print("No or invalid board specified, options are:")
+        for board in boards:
+            print("  "+board)
+        return
+    # Get all files
+    d.download_artifacts(board_name)
+
+
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
 dl.add_task(download_boot_files, "bootfiles")
+dl.add_task(download_public_artifacts,"dev")
 
 
 #############################################

@@ -91,6 +91,7 @@ def gen_url(ip, branch, folder, filename, url_template):
         return url_template.format(ip, release_folder, folder, filename)
 
 class downloader(utils):
+    public_artifacts_root = "http://tfcollins.me/sdg/"
     def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None, reference_boot_folder=None, devicetree_subfolder=None, boot_subfolder=None, hdl_folder=None):
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
@@ -100,6 +101,37 @@ class downloader(utils):
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
+
+    def _download_json_index(self):
+        r = requests.get(self.public_artifacts_root+'sdgdev.json')
+        return r.json()
+
+    def get_board_list(self):
+        """ Get list of board name with available artifacts """
+        j = self._download_json_index()
+        return list(j['boards'].keys())
+
+    def download_artifacts(self, board):
+        """ Download public artifacts of specific board """
+        j = self._download_json_index()
+        if board not in j['boards'].keys():
+            raise Exception("No artifacts available for "+str(board))
+        for filename in j['boards'][board]:
+            loc = self.public_artifacts_root+"files/2019_R2/"
+            if filename not in ['uImage','Image']:
+                loc = loc + board +"/"+filename
+            elif filename=="uImage":
+                loc = loc + "zynq-common/"+filename
+            else:
+                loc = loc + "zynqmp-common/"+filename
+            hash = j['boards'][board][filename]['commit']
+            branch = j['boards'][board][filename]['branch']
+            print("Downloading {} built from git hash {} ({})".format(filename,hash,branch))
+            # Check
+            if requests.get(loc).status_code != 200:
+                print("{} not found... skipping".format(filename))
+                continue
+            self.download(loc,filename)
 
     def _download_firmware(self, device, release=None):
         if release == "master":
