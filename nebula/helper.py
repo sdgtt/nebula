@@ -33,7 +33,8 @@ def convert_by_id_to_tty(by_id):
     for device in devices:
         #print(dict(device))
         log.info("device.device_node: " +device.device_node)
-        log.info("device.device_links: "+str(device.device_links))
+        for link in device.device_links:
+            log.info("device.device_links: "+str(link))
         if by_id in device.device_links:
             return device.device_node
     return False
