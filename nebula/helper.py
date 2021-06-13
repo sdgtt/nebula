@@ -29,6 +29,7 @@ def convert_by_id_to_tty(by_id):
     context = pyudev.Context()
     devices = context.list_devices(subsystem='tty', ID_BUS='usb')
     log.info("devices: "+str(devices))
+    log.info("devices dir: "+str(dir(devices)))
     for device in devices:
         print(dict(device))
         log.info("device.device_node:" +device.device_node)
