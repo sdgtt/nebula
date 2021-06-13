@@ -20,6 +20,8 @@ def convert_by_id_to_tty(by_id):
      to
      /dev/ttyUSB1
     """
+    if len(by_id)>1:
+        by_id = by_id[0]
     log.info("by_id",by_id)
     if not os.path.exists(LINUX_DEFAULT_PATH):
         return by_id
