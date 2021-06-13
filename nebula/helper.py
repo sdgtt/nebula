@@ -25,7 +25,9 @@ def convert_by_id_to_tty(by_id):
     log.info("by_id: "+by_id)
     if not os.path.exists(LINUX_DEFAULT_PATH):
         return by_id
-    return os.path.realpath(by_id)
+    direct_path = os.path.realpath(by_id)
+    log.info("direct: "+direct_path)
+    return direct_path
 
 
 def get_uarts():
