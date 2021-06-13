@@ -120,7 +120,9 @@ class helper:
                         )
                     else:
                         # Handle serial translation
+                        print("section",section,"field",field)
                         if section == "uart-config" and field == "address":
+                            print("HERE")
                             value = convert_by_id_to_tty(value)
                         print(value)
                     break
