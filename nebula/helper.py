@@ -22,14 +22,14 @@ def convert_by_id_to_tty(by_id):
     """
     if len(by_id)>1:
         by_id = by_id[0]
-    log.info("by_id",by_id)
+    log.info("by_id: "+by_id)
     if not os.path.exists(LINUX_DEFAULT_PATH):
         return by_id
     import pyudev
     context = pyudev.Context()
     for device in context.list_devices(subsystem='tty', ID_BUS='usb'):
         print(dict(device))
-        log.info("device.device_node",device.device_node)
+        log.info("device.device_node:" +device.device_node)
         if by_id in device.device_links:
             return device.device_node
     return False
