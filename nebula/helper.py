@@ -15,6 +15,22 @@ WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 log = logging.getLogger(__name__)
 
 
+def convert_by_id_to_tty(by_id):
+    """ Translate frandom:
+     /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+     to
+     /dev/ttyUSB1
+    """
+    if not os.path.exists(LINUX_DEFAULT_PATH):
+        return by_id
+    import pyudev
+    context = pyudev.Context()
+    for device in context.list_devices(subsystem='tty', ID_BUS='usb'):
+        if by_id in device.device_links:
+            return device.device_node
+    return False
+
+
 def get_uarts():
     strs = "\n(Found: "
     default = None
@@ -103,6 +119,9 @@ class helper:
                             new_value,
                         )
                     else:
+                        # Handle serial translation
+                        if section == "uart-config" and field == "address":
+                            value = convert_by_id_to_tty(value)
                         print(value)
                     break
             if not updated:
