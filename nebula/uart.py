@@ -89,25 +89,23 @@ class uart(utils):
 
     def _auto_set_address(self):
         """ Try to set yaml automatically """
-        if os.name in ["nt", "posix"]:
-            if os.path.isdir(LINUX_SERIAL_FOLDER):
-                fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
-                found = False
-                for fd in fds:
-                    for skip in self.fds_to_skip:
-                        if skip.lower() in fd.lower():
-                            continue
-                        print("Automatic UART selected:", fd)
-                        self.address = fd
-                        found = True
-                        break
-                    if found:
-                        break
-            else:
-                raise Exception("No serial devices connected")
-
-        else:
+        if os.name not in ["nt", "posix"]:
             raise Exception("Automatic UART detection is not possible in Windows yet")
+        if not os.path.isdir(LINUX_SERIAL_FOLDER):
+            raise Exception("No serial devices connected")
+
+        fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
+        found = False
+        for fd in fds:
+            for skip in self.fds_to_skip:
+                if skip.lower() in fd.lower():
+                    continue
+                print("Automatic UART selected:", fd)
+                self.address = fd
+                found = True
+                break
+            if found:
+                break
         if self.com:
             self.com.close()
         self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
@@ -194,12 +192,6 @@ class uart(utils):
 
             def callback(total_packets, success_count, error_count):
                 bar.update(1)
-                if False:  # total_packets % 1000 == 0:
-                    print(
-                        "total_packets {}, success_count {}, error_count {}, total {}".format(
-                            total_packets, success_count, error_count, total
-                        )
-                    )
 
             log.info("Starting UART file transfer for: " + filename)
             modem = xmodem.XMODEM(getc, putc)
@@ -307,8 +299,8 @@ class uart(utils):
         return logged_in
 
     def _check_for_login(self):
+        cmd = ""
         for _ in range(2):  # Check at least twice
-            cmd = ""
             self._write_data(cmd)
             data = self._read_for_time(period=1)
             needs_login = False
@@ -320,15 +312,10 @@ class uart(utils):
                         if "login:" in c:
                             needs_login = True
         logged_in=False
-        if needs_login:
-            # Do login
-            if self._attemp_login("root","analog"):
-                return True
-            else:
-                log.info("Attempting to login as analog")
-                logged_in = self._attemp_login("analog","analog")
-        else:
+        if needs_login and self._attemp_login("root", "analog") or not needs_login:
             return True
+        log.info("Attempting to login as analog")
+        logged_in = self._attemp_login("analog","analog")
         return logged_in
 
     def set_ip_static(self, address, nic="eth0"):
@@ -576,12 +563,11 @@ class uart(utils):
             self._write_data("\r\n")
             data = self._read_for_time(1)
             # Check uboot console reached
-            if self._check_for_string_console(data, "zynq-uboot"):
-                log.info("u-boot menu reached")
-                if restart:
-                    self.start_log()
-                return True
-            elif self._check_for_string_console(data, "ZynqMP"):
+            if (
+                self._check_for_string_console(data, "zynq-uboot")
+                or not self._check_for_string_console(data, "zynq-uboot")
+                and self._check_for_string_console(data, "ZynqMP")
+            ):
                 log.info("u-boot menu reached")
                 if restart:
                     self.start_log()
@@ -659,17 +645,4 @@ class uart(utils):
         )
 
 
-if __name__ == "__main__":
-
-    # import pathlib
-
-    # p = pathlib.Path(__file__).parent.absolute()
-    # p = os.path.split(p)
-    # p = os.path.join(p[0], "resources", "nebula-zed.yaml")
-
-    # u = uart(yamlfilename=p)
-    # u.start_log()
-    # time.sleep(10)
-    # u.stop_log()
-    # u = []
-    pass
+pass

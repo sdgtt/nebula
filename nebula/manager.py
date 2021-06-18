@@ -30,9 +30,8 @@ class manager:
         self.configfilename = configfilename
         self.monitor_type = monitor_type
         if configfilename:
-            stream = open(configfilename, "r")
-            configs = yaml.safe_load(stream)
-            stream.close()
+            with open(configfilename, "r") as stream:
+                configs = yaml.safe_load(stream)
         else:
             configs = None
 
@@ -43,25 +42,16 @@ class manager:
             monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
             self.monitor = [monitor_uboot, monitor_kernel]
         elif "uart" in monitor_type.lower():
-            if "uart-config" not in configs:
-                configfilename = None
-            else:
-                configfilename = self.configfilename
+            configfilename = None if "uart-config" not in configs else self.configfilename
             u = uart(yamlfilename=configfilename, board_name=board_name)
             self.monitor = [u]
 
             self.driver = driver(yamlfilename=configfilename, board_name=board_name)
 
-        if "network-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
+        configfilename = self.configfilename if "network-config" in configs else None
         self.net = network(yamlfilename=configfilename, board_name=board_name)
 
-        if "pdu-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
+        configfilename = None if "pdu-config" not in configs else self.configfilename
         self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.jtag_use = False
@@ -84,7 +74,7 @@ class manager:
                     self.devicetree_subfolder = config["devicetree_subfolder"]
                 if "boot_subfolder" in config:
                     self.boot_subfolder = config["boot_subfolder"]
-        
+
         # self.boot_src = tftpboot()
 
         self.tftp = False
@@ -189,16 +179,9 @@ class manager:
                 # Verify uboot anad linux are reached
                 results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
-                if len(results)==1:
+                if len(results) == 1 or not results[1] or not results[2]:
                     # raise Exception("u-boot not reached")
                     raise ne.LinuxNotReached
-                elif not results[1]:
-                    # raise Exception("u-boot menu cannot boot kernel")
-                    raise ne.LinuxNotReached
-                elif not results[2]:
-                    # raise Exception("Linux not fully booting")
-                    raise ne.LinuxNotReached
-
                 log.info("Linux fully booted")
 
                 # Check is networking is working
@@ -228,7 +211,6 @@ class manager:
                 print("Home sweet home")
                 self.monitor[0].stop_log()
 
-            #JTAG RECOVERY
             except:
                 self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
 
@@ -246,13 +228,11 @@ class manager:
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
             self.jtag.restart_board()
-            log.info("Taking over UART control")
-            self.monitor[0]._enter_uboot_menu_from_power_cycle()
         else:
             log.info("u-boot not reachable, manually loading u-boot over JTAG")
             self.jtag.boot_to_uboot()
-            log.info("Taking over UART control")
-            self.monitor[0]._enter_uboot_menu_from_power_cycle()
+        log.info("Taking over UART control")
+        self.monitor[0]._enter_uboot_menu_from_power_cycle()
         #Get SD card file directory
         if not sdcard:
             # Copy over and write to disk
@@ -267,7 +247,7 @@ class manager:
                 ref = "zynqmp-common/" + str(target)
                 done_string = "ZynqMP"
             self.monitor[0].copy_reference(ref, target, done_string)
-            
+
             if self.boot_subfolder is not None:
                 ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
             else:
@@ -275,7 +255,7 @@ class manager:
             target = bootbinpath.split("/")[1].rstrip()
             ref = ref + '/' + str(target)
             self.monitor[0].copy_reference(ref, target, done_string)
-            
+
             if self.devicetree_subfolder is not None:
                 ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
             else:
@@ -550,31 +530,28 @@ class manager:
 
         if "BOOT.BIN" not in files:
             raise Exception("BOOT.BIN not found")
-        if "devicetree.dtb" not in files:
-            if "system.dtb" not in files:
-                raise Exception("Device tree not found")
-            else:
-                dt = "system.dtb"
-        else:
+        if "devicetree.dtb" in files:
             dt = "devicetree.dtb"
-        if "uImage" not in files:
-            if "Image" not in files:
-                raise Exception("kernel not found")
-            else:
-                kernel = "Image"
+        elif "system.dtb" not in files:
+            raise Exception("Device tree not found")
         else:
+            dt = "system.dtb"
+        if "uImage" in files:
             kernel = "uImage"
+        elif "Image" not in files:
+            raise Exception("kernel not found")
+        else:
+            kernel = "Image"
         if "system_top.bit" not in files:
             if "bootgen_sysfiles.tgz" not in files:
                 raise Exception("system_top.bit not found")
-            else:
-                tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar, "r:gz")
-                tf.extractall(folder)
-                tf.close()
-                files2 = os.listdir(folder)
-                if "system_top.bit" not in files2:
-                    raise Exception("system_top.bit not found")
+            tar = os.path.join(folder, "bootgen_sysfiles.tgz")
+            tf = tarfile.open(tar, "r:gz")
+            tf.extractall(folder)
+            tf.close()
+            files2 = os.listdir(folder)
+            if "system_top.bit" not in files2:
+                raise Exception("system_top.bit not found")
 
         kernel = os.path.join(folder, kernel)
         dt = os.path.join(folder, dt)
@@ -642,13 +619,4 @@ class manager:
         )
 
 
-if __name__ == "__main__":
-    # import pathlib
-
-    # p = pathlib.Path(__file__).parent.absolute()
-    # p = os.path.split(p)
-    # p = os.path.join(p[0], "resources", "nebula-zed-fmcomms2.yaml")
-
-    # m = manager(configfilename=p)
-    # m.run_test()
-    pass
+pass
