@@ -2,6 +2,7 @@ import os
 import logging
 import shutil
 import subprocess
+import time
 
 from nebula.common import utils
 
@@ -18,33 +19,45 @@ class jtag(utils):
         yamlfilename=None,
         board_name=None,
         jtag_cable_id=None,
+        jtag_cpu_target_name=None,
+        jtag_connect_retries = 3
     ):
         self.vivado_version = vivado_version
         self.custom_vivado_path = custom_vivado_path
         self.jtag_cable_id = jtag_cable_id
+        self.jtag_cpu_target_name = jtag_cpu_target_name
+        self.jtag_connect_retries = jtag_connect_retries
 
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
         # Check target device available
-        cmd = "connect; after 1000; "+self.target_set_str("APU")
-        if not self.run_xsdb(cmd):
+        jtag_connected = False
+        for c in range(self.jtag_connect_retries):
+            cmd = "connect; after 1000; "+self.target_set_str("APU*")
+            jtag_connected = self.run_xsdb(cmd)
+            if jtag_connected:
+                log.info("JTAG {} connection attempt succesful".format(self.jtag_cable_id))
+                break
+            log.warning("JTAG {} connection attempt failed.  Attempt {}".format(self.jtag_cable_id, c+1))
+            time.sleep(1)
+
+        if not jtag_connected:
             raise Exception("JTAG connection cannot find target HW: {}".format(self.jtag_cable_id))
-        
 
     def _shell_out2(self, script):
-        logging.info("Running command: " + script)
+        log.info("Running command: " + script)
         # p = subprocess.Popen(script, shell=True, executable="/bin/bash",stdout=subprocess.PIPE)
         # p = subprocess.Popen([script], executable="/bin/bash",stdout=subprocess.PIPE)
         # output, err = p.communicate()
         try:
             output = subprocess.check_output(script, shell=True, executable="/bin/bash",stderr=subprocess.STDOUT)
-            logging.info(output)
+            log.info(output)
             return True
         except Exception as ex:
-            logging.error("XSDB failed on command: "+script)
-            logging.error("msg: "+str(ex))
+            log.error("XSDB failed on command: "+script)
+            log.error("msg: "+str(ex))
         return False
         # logging.info(output.decode("utf-8"))
         # return output.decode("utf-8")
@@ -65,7 +78,7 @@ class jtag(utils):
         cmd = "connect; "
         cmd += "after 3000; "
         cmd += "puts [jtag target]; "
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         cmd += "puts {Reset System}; "
         cmd += "after 1000; "
         cmd += "rst -system; "
@@ -78,7 +91,7 @@ class jtag(utils):
         pass
 
     def target_set_str(self,target_name):
-        return 'targets -set -filter {jtag_cable_name =~ {*'+self.jtag_cable_id+'} && name =~ {'+target_name+'}} -index 0; '
+        return 'targets -set -filter {jtag_cable_name =~ {*'+self.jtag_cable_id+'} && name =~ {'+target_name+'}} ; '
 
     def boot_to_uboot(self):
         """ From JTAG reset board and load up FSBL and uboot
@@ -89,7 +102,7 @@ class jtag(utils):
         cmd = "connect; "
         cmd += "after 3000; "
         cmd += "puts [jtag target]; "
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         cmd += "puts {Reset System}; "
         cmd += "after 1000; "
         cmd += "rst -system; "
@@ -97,7 +110,7 @@ class jtag(utils):
         cmd += "con; "
         cmd += "after 1000; "
 
-        cmd += self.target_set_str("ARM*#0")
+        cmd += self.target_set_str(self.jtag_cpu_target_name)
         # cmd += "con; "
         # cmd += "stop; "
         cmd += "after 1000; "
@@ -125,7 +138,7 @@ class jtag(utils):
         # cmd += "con; "
         # cmd += "after 3000; "
 
-        cmd += self.target_set_str("APU")
+        cmd += self.target_set_str("APU*")
         # cmd += "target 1; "
         cmd += "puts {STOPPING}; "
         cmd += "stop; "

@@ -8,7 +8,9 @@ import csv
 import yaml
 import shutil
 import logging
+import ntpath
 
+from artifactory import ArtifactoryPath
 from bs4 import BeautifulSoup
 import requests
 from requests.adapters import HTTPAdapter
@@ -62,9 +64,63 @@ def get_newest_folder(links):
 
     return dates[-1]
 
+def get_gitsha(branch, link, daily=False):
+    server = "artifactory.analog.com"
+    dest = "outs"
+    if not os.path.isdir(dest):
+        os.mkdir(dest)
+    file = os.path.join(dest, "properties.yaml")
+    with open(file, "w") as f:
+        if not daily:
+            if branch == "master":
+                url = link.format(server, branch, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))            
+            else:
+                url = link.format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url))
+                url = link.format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+            url = url +"/"+str(folder)
+            path = ArtifactoryPath(url)
+            git_props = path.properties
+            bootpartition = {"bootpartition_folder": ntpath.basename(path), "linux_git_sha": git_props["linux_git_sha"][0], "hdl_git_sha": git_props["hdl_git_sha"][0]}
+            yaml.dump(bootpartition, f)
+        else:
+            #linux
+            if branch[0] == "master":
+                url = link[0].format(server, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_linux = url +"/"+str(folder)
+            else:
+                url = link[0].format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url))
+                url = link[0].format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_linux = url +"/"+str(folder)
+            
+            #hdl
+            if branch[1] == "master":
+                url = link[1].format(server, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_hdl = url +"/"+str(folder)
+            else:
+                url = link[1].format(server, "", "", "")
+                release_folder = get_latest_release(listFD(url)) +'/'+"boot_files"
+                url = link[1].format(server, release_folder, "", "")
+                folder = get_newest_folder(listFD(url[:-1]))
+                url_hdl = url +"/"+str(folder)
+
+            path_linux = ArtifactoryPath(url_linux)
+            path_hdl = ArtifactoryPath(url_hdl)
+            linux_git_props = path_linux.properties
+            hdl_git_props = path_hdl.properties
+            linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_sha": linux_git_props["git_sha"][0]}
+            hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_sha": hdl_git_props["git_sha"][0]}
+            properties = linux_props.copy()
+            properties.update(hdl_props)
+            yaml.dump(properties, f)
 
 def gen_url(ip, branch, folder, filename, url_template):
-    print(folder)
     if branch == "master":
         if bool(re.search("/boot_partition/", url_template)):
             url = url_template.format(ip, branch, "", "")
@@ -194,7 +250,8 @@ class downloader(utils):
         dt = False
 
         url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-        
+        get_gitsha(branch, url_template)
+
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
             kernel_root = "zynqmp-common"
@@ -274,10 +331,13 @@ class downloader(utils):
             url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/master/boot_files/{}/{}"
         else:
             url_template_hdl = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"
+        
+        links =[url_template_linux, url_template_hdl]
+        get_gitsha(branch, links, True)
 
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
-            kernel_root = "zynq-u"
+            kernel_root = "zynq_u"
             dt = "system.dtb"
             architecture = "arm64"
         elif (
@@ -460,6 +520,8 @@ class downloader(utils):
 
     def download(self, url, fname):
         resp = self.retry_session().get(url, stream=True)
+        if not resp.ok:
+            raise Exception(fname.lstrip("outs/") + " - File not found!" )
         total = int(resp.headers.get("content-length", 0))
         with open(fname, "wb") as file, tqdm(
             desc=fname, total=total, unit="iB", unit_scale=True, unit_divisor=1024,

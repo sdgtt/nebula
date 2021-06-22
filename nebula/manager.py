@@ -20,7 +20,6 @@ from nebula.usbdev import usbdev
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
-
 class manager:
     """ Board Manager """
 
@@ -71,7 +70,8 @@ class manager:
             for config in configs["board-config"]:
                 if "allow-jtag" in config:
                     self.jtag_use = config["allow-jtag"]
-                    self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                    if self.jtag_use:
+                        self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
@@ -93,6 +93,18 @@ class manager:
         self.usbdev = usbdev()
         self.board_name = board_name
 
+    def _release_thread_lock(func):
+        """ A decorator to force a method to close thread resource """
+
+        def inner(self, *args, **kwargs):
+            try:
+                return func(self, *args, **kwargs)
+            finally:
+                # close any open threading locks
+                self.monitor[0].stop_log()
+
+        return inner
+
     def get_status(self):
         pass
 
@@ -104,6 +116,7 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
+    @_release_thread_lock
     def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """ Recover boards with UART, PDU, JTAG, and Network are available """
         self._check_files_exist(
@@ -219,7 +232,7 @@ class manager:
             except:
                 self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
 
-
+    @_release_thread_lock
     def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
@@ -246,29 +259,31 @@ class manager:
             log.info("Copying boot files over UART to SD card")
             self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
         else:
+            target = uimagepath.split("/")[1].rstrip()
+            if "uImage" in str(uimagepath):
+                ref = "zynq-common/" + str(target)
+                done_string = "zynq-uboot"
+            else:
+                ref = "zynqmp-common/" + str(target)
+                done_string = "ZynqMP"
+            self.monitor[0].copy_reference(ref, target, done_string)
+            
             if self.boot_subfolder is not None:
                 ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
             else:
                 ref = self.reference_boot_folder
-            target = bootbinpath.split("/")[1]
+            target = bootbinpath.split("/")[1].rstrip()
             ref = ref + '/' + str(target)
-            self.monitor[0].copy_reference(ref,target)
-
+            self.monitor[0].copy_reference(ref, target, done_string)
+            
             if self.devicetree_subfolder is not None:
                 ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
             else:
                 ref = self.reference_boot_folder
-            target = devtreepath.split("/")[1]
+            target = devtreepath.split("/")[1].rstrip()
             ref = ref + '/' + str(target)
-            self.monitor[0].copy_reference(ref,target)
+            self.monitor[0].copy_reference(ref, target, done_string)
 
-            target = uimagepath.split("/")[1]
-            if "uImage" in str(uimagepath):
-                ref = "zynq-common/" + str(target)
-            else:
-                ref = "zynqmp-common/" + str(target)
-            self.monitor[0].copy_reference(ref,target)
-        
         # self.jtag.load_post_uboot_files()
         # self.monitor[0].update_boot_args()
         # self.monitor[0].boot()
@@ -339,7 +354,7 @@ class manager:
 
         self.monitor[0].stop_log()
 
-
+    @_release_thread_lock
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
@@ -393,7 +408,7 @@ class manager:
             log.info("Linux fully booted")
 
 
-        except (ne.LinuxNotReached, TimeoutError):
+        except (ne.LinuxNotReached, ne.SSHError, TimeoutError):
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on reset")
