@@ -132,6 +132,14 @@ zynq-zc706-adv7511-adrv9375:
   addons:
   - ADRV9375
   carrier: ZC706
+zynq-zc706-adv7511-adrv9002:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: ZC706
+zynq-zc706-adv7511-adrv9002-rx2tx2:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: ZC706
 zynq-zc706-adv7511-fmcdaq2:
   addons:
   - AD-FMCDAQ2-EBZ
@@ -171,6 +179,10 @@ zynq-zed-adv7511-adrv9002:
   addons:
   - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
   carrier: Zed-Board
+zynq-zed-adv7511-adrv9002-rx2tx2:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: Zed-Board
 zynq-zed-adv7511-cn0363:
   addons:
   - EVAL-CN0363-PMDZ
@@ -201,6 +213,10 @@ zynqmp-zcu102-rev10-ad9364-fmcomms4:
   - AD-FMCOMMS4-EBZ
   carrier: ZCU102
 zynqmp-zcu102-rev10-adrv9002:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-adrv9002-rx2tx2:
   addons:
   - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
   carrier: ZCU102
