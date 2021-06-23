@@ -423,7 +423,10 @@ class downloader(utils):
         res = os.path.join(path, "resources", "board_table.yaml")
         with open(res) as f:
             board_configs = yaml.load(f, Loader=yaml.FullLoader)
-
+        
+        if "-v" in design_name:
+            design_name = design_name.split("-v")[0]
+        
         assert design_name in board_configs, "Invalid design name"
 
         reference_boot_folder = self.reference_boot_folder
