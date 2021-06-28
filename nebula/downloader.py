@@ -43,9 +43,8 @@ def get_latest_release(links):
         release = re.findall("[0-9]{4}_r[1-2]", link, re.IGNORECASE)
         if len(hdl_release) == 1 and hdl_release[0].lower() > latest.lower():
             latest = hdl_release[0]
-        else: 
-            if len(release) == 1 and release[0].lower() > latest:
-                latest = release[0]   
+        elif len(release) == 1 and release[0].lower() > latest:
+            latest = release[0]
     return latest
 
 def get_newest_folder(links):
@@ -74,12 +73,11 @@ def get_gitsha(branch, link, daily=False):
         if not daily:
             if branch == "master":
                 url = link.format(server, branch, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))            
             else:
                 url = link.format(server, "", "", "")
                 release_folder = get_latest_release(listFD(url))
                 url = link.format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
+            folder = get_newest_folder(listFD(url[:-1]))
             url = url +"/"+str(folder)
             path = ArtifactoryPath(url)
             git_props = path.properties
@@ -89,27 +87,21 @@ def get_gitsha(branch, link, daily=False):
             #linux
             if branch[0] == "master":
                 url = link[0].format(server, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_linux = url +"/"+str(folder)
             else:
                 url = link[0].format(server, "", "", "")
                 release_folder = get_latest_release(listFD(url))
                 url = link[0].format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_linux = url +"/"+str(folder)
-            
+            folder = get_newest_folder(listFD(url[:-1]))
+            url_linux = url +"/"+str(folder)
             #hdl
             if branch[1] == "master":
                 url = link[1].format(server, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_hdl = url +"/"+str(folder)
             else:
                 url = link[1].format(server, "", "", "")
                 release_folder = get_latest_release(listFD(url)) +'/'+"boot_files"
                 url = link[1].format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_hdl = url +"/"+str(folder)
-
+            folder = get_newest_folder(listFD(url[:-1]))
+            url_hdl = url +"/"+str(folder)
             path_linux = ArtifactoryPath(url_linux)
             path_hdl = ArtifactoryPath(url_hdl)
             linux_git_props = path_linux.properties
