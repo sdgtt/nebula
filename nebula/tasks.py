@@ -731,11 +731,32 @@ def update_boot_files(
         bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
     )
 
+@task(
+    help={
+        "ip": "IP address of board. Default from yaml",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def run_diagnostics(
+    c,
+    ip=None,
+    user="root",
+    password="analog",
+    board_name=None,
+):
+    """ Run adi_diagnostics and fetch result"""
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+    )
+    n.run_diagnostics()
 
 net = Collection("net")
 net.add_task(restart_board)
 net.add_task(update_boot_files)
 net.add_task(check_dmesg)
+net.add_task(run_diagnostics)
 
 #############################################
 @task(
