@@ -96,7 +96,7 @@ class network(utils):
         """ Check if board has network activity with ping, then check SSH working
             This function raises exceptions on failures
         """
-        if self.ping_board():
+        if not self.ping_board():
             raise Exception("Board not booted")
         else:
             logging.info("PING PASSED")
@@ -301,7 +301,7 @@ class network(utils):
             return:
                 status: 0 if no errors found, 1 otherwise
         """
-        #check is ssh is working
+        #check if can connect to board
         self.check_board_booted()
         report_file_name = self.board_name + '_diag_report.tar.bz2'
         #execute adi_diagnostic_report
