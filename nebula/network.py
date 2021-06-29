@@ -312,4 +312,4 @@ class network(utils):
 
         #fetch file
         self._dl_file(report_file_name)
-        logging.info("Diagnostic report {} collected".format(report_file_name))
+        log.info("Diagnostic report {} collected".format(report_file_name))
