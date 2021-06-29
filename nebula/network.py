@@ -293,3 +293,23 @@ class network(utils):
 
         logs = {"log": all_log, "warn": warn_log, "error": error_log_filetered}
         return len(error_log_filetered) > 0, logs
+
+    def run_diagnostics(self):
+        """ run_diagnostics:
+            execute and download adi_diagnostic report
+
+            return:
+                status: 0 if no errors found, 1 otherwise
+        """
+        #check is ssh is working
+        self.check_board_booted()
+        report_file_name = self.board_name + '_diag_report.tar.bz2'
+        #execute adi_diagnostic_report
+        result = self.run_ssh_command("adi_diagnostic_report --file-name {}".\
+                                      format(report_file_name))
+        if not result.ok:
+            raise Exception("Running diagnostics failed")
+
+        #fetch file
+        self._dl_file(report_file_name)
+        logging.info("Diagnostic report {} collected".format(report_file_name))
