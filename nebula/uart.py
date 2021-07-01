@@ -72,7 +72,7 @@ class uart(utils):
         # Automatically set UART address
         if "auto" in self.address.lower():
             self._auto_set_address()
-        self.com = serial.Serial(self.address, self.baudrate, timeout=0.5)
+        self.com = serial.Serial(self.address, self.baudrate, timeout=0.5, write_timeout=5)
         self.com.reset_input_buffer()
 
     def __del__(self):
