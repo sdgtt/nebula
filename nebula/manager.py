@@ -128,8 +128,13 @@ class manager:
             self.monitor[0].start_log()
             # Check if Linux is accessible
             log.info("Checking if Linux is accessible")
-            out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
-            if not out:
+            try:
+                out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+                if not out:
+                    raise ne.LinuxNotReached
+            except Exception as e:
+                # raise LinuxNotReached for other exceptions
+                log.info(str(e))
                 raise ne.LinuxNotReached
 
             # Get IP over UART
@@ -368,8 +373,13 @@ class manager:
             self.monitor[0].start_log()
             # Check if Linux is accessible
             log.info("Checking if Linux is accessible")
-            out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
-            if not out:
+            try:
+                out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+                if not out:
+                    raise ne.LinuxNotReached
+            except Exception as e:
+                # raise LinuxNotReached for other exceptions
+                log.info(str(e))
                 raise ne.LinuxNotReached
 
             # Get IP over UART
