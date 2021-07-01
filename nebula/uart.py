@@ -307,28 +307,32 @@ class uart(utils):
         return logged_in
 
     def _check_for_login(self):
-        for _ in range(2):  # Check at least twice
-            cmd = ""
-            self._write_data(cmd)
-            data = self._read_for_time(period=1)
-            needs_login = False
-            for d in data:
-                if isinstance(d, list):
-                    for c in d:
-                        c = c.replace("\r", "")
-                        log.info(c)
-                        if "login:" in c:
-                            needs_login = True
         logged_in=False
-        if needs_login:
-            # Do login
-            if self._attemp_login("root","analog"):
-                return True
+        try:
+            for _ in range(2):  # Check at least twice
+                cmd = ""
+                self._write_data(cmd)
+                data = self._read_for_time(period=1)
+                needs_login = False
+                for d in data:
+                    if isinstance(d, list):
+                        for c in d:
+                            c = c.replace("\r", "")
+                            log.info(c)
+                            if "login:" in c:
+                                needs_login = True
+            
+            if needs_login:
+                # Do login
+                if self._attemp_login("root","analog"):
+                    return True
+                else:
+                    log.info("Attempting to login as analog")
+                    logged_in = self._attemp_login("analog","analog")
             else:
-                log.info("Attempting to login as analog")
-                logged_in = self._attemp_login("analog","analog")
-        else:
-            return True
+                return True
+        except serial.serialutil.SerialTimeoutException as e:
+            log.info(str(e))
         return logged_in
 
     def set_ip_static(self, address, nic="eth0"):
