@@ -164,8 +164,7 @@ class uart(utils):
             try:
                 data = self.com.readline()
                 data = str(data[:-1].decode("ASCII"))
-                data = '[' + datetime.datetime.now().strftime(LOG_FORMAT) + '] ' + data
-                self.pipe_to_log_file(data)
+                self.pipe_to_log_file(str(data))
             except Exception as ex:
                 log.warning("Exception occurred during data decode")
                 log.warning(str(ex))
@@ -495,7 +494,7 @@ class uart(utils):
                             founds.append(True)
                             if indx == len(done_strings)-1:
                                 if restart_log:
-                                    self.start_log()
+                                    self.start_log(logappend=True)
                                 return founds
                             lastd = d[d.find(done_string):]
                             breakbreak = True
@@ -507,7 +506,7 @@ class uart(utils):
                     founds.append(True)
                     if indx == len(done_strings)-1:
                         if restart_log:
-                            self.start_log()
+                            self.start_log(logappend=True)
                         return founds
                     else:
                         lastd = lastd+data
@@ -520,7 +519,7 @@ class uart(utils):
             if t == mt-1:
                 log.info(done_string+" not found in time")
                 if restart_log:
-                    self.start_log()
+                    self.start_log(logappend=True)
                 founds.append(False)
                 return founds
         # if restart_log:
@@ -544,18 +543,18 @@ class uart(utils):
                     if done_string in d:
                         log.info("done found in data")
                         if restart_log:
-                            self.start_log()
+                            self.start_log(logappend=True)
                         return True
             elif done_string in data:
                 log.info("done found in data")
                 if restart_log:
-                    self.start_log()
+                    self.start_log(logappend=True)
                 return True
             else:
                 log.info("Still waiting")
             time.sleep(1)
         if restart_log:
-            self.start_log()
+            self.start_log(logappend=True)
         return False
 
     def _check_for_string_console(self, console_out, string):
@@ -596,17 +595,17 @@ class uart(utils):
             if self._check_for_string_console(data, "zynq-uboot"):
                 log.info("u-boot menu reached")
                 if restart:
-                    self.start_log()
+                    self.start_log(logappend=True)
                 return True
             elif self._check_for_string_console(data, "ZynqMP"):
                 log.info("u-boot menu reached")
                 if restart:
-                    self.start_log()
+                    self.start_log(logappend=True)
                 return True
             time.sleep(0.1)
         log.info("u-boot menu not reached")
         if restart:
-            self.start_log()
+            self.start_log(logappend=True)
         return False
 
     def load_system_uart_from_tftp(self):
