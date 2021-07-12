@@ -3,6 +3,7 @@ import ipaddress
 import logging
 import threading
 import time
+import datetime
 import glob
 from tqdm import tqdm
 
@@ -13,6 +14,7 @@ import xmodem
 log = logging.getLogger(__name__)
 
 LINUX_SERIAL_FOLDER = "/dev/serial"
+LOG_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
 
 class uart(utils):
@@ -136,6 +138,15 @@ class uart(utils):
         else:
             log.info("UART logging thread not running. Skipping setting off")
 
+    def pipe_to_log_file(self, data, logappend=True, force=False):
+        """ Write data to log file"""
+        ws = "w"
+        if logappend:
+            ws = "a"
+        if not self.listen_thread_run or force:
+            with open(self.logfilename, ws) as file:
+                file.writelines(data + "\n")
+
     def _listen(self, logappend=False):
         ws = "w"
         if logappend:
@@ -153,6 +164,8 @@ class uart(utils):
             try:
                 data = self.com.readline()
                 data = str(data[:-1].decode("ASCII"))
+                data = '[' + datetime.datetime.now().strftime(LOG_FORMAT) + '] ' + data
+                self.pipe_to_log_file(data)
             except Exception as ex:
                 log.warning("Exception occurred during data decode")
                 log.warning(str(ex))
