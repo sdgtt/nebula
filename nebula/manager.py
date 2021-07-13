@@ -246,8 +246,23 @@ class manager:
         log.info("Reseting and looking DDR with boot files")
         # self.jtag.full_boot()
         # Check if u-boot loads first
-        log.info("Reseting with JTAG and checking if u-boot is reachable")
-        self.jtag.restart_board()
+        # log.info("Reseting with JTAG and checking if u-boot is reachable")
+        # self.jtag.restart_board()
+        #do a power cylcle rather than jtag reboot to make sure jtag devices are working
+        try:
+            log.info("Power cycling and checking if u-boot is reachable")
+            self.power.power_cycle_board()
+            if not self.monitor[0].is_open():
+                raise Exception('serial monitor is close')  
+        except Exception as ex:
+            # Try to reinitialize uart and manually boot via u-boot 
+            log.warning("UART is unavailable.")
+            log.warning(str(ex))
+            # wait longer and restart board using jtag
+            time.sleep(10)
+            self.monitor[0].reinitialize_uart()
+            self.jtag.restart_board()
+
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
             self.jtag.restart_board()
