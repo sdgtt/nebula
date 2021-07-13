@@ -184,6 +184,7 @@ class uart(utils):
         time.sleep(1)
 
     def _send_file(self, filename, address):
+        self._write_data("\r\n")
         self._write_data("loadx " + address)
         self._read_for_time(5)
         f = open(filename, "rb")
@@ -254,12 +255,19 @@ class uart(utils):
 
     def copy_reference(self, reference="BOOT.BIN.ORG",target="BOOT.BIN", done_string = "zynq_uboot"):
         """ Using reference files """
+        if self.listen_thread_run:
+           restart = True
+           self.stop_log()
+        else:
+            restart = False
         cmd = "fatload mmc 0 0x8000000 {}".format(reference)
         self._write_data(cmd)
         self._read_until_done(done_string)
         cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
         self._write_data(cmd)
         self._read_until_done(done_string)
+        if restart:
+            self.start_log(logappend=True)
 
     def load_system_uart_copy_to_sdcard(
         self, bootbin, devtree_filename, kernel_filename
@@ -267,6 +275,11 @@ class uart(utils):
         """ Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
         and to SD card
         """
+        if self.listen_thread_run:
+           restart = True
+           self.stop_log()
+        else:
+            restart = False
         if "uImage" in str(kernel_filename):
             filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
             done_string = "zynq-uboot"
@@ -282,6 +295,8 @@ class uart(utils):
             cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
             self._write_data(cmd)
             self._read_until_done(done_string)
+        if restart:
+            self.start_log(logappend=True)
 
     def _attemp_login(self, username, password):
         # Do login
@@ -650,12 +665,19 @@ class uart(utils):
         self, system_top_bit_filename, devtree_filename, kernel_filename
     ):
         """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
+        if self.listen_thread_run:
+           restart = True
+           self.stop_log()
+        else:
+            restart = False
         self._send_file(system_top_bit_filename, "0x1000000")
         self.update_fpga(skip_tftpload=True)
         self._send_file(devtree_filename, "0x2A00000")
         self._send_file(kernel_filename, "0x3000000")
         self.update_boot_args()
         self.boot()
+        if restart:
+            self.start_log(logappend=True)
 
     def update_boot_files_from_running(
         self, system_top_bit_filename, devtree_filename, kernel_filename
