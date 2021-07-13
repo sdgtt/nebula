@@ -82,6 +82,9 @@ class uart(utils):
         if self.com:
             self.com.close()
 
+    def is_open(self):
+        self.com.is_open()
+
     def reinitialize_uart(self):
         log.info("Reinitializing UART")
         if self.com:
