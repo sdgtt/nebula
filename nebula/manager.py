@@ -182,6 +182,9 @@ class manager:
                     self.monitor[0].load_system_uart_from_tftp()
 
                 else:
+                    #skip load_system_uart for ZynqMP boards
+                    if not  "uImage" in str(uimagepath):
+                        raise Exception('Cannot execute load_system_uart() for ZynqMP boards')
                     # Load boot files
                     self.monitor[0].load_system_uart(
                         system_top_bit_filename=system_top_bit_path,
