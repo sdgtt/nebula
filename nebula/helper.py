@@ -30,6 +30,23 @@ def convert_by_id_to_tty(by_id):
             return device.device_node
     return False
 
+def convert_address_to_tty(address):
+    """ Translate frandom:
+     /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+     to
+     /dev/ttyUSB1
+     Will also work with by_path. Works in docker container.
+    """
+    if not os.path.exists(LINUX_DEFAULT_PATH):
+        return address
+    import pyudev
+    context = pyudev.Context()
+    tty=pyudev.Devices.from_device_file(context, address)
+    print(tty.get('DEVNAME'))
+    if tty:
+        return tty
+    else:
+        return False
 
 def get_uarts():
     strs = "\n(Found: "
@@ -121,8 +138,8 @@ class helper:
                     else:
                         # Handle serial translation
                         if section == "uart-config" and field == "address":
-                            value = convert_by_id_to_tty(value)
-                        print(value)
+                            value = convert_address_to_tty(value)
+                        print('new value: '+str(value))
                     break
             if not updated:
                 raise Exception("")
