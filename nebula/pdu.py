@@ -57,3 +57,19 @@ class pdu(utils):
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
             self.pdu_dev.outlets[self.outlet].turn_on()
+
+    def power_down_board(self):
+        """ Power Down Board
+        """
+        if self.pdu_type == "cyberpower":
+            self.pdu_dev.set_outlet_on(self.outlet, False)
+        elif self.pdu_type == "vesync":
+            self.pdu_dev.outlets[self.outlet].turn_off()
+
+    def power_up_board(self):
+        """ Power On Board
+        """
+        if self.pdu_type == "cyberpower":
+            self.pdu_dev.set_outlet_on(self.outlet, True)
+        elif self.pdu_type == "vesync":
+            self.pdu_dev.outlets[self.outlet].turn_on()
