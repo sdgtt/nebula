@@ -71,7 +71,18 @@ class manager:
                 if "allow-jtag" in config:
                     self.jtag_use = config["allow-jtag"]
                     if self.jtag_use:
-                        self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                        try:
+                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                        except Exception as e:
+                            log.info(str(e))
+                            log.info('Power cycling board and will attemp jtag connection again.')
+                            self.shutdown_powerdown_board()
+                            # wait for 10 seconds
+                            time.sleep(10)
+                            self.power.power_up_board()
+                            # wait for boot to complete
+                            time.sleep(60)
+                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
@@ -666,6 +677,22 @@ class manager:
             devtreepath=devtreepath
         )
 
+
+    def shutdown_powerdown_board(self):
+        self.monitor[0].print_to_console = False
+        ret = self.monitor[0].get_uart_command_for_linux('\r\n', "root@analog")
+        try:
+            if ret:
+                self.monitor[0]._write_data("shutdown now")
+                # wait for shutdown to complete
+                time.sleep(10)
+            else:
+                log.error("Cannot continue command since linux is not running or not root")
+        except Exception as ex:
+            log.error(ex)
+        finally:
+            # force shutdown boards via pdu
+            self.power.power_down_board()
 
 if __name__ == "__main__":
     # import pathlib
