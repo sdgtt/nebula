@@ -204,6 +204,7 @@ class manager:
                     log.info("Reseting with JTAG")
                     self.jtag.restart_board()
                 else:
+                    #TODO: consider zed boards which uart closes after a powercycle
                     log.info("Power cycling")
                     self.power.power_cycle_board()
 
@@ -224,6 +225,7 @@ class manager:
                         if sdcard:
                             log.info("Copying reference from sdcard")
                             self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
+                            self.monitor[0]._write_data('\r\n')
                             self.monitor[0]._write_data('boot')
                         else:
                             # Load boot files via uart
@@ -239,16 +241,10 @@ class manager:
 
                 log.info("Waiting for boot to complete")
 
-                # Verify uboot anad linux are reached
-                results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+                # Verify linux is reached
+                result = self.monitor[0]._read_until_done(done_string="root@analog", max_time=100)
 
-                if len(results)==1:
-                    # raise Exception("u-boot not reached")
-                    raise ne.LinuxNotReached
-                elif not results[1]:
-                    # raise Exception("u-boot menu cannot boot kernel")
-                    raise ne.LinuxNotReached
-                elif not results[2]:
+                if not result:
                     # raise Exception("Linux not fully booting")
                     raise ne.LinuxNotReached
 
@@ -297,20 +293,8 @@ class manager:
         # log.info("Reseting with JTAG and checking if u-boot is reachable")
         # self.jtag.restart_board()
         #do a power cylcle rather than jtag reboot to make sure jtag devices are working
-        try:
-            log.info("Power cycling and checking if u-boot is reachable")
-            self.power.power_cycle_board()
-            if not self.monitor[0].is_open():
-                raise Exception('serial monitor is close')  
-        except Exception as ex:
-            # Try to reinitialize uart and manually boot via u-boot 
-            log.warning("UART is unavailable.")
-            log.warning(str(ex))
-            # wait longer and restart board using jtag
-            time.sleep(10)
-            self.monitor[0].reinitialize_uart()
-            self.jtag.restart_board()
-
+        log.info("Reseting with JTAG and checking if u-boot is reachable")
+        self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
             self.jtag.restart_board()
@@ -321,6 +305,7 @@ class manager:
             self.jtag.boot_to_uboot()
             log.info("Taking over UART control")
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
+            
         #Get SD card file directory
         if not sdcard:
             # Copy over and write to disk
@@ -342,8 +327,10 @@ class manager:
         # self.monitor[0].stop_log()
         # return
         # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
-        self.power.power_cycle_board()
+        #stop uart logging first
         try:
+            self.monitor[0].stop_log()
+            self.power.power_cycle_board()
             log.info("Waiting for boot to complete")
             results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
         except Exception as ex:
@@ -353,6 +340,7 @@ class manager:
             # wait longer and restart board using jtag
             time.sleep(10)
             self.monitor[0].reinitialize_uart()
+            self.monitor[0].start_log()
             self.jtag.restart_board()
             log.info("Waiting for boot to complete")
             results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
