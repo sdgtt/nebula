@@ -127,6 +127,33 @@ class manager:
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
+    def copy_reference_from_sdcard(self, bootbinpath, uimagepath, devtreepath):
+        target = uimagepath.split("/")[1].rstrip()
+        if "uImage" in str(uimagepath):
+            ref = "zynq-common/" + str(target)
+            done_string = "zynq-uboot"
+        else:
+            ref = "zynqmp-common/" + str(target)
+            done_string = "ZynqMP"
+        self.monitor[0].copy_reference(ref, target, done_string)
+        
+        if self.boot_subfolder is not None:
+            ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
+        else:
+            ref = self.reference_boot_folder
+        target = bootbinpath.split("/")[1].rstrip()
+        ref = ref + '/' + str(target)
+        self.monitor[0].copy_reference(ref, target, done_string)
+        
+        if self.devicetree_subfolder is not None:
+            ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
+        else:
+            ref = self.reference_boot_folder
+        target = devtreepath.split("/")[1].rstrip()
+        ref = ref + '/' + str(target)
+        self.monitor[0].copy_reference(ref, target, done_string)
+
+
     @_release_thread_lock
     def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
         """ Recover boards with UART, PDU, JTAG, and Network are available """
@@ -193,12 +220,22 @@ class manager:
                     self.monitor[0].load_system_uart_from_tftp()
 
                 else:
-                    # Load boot files
-                    self.monitor[0].load_system_uart(
-                        system_top_bit_filename=system_top_bit_path,
-                        kernel_filename=uimagepath,
-                        devtree_filename=devtreepath,
-                    )
+                    try:
+                        if sdcard:
+                            log.info("Copying reference from sdcard")
+                            self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
+                            self.monitor[0]._write_data('boot')
+                        else:
+                            # Load boot files via uart
+                            log.info("Sending reference via uart")
+                            self.monitor[0].load_system_uart(
+                                system_top_bit_filename=system_top_bit_path,
+                                kernel_filename=uimagepath,
+                                devtree_filename=devtreepath,
+                            )
+                    except Exception as ex:
+                        log.warning("Error copying reference.")
+                        log.warning(str(ex))
 
                 log.info("Waiting for boot to complete")
 
@@ -290,30 +327,7 @@ class manager:
             log.info("Copying boot files over UART to SD card")
             self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
         else:
-            target = uimagepath.split("/")[1].rstrip()
-            if "uImage" in str(uimagepath):
-                ref = "zynq-common/" + str(target)
-                done_string = "zynq-uboot"
-            else:
-                ref = "zynqmp-common/" + str(target)
-                done_string = "ZynqMP"
-            self.monitor[0].copy_reference(ref, target, done_string)
-            
-            if self.boot_subfolder is not None:
-                ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
-            else:
-                ref = self.reference_boot_folder
-            target = bootbinpath.split("/")[1].rstrip()
-            ref = ref + '/' + str(target)
-            self.monitor[0].copy_reference(ref, target, done_string)
-            
-            if self.devicetree_subfolder is not None:
-                ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
-            else:
-                ref = self.reference_boot_folder
-            target = devtreepath.split("/")[1].rstrip()
-            ref = ref + '/' + str(target)
-            self.monitor[0].copy_reference(ref, target, done_string)
+            self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
 
         # self.jtag.load_post_uboot_files()
         # self.monitor[0].update_boot_args()
