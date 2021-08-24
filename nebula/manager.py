@@ -163,7 +163,7 @@ class manager:
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
-            self.monitor[0].start_log()
+            self.monitor[0].start_log(logappend=True)
             # Check if Linux is accessible
             log.info("Checking if Linux is accessible")
             try:
@@ -340,7 +340,7 @@ class manager:
             # wait longer and restart board using jtag
             time.sleep(10)
             self.monitor[0].reinitialize_uart()
-            self.monitor[0].start_log()
+            self.monitor[0].start_log(logappend=True)
             self.jtag.restart_board()
             log.info("Waiting for boot to complete")
             results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
@@ -398,7 +398,7 @@ class manager:
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
-            self.monitor[0].start_log()
+            self.monitor[0].start_log(logappend=True)
             # Check if Linux is accessible
             log.info("Checking if Linux is accessible")
             try:
