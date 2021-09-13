@@ -162,6 +162,14 @@ zynq-zc706-adv7511-fmcomms11:
   carrier: ZC706
 zynq-zed-adv7511:
   carrier: Zed-Board
+zynq-zed-adv7511-ad7768:
+  addons:
+  - EVAL-AD7768FMCZ
+  carrier: Zed-Board
+zynq-zed-adv7511-ad7768-1-evb:
+  addons:
+  - EV-AD7768-1FMCZ
+  carrier: Zed-Board
 zynq-zed-adv7511-ad9361-fmcomms2-3:
   addons:
   - AD-FMCOMMS2-EBZ
