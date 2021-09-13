@@ -62,7 +62,10 @@ def get_newest_folder(links):
         raise Exception("No folders found")
     dates.sort(key=lambda date: convert_to_datetime(date))
 
-    return dates[-1]
+    if len(listFD(links[-1])) < 20:
+        return dates[-2]
+    else:
+        return dates[-1]
 
 def get_gitsha(branch, link, daily=False):
     server = "artifactory.analog.com"
@@ -136,10 +139,13 @@ def gen_url(ip, branch, folder, filename, url_template):
             return url_template.format(ip, folder, filename)
     else:
         url = url_template.format(ip, "", "", "")
-        if bool(re.search("/hdl/", url_template)):
-            release_folder = get_latest_release(listFD(url))+'/'+"boot_files"
+        if branch == "release" or branch == "release_latest":
+            if bool(re.search("/hdl/", url_template)):
+                release_folder = get_latest_release(listFD(url))+'/'+"boot_files"
+            else:
+                release_folder = get_latest_release(listFD(url))
         else:
-            release_folder = get_latest_release(listFD(url))
+            release_folder = branch if not bool(re.search("/hdl/", url_template)) else branch+'/'+"boot_files"
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
         folder = get_newest_folder(listFD(url[:-1]))+'/'+str(folder)
