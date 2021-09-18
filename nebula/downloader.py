@@ -250,7 +250,8 @@ class downloader(utils):
         dt = False
 
         url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-        get_gitsha(branch, url_template)
+        if source != "local_fs":
+            get_gitsha(branch, url_template)
 
         if details["carrier"] in ["ZCU102"]:
             kernel = "Image"
