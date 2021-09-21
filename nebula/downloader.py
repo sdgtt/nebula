@@ -62,7 +62,12 @@ def get_newest_folder(links):
         raise Exception("No folders found")
     dates.sort(key=lambda date: convert_to_datetime(date))
 
-    if len(listFD(links[-1])) < 20:
+    l = {"hdl":65, "linux":4, "bootpartition":75}
+    for k,v in l.items():
+        if re.search(k, links[-1]):
+            n = v
+    
+    if len(listFD(links[-1])) < n:
         return dates[-2]
     else:
         return dates[-1]
