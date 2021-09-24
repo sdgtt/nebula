@@ -131,11 +131,9 @@ class manager:
         target = uimagepath.split("/")[1].rstrip()
         if "uImage" in str(uimagepath):
             ref = "zynq-common/" + str(target)
-            done_string = "zynq-uboot"
         else:
             ref = "zynqmp-common/" + str(target)
-            done_string = "ZynqMP"
-        self.monitor[0].copy_reference(ref, target, done_string)
+        self.monitor[0].copy_reference(ref, target)
         
         if self.boot_subfolder is not None:
             ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
@@ -143,7 +141,7 @@ class manager:
             ref = self.reference_boot_folder
         target = bootbinpath.split("/")[1].rstrip()
         ref = ref + '/' + str(target)
-        self.monitor[0].copy_reference(ref, target, done_string)
+        self.monitor[0].copy_reference(ref, target)
         
         if self.devicetree_subfolder is not None:
             ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
@@ -151,7 +149,7 @@ class manager:
             ref = self.reference_boot_folder
         target = devtreepath.split("/")[1].rstrip()
         ref = ref + '/' + str(target)
-        self.monitor[0].copy_reference(ref, target, done_string)
+        self.monitor[0].copy_reference(ref, target)
 
 
     @_release_thread_lock
