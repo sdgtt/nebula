@@ -64,6 +64,11 @@ class uart(utils):
         self.dhcp = dhcp
         self.max_read_time = 30
         self.fds_to_skip = ["Digilent"]
+        self.uboot_done_string = "zynq-uboot>"
+        if "zynqmp" in board_name:
+            self.uboot_done_string = "ZynqMP>"
+        elif "zed" in board_name:
+            self.uboot_done_string = "Zynq>"
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
@@ -226,29 +231,29 @@ class uart(utils):
         if not skip_tftpload:
             cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
             self._write_data(cmd)
-            self._read_until_done(done_string="zynq-uboot")
+            self._read_until_done(done_string=self.uboot_done_string)
 
         cmd = "fpga loadb 0 0x1000000 0x1"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
 
     def update_dev_tree(self):
         """ Transfter devicetree over TFTP to system during uboot """
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
 
     def update_kernel(self):
         """ Transfter kernel image over TFTP to system during uboot """
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
 
     def update_boot_args(self):
         """ Update kernel boot arguments during uboot """
         cmd = "setenv bootargs " + self.bootargs
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
 
     def boot(self):
         """ Boot kernel from uboot menu """
@@ -256,8 +261,10 @@ class uart(utils):
         # cmd = "bootm 0x3000000 0x2000000 0x2a000000"
         self._write_data(cmd)
 
-    def copy_reference(self, reference="BOOT.BIN.ORG",target="BOOT.BIN", done_string = "zynq_uboot"):
+    def copy_reference(self, reference="BOOT.BIN.ORG",target="BOOT.BIN", done_string = None):
         """ Using reference files """
+        if not done_string:
+            done_string = self.uboot_done_string
         if self.listen_thread_run:
            restart = True
            self.stop_log()
@@ -285,10 +292,9 @@ class uart(utils):
             restart = False
         if "uImage" in str(kernel_filename):
             filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
-            done_string = "zynq-uboot"
         else:
             filenames = ["BOOT.BIN","Image","system.dtb"]
-            done_string = "ZynqMP"
+        done_string = self.uboot_done_string
         source_fn = [bootbin, kernel_filename, devtree_filename]
         for i, target in enumerate(filenames):
             log.info("Copying over: "+source_fn[i])
@@ -608,14 +614,10 @@ class uart(utils):
             restart = False
         for _ in range(30):
             self._write_data("\r\n")
+            self._write_data("\r\n")
             data = self._read_for_time(1)
             # Check uboot console reached
-            if self._check_for_string_console(data, "zynq-uboot"):
-                log.info("u-boot menu reached")
-                if restart:
-                    self.start_log(logappend=True)
-                return True
-            elif self._check_for_string_console(data, "ZynqMP"):
+            if self._check_for_string_console(data, self.uboot_done_string):
                 log.info("u-boot menu reached")
                 if restart:
                     self.start_log(logappend=True)
@@ -642,13 +644,13 @@ class uart(utils):
         self._read_for_time(period=3)
         cmd = "dhcp"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
         cmd = "echo board IP ${ipaddr}"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
         cmd = "setenv serverip 192.168.86.39"
         self._write_data(cmd)
-        self._read_until_done(done_string="zynq-uboot")
+        self._read_until_done(done_string=self.uboot_done_string)
 
         self.update_fpga()
         time.sleep(1)
