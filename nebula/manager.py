@@ -38,6 +38,26 @@ class manager:
 
         configs = common.multi_device_check(configs, board_name)
 
+        self.jtag_use = False
+        self.jtag = False
+        if "board-config" in configs:
+            for config in configs["board-config"]:
+                if "allow-jtag" in config:
+                    self.jtag_use = config["allow-jtag"]
+                    if self.jtag_use:
+                        try:
+                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                        except Exception as e:
+                            log.info(str(e))
+                            log.info('Power cycling board and will attemp jtag connection again.')
+                            self.shutdown_powerdown_board()
+                            # wait for 10 seconds
+                            time.sleep(10)
+                            self.power.power_up_board()
+                            # wait for boot to complete
+                            time.sleep(60)
+                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
             monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
@@ -63,26 +83,6 @@ class manager:
         else:
             configfilename = self.configfilename
         self.power = pdu(yamlfilename=configfilename, board_name=board_name)
-
-        self.jtag_use = False
-        self.jtag = False
-        if "board-config" in configs:
-            for config in configs["board-config"]:
-                if "allow-jtag" in config:
-                    self.jtag_use = config["allow-jtag"]
-                    if self.jtag_use:
-                        try:
-                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
-                        except Exception as e:
-                            log.info(str(e))
-                            log.info('Power cycling board and will attemp jtag connection again.')
-                            self.shutdown_powerdown_board()
-                            # wait for 10 seconds
-                            time.sleep(10)
-                            self.power.power_up_board()
-                            # wait for boot to complete
-                            time.sleep(60)
-                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
