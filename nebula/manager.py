@@ -38,6 +38,12 @@ class manager:
 
         configs = common.multi_device_check(configs, board_name)
 
+        if "pdu-config" not in configs:
+            configfilename = None
+        else:
+            configfilename = self.configfilename
+        self.power = pdu(yamlfilename=configfilename, board_name=board_name)
+
         self.jtag_use = False
         self.jtag = False
         if "board-config" in configs:
@@ -73,12 +79,6 @@ class manager:
         else:
             configfilename = self.configfilename
         self.net = network(yamlfilename=configfilename, board_name=board_name)
-
-        if "pdu-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
-        self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
