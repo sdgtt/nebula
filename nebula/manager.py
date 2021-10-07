@@ -50,11 +50,7 @@ class manager:
                         except Exception as e:
                             log.info(str(e))
                             log.info('Power cycling board and will attemp jtag connection again.')
-                            self.shutdown_powerdown_board()
-                            # wait for 10 seconds
-                            time.sleep(10)
-                            self.power.power_up_board()
-                            # wait for boot to complete
+                            self.power.power_cycle_board()
                             time.sleep(60)
                             self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
 
