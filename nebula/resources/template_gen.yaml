@@ -96,6 +96,11 @@ uart-config:
     default: my.log
     help: "Output UART logfilename"
     optional: False
+  field_4:
+    name: uboot_done_string
+    default: zynq-uboot>
+    help: "Uboot menu prompt"
+    optional: True
 system-config:
   field_1:
     name: tftpserverip
