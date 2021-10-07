@@ -332,7 +332,7 @@ class manager:
             log.warning("UART is unavailable.")
             log.warning(str(ex))
             # wait longer and restart board using jtag
-            time.sleep(10)
+            time.sleep(60)
             self.monitor[0].reinitialize_uart()
             self.monitor[0].start_log(logappend=True)
             self.jtag.restart_board()
