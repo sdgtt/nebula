@@ -283,10 +283,11 @@ def download_boot_files(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     firmware=False,
+    boot_partition=True,
 ):
     """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(board_name, source, source_root, branch, firmware)
+    d.download_boot_files(board_name, source, source_root, branch, firmware, boot_partition)
 
 
 dl = Collection("dl")
