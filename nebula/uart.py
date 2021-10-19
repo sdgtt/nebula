@@ -64,11 +64,7 @@ class uart(utils):
         self.dhcp = dhcp
         self.max_read_time = 30
         self.fds_to_skip = ["Digilent"]
-        self.uboot_done_string = "zynq-uboot>"
-        if "zynqmp" in board_name:
-            self.uboot_done_string = "ZynqMP>"
-        elif "zed" in board_name:
-            self.uboot_done_string = "Zynq>"
+        self.uboot_done_string = ["zynq-uboot>", "Zynq>", "ZynqMP>"]
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
@@ -558,39 +554,53 @@ class uart(utils):
             self.stop_log()
         else:
             restart_log = False
+
+        if not isinstance(done_string, list):
+            done_string_list = [done_string]
+        else:
+            done_string_list = done_string
+
         data = []
         mt = max_time or self.max_read_time
         for _ in range(mt):
             data = self._read_until_stop()
             if isinstance(data, list):
                 for d in data:
-                    if done_string in d:
+                    for done_string in done_string_list:
+                        if done_string in d:
+                            log.info("done found in data")
+                            if restart_log:
+                                self.start_log(logappend=True)
+                            return True
+            else:
+                for done_string in done_string_list:
+                    if done_string in data:
                         log.info("done found in data")
                         if restart_log:
                             self.start_log(logappend=True)
                         return True
-            elif done_string in data:
-                log.info("done found in data")
-                if restart_log:
-                    self.start_log(logappend=True)
-                return True
-            else:
-                log.info("Still waiting")
+            log.info("Still waiting")
             time.sleep(1)
         if restart_log:
             self.start_log(logappend=True)
         return False
 
     def _check_for_string_console(self, console_out, string):
+        if not isinstance(string, list):
+            string_list = [string]
+        else:
+            string_list = string
+
         for d in console_out:
             if not isinstance(d, list):
                 d = [d]
             if isinstance(d, list):
                 for c in d:
                     c = c.replace("\r", "")
-                    log.info("RAW: "+str(c)+" | Looking for: "+string)
-                    if string in c:
-                        return True
+                    for string in string_list:
+                        log.info("RAW: "+str(c)+" | Looking for: "+string)
+                        if string in c:
+                            return True
         return False
 
     def _wait_for_boot_complete_linaro(self, done_string="Welcome to Linaro 14.04"):
