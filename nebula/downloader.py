@@ -18,6 +18,7 @@ from requests.packages.urllib3.util.retry import Retry
 import re
 from datetime import datetime
 from github import Github
+from pathlib import Path
 
 from nebula.common import utils
 
@@ -73,62 +74,26 @@ def get_newest_folder(links):
     else:
         return dates[-1]
 
-def get_gitsha(branch, link, daily=False):
-    server = "artifactory.analog.com"
+def get_gitsha(url, daily=False, linux=False, hdl=False):
     dest = "outs"
     if not os.path.isdir(dest):
         os.mkdir(dest)
     file = os.path.join(dest, "properties.yaml")
-    with open(file, "w") as f:
+    with open(file, "a+") as f:
+        path = ArtifactoryPath(str(url))
+        props = path.properties
+        exp = "20[1-2][9,0,1]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
         if not daily:
-            if branch == "master":
-                url = link.format(server, branch, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))            
-            else:
-                url = link.format(server, "", "", "")
-                release_folder = get_latest_release(listFD(url))
-                url = link.format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-            url = url +"/"+str(folder)
-            path = ArtifactoryPath(url)
-            git_props = path.properties
-            bootpartition = {"bootpartition_folder": ntpath.basename(path), "linux_git_sha": git_props["linux_git_sha"][0], "hdl_git_sha": git_props["hdl_git_sha"][0]}
+            bootpartition = {"bootpartition_folder": re.findall(exp, url)[0], "linux_git_sha": props["linux_git_sha"][0], "hdl_git_sha": props["hdl_git_sha"][0]}
             yaml.dump(bootpartition, f)
         else:
-            #linux
-            if branch[0] == "master":
-                url = link[0].format(server, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_linux = url +"/"+str(folder)
-            else:
-                url = link[0].format(server, "", "", "")
-                release_folder = get_latest_release(listFD(url))
-                url = link[0].format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_linux = url +"/"+str(folder)
-            
-            #hdl
-            if branch[1] == "master":
-                url = link[1].format(server, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_hdl = url +"/"+str(folder)
-            else:
-                url = link[1].format(server, "", "", "")
-                release_folder = get_latest_release(listFD(url)) +'/'+"boot_files"
-                url = link[1].format(server, release_folder, "", "")
-                folder = get_newest_folder(listFD(url[:-1]))
-                url_hdl = url +"/"+str(folder)
-
-            path_linux = ArtifactoryPath(url_linux)
-            path_hdl = ArtifactoryPath(url_hdl)
-            linux_git_props = path_linux.properties
-            hdl_git_props = path_hdl.properties
-            linux_props = {"linux_folder": ntpath.basename(path_linux), "linux_git_sha": linux_git_props["git_sha"][0]}
-            hdl_props = {"hdl_folder": ntpath.basename(path_hdl), "hdl_git_sha": hdl_git_props["git_sha"][0]}
-            properties = linux_props.copy()
-            properties.update(hdl_props)
-            yaml.dump(properties, f)
-
+            if hdl:
+                hdl_props = {"hdl_folder": re.findall(exp, url)[0], "hdl_git_sha": props["git_sha"][0]}
+                yaml.dump(hdl_props, f)
+            if linux:            
+                linux_props = {"linux_folder": re.findall(exp, url)[0], "linux_git_sha": props["git_sha"][0]}
+                yaml.dump(linux_props, f)
+    
 def gen_url(ip, branch, folder, filename, addl, url_template):
     print(url_template)
     if branch == "master":
@@ -211,11 +176,9 @@ class downloader(utils):
         self.download(url, release)
 
     def _get_file(self, filename, source, design_source_root, source_root, branch, addl=None, url_template=None):
-        # if source == "http":
-        #     url_template = "http://{}/jenkins_export/{}/boot_partitions/{}/{}"
-        #     self._get_http_files(filename, design_source_root, source_root, branch, url_template)
         if source == "artifactory":
-            self._get_artifactory_file(filename, design_source_root, source_root, branch, addl, url_template)
+            url=self._get_artifactory_file(filename, design_source_root, source_root, branch, addl, url_template)
+            return url
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
         else:
@@ -262,14 +225,14 @@ class downloader(utils):
                     os.rename(old_fname, new_fname)
                 except WindowsError:
                     os.remove(new_fname)
-                    os.rename(old_fname, new_fname)
+                    os.rename(old_fname, new_fname)  
+        return url
 
     def _get_files_boot_partition(
         self, reference_boot_folder, devicetree_subfolder, boot_subfolder, source, source_root, branch, kernel, kernel_root, dt
     ):
         if source == "artifactory":
             url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-            #get_gitsha(branch, url_template)
 
         print("Get standard boot files")
         # Get kernel
@@ -293,7 +256,10 @@ class downloader(utils):
             design_source_root = reference_boot_folder +"/"+ devicetree_subfolder
         else:
             design_source_root = reference_boot_folder
-        self._get_file(dt, source, design_source_root, source_root, branch, url_template=url_template)     
+        url = self._get_file(dt, source, design_source_root, source_root, branch, url_template=url_template)  
+
+        if source == "artifactory":
+            get_gitsha(url, daily=False)
 
     def _get_files_hdl(
         self, hdl_folder, source, source_root, branch, hdl_output=False
@@ -306,21 +272,28 @@ class downloader(utils):
             if branch=="master": 
                 url_template = "https://{}/artifactory/sdg-generic-development/hdl/master/{}/{}/{}"
             else:
-                url_template = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"
-            
+                url_template = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"     
           
         if hdl_output:
-            print("system_top.xsa")
-            self._get_file("system_top.xsa", source, design_source_root, source_root, branch, output, url_template)
+            try:
+                print("Get system_top.xsa")
+                url = self._get_file("system_top.xsa", source, design_source_root, source_root, branch, output, url_template)
+            except Exception:
+                print("Get system_top.hdf")
+                url = self._get_file("system_top.hdf", source, design_source_root, source_root, branch, output, url_template)
         else:    
             # Get BOOT.BIN
             print("Get BOOT.BIN")
-            print("lala")
-            self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, output, url_template)
+            url=self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, output, url_template)
+            print(url)
+            
             # Get support files (bootgen_sysfiles.tgz)
             print("Get support")
-            self._get_file(
-                "bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, output, url_template)
+            self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, output, url_template)
+
+        if source == "artifactory":
+            print("hellooooo")
+            get_gitsha(url, daily=True, hdl=True)
 
     def _get_files_linux(
         self, design_name, source, source_root, branch, kernel, kernel_root, dt, arch
@@ -337,9 +310,10 @@ class downloader(utils):
                 url_template = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
 
         if arch == "microblaze":
+            design_source_root = arch
             print("Get simpleimage")
-            simpleimage = 'thefeels.img'
-            self._get_file(simpleimage, source, design_source_root, source_root, branch, url_template=url_template)
+            simpleimage = "simpleImage." +design_name+ ".strip"
+            url = self._get_file(simpleimage, source, design_source_root, source_root, branch, url_template=url_template)
         else:
             #Get files from linux folder
             print("Get standard boot files")
@@ -350,7 +324,10 @@ class downloader(utils):
             print("Get", dt)
             dt_dl = design_name + ".dtb"
             design_source_root = arch
-            self._get_file(dt_dl, source, design_source_root, source_root, branch, url_template=url_template)
+            url = self._get_file(dt_dl, source, design_source_root, source_root, branch, url_template=url_template)
+        
+        if source == "artifactory":
+            get_gitsha(url, daily=True, linux=True)
 
     def _get_files(
         self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, hdl_folder, details, source, source_root, branch, folder=None, 
@@ -377,6 +354,9 @@ class downloader(utils):
             arch = "arm"
         elif "ADALM" in details["carrier"]:
             firmware = True
+        elif (details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]
+        ):
+            arch = "microblaze"
         else:
             raise Exception("Carrier not supported")
 
