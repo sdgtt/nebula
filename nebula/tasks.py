@@ -1,3 +1,7 @@
+from typing import Optional
+from invoke import Collection
+from invoke import task
+import nebula
 import logging
 import os
 import time
@@ -272,7 +276,8 @@ def download_sdcard(c, release="2019_R1"):
         "source_root": "Location of source boot files. Dependent on source.\nFor http and artifactory sources this is a IP or domain name (no http://)",
         "branch": "Name of branches to get related files. It can be from Linux+HDL folders or from the boot partition folder.\nFor Linx+HDL, enter string [<linuxbranch>, <hdlbranch>]. For boot partition, enter [boot_partition, <bootpartitionbranch>]. \nThis is only used for\bhttp and artifactory sources. Default is [boot_partition, master]",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "firmware": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
+        "filetype": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
+        
     },
 )
 def download_boot_files(
@@ -282,15 +287,21 @@ def download_boot_files(
     branch="release",
     yamlfilename="/etc/default/nebula",
     board_name=None,
-    firmware=False,
-    boot_partition=False,
-    noos=False,
-    microblaze=False
+    filetype="boot_partition",
+    boot_partition=True,
 ):
     """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(board_name, source, source_root, branch, firmware, boot_partition, noos, microblaze)
-
+    if filetype == "noos":
+        d.download_boot_files(board_name, source, source_root, branch, noos=True)
+    elif filetype == "microblaze":
+        d.download_boot_files(board_name, source, source_root, branch, microblaze=True)
+    elif filetype == "firmware":
+        d.download_boot_files(board_name, source, source_root, branch, firmware=True)
+    elif filetype == "boot_partition":
+        d.download_boot_files(board_name, source, source_root, branch, boot_partition=boot_partition)
+    else: 
+        d.download_boot_files(board_name, source, source_root, branch, boot_partition=True)
 
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
