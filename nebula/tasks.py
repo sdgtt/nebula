@@ -276,7 +276,7 @@ def download_sdcard(c, release="2019_R1"):
         "source_root": "Location of source boot files. Dependent on source.\nFor artifactory sources this is the domain name",
         "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), firmware . Defaut: boot",
+        "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), rpi (rpi files), firmware . Default: boot",
         "boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
     },
 )
@@ -298,6 +298,8 @@ def download_boot_files(
         d.download_boot_files(board_name, source, source_root, branch, microblaze=True)
     elif filetype == "firmware":
         d.download_boot_files(board_name, source, source_root, branch, firmware=True)
+    elif filetype == "rpi":
+        d.download_boot_files(board_name, source, source_root, branch, rpi=True)
     elif filetype == "boot_partition":
         d.download_boot_files(board_name, source, source_root, branch, boot_partition=boot_partition)
     else: 
