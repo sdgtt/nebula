@@ -52,6 +52,7 @@ def get_latest_release(links):
 
 def get_newest_folder(links):
     dates = []
+    print(links)
     for link in links:
         folder = link.split("/")[-2]
         matched = re.match("20[1-2][0,1,2,3,4,5,6,7,8,9]_[0-3][0-9]_[0-3][0-9]", folder)
@@ -136,6 +137,13 @@ class downloader(utils):
         self.url= None
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
+        )
+
+        self.soc= None
+        self.kernel = None
+        self.overlay = None
+        self.update_defaults_from_yaml(
+            yamlfilename, configname='board', board_name=board_name, attr = ["soc", "kernel", "overlay"]
         )
 
     def _download_firmware(self, device, release=None):
@@ -224,7 +232,7 @@ class downloader(utils):
                 except WindowsError:
                     os.remove(new_fname)
                     os.rename(old_fname, new_fname)  
-
+    
     def _get_files_boot_partition(
         self, reference_boot_folder, devicetree_subfolder, boot_subfolder, source, source_root, branch, kernel, kernel_root, dt
     ):
@@ -323,9 +331,39 @@ class downloader(utils):
         if source == "artifactory":
             get_gitsha(self.url, daily=True, linux=True)
 
+    def _get_files_rpi(
+        self, source, source_root, branch, kernel, soc, overlay 
+    ):
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        file = os.path.join(dest, "properties.yaml")
+        #download properties.txt
+        if source == "artifactory":
+            url_template = "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}/{}/{}".format(source_root, branch, "","", "")
+            print(url_template)
+            build_date= get_newest_folder(listFD(url_template)) + "/properties.txt"
+            url_template=url_template.format(source_root, branch, build_date)
+            file = os.path.join(dest, "properties.txt")
+            self.download(url_template, file)
+            #get_gitsha(self.url, daily=False)    
+
+        addl = "adi_"+soc+"_defconfig"
+        print("Get overlay")
+        overlay_f = "overlays/"+ overlay
+        url=url_template.format(source_root, branch, build_date, addl, overlay_f)
+        file = os.path.join(dest, overlay)
+        self.download(url, file)
+            
+        print("Get kernel")
+        kernel=kernel+".img"
+        url=url_template.format(source_root, branch, build_date, addl, kernel)
+        file = os.path.join(dest, kernel)
+        self.download(url, file)
+
     def _get_files(
-        self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, hdl_folder, details, source, source_root, branch, folder=None, 
-        firmware=False, noos=False, microblaze=False
+        self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, hdl_folder, details, source, source_root, branch, soc, overlay, rpi_kernel, folder=None, 
+        firmware=False, noos=False, microblaze=False, rpi=False
     ):
         kernel = False
         kernel_root = False
@@ -349,6 +387,8 @@ class downloader(utils):
         elif (details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]
         ):
             arch = "microblaze"
+        elif "RPI" in details["carrier"]:
+            kernel = rpi_kernel
         else:
             raise Exception("Carrier not supported")
 
@@ -376,6 +416,9 @@ class downloader(utils):
                 self._get_files_hdl(hdl_folder, source, source_root, branch, hdl_output=True)
                 self._get_files_linux(design_name, source, source_root, branch, kernel, kernel_root, dt, arch, microblaze)
             
+            if rpi:
+                self._get_files_rpi(source, source_root, branch, kernel, soc, overlay)
+            
             if folder:
                 if folder == "boot_partition":
                     self._get_files_boot_partition(reference_boot_folder, devicetree_subfolder, boot_subfolder, 
@@ -395,7 +438,8 @@ class downloader(utils):
         firmware=None,
         boot_partition=None,
         noos=None,
-        microblaze=None
+        microblaze=None,
+        rpi=None
     ):
         """download_boot_files Download bootfiles for target design.
         This method can download or move files from different locations
@@ -427,6 +471,9 @@ class downloader(utils):
         devicetree_subfolder = self.devicetree_subfolder
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
+        soc = self.soc
+        overlay = self.overlay
+        rpi_kernel = self.kernel
 
         if noos:
             res = os.path.join(path, "resources", "noOS_projects.yaml")
@@ -456,7 +503,7 @@ class downloader(utils):
         else:
             folder = "hdl_linux"
 
-        if noos or microblaze:
+        if noos or microblaze or rpi:
             folder=None
         
         #get files from boot partition folder
@@ -470,10 +517,14 @@ class downloader(utils):
             source,
             source_root,
             branch,
+            soc,
+            overlay,
+            rpi_kernel,
             folder,
             firmware,
             noos,
-            microblaze
+            microblaze,
+            rpi
             )
 
     def download_sdcard_release(self, release="2019_R1"):
