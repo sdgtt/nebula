@@ -42,8 +42,8 @@ def multi_device_check(configs, board_name):
 
 
 class utils:
-    def update_defaults_from_yaml(self, filename, configname=None, board_name=None):
-        """Utility class for processing yaml files"""
+    def update_defaults_from_yaml(self, filename, configname=None, board_name=None, attr=None):
+        """ Utility class for processing yaml files """
         if not filename:
             if os.name in ["nt", "posix"]:
                 if os.path.exists(LINUX_DEFAULT_PATH):
@@ -63,8 +63,18 @@ class utils:
             return
             # raise Exception(configname + "-config field not in yaml config file")
         configsList = configs[configname + "-config"]
-        for config in configsList:
+        for config in configsList:             
             for k in config:
-                if not hasattr(self, k):
-                    raise Exception("Unknown field in " + configname + " yaml: " + k)
-                setattr(self, k, config[k])
+                if attr:
+                    if not isinstance(attr, list):
+                        attr=list(attr)
+                    if k in attr:
+                        if not hasattr(self, k):
+                            raise Exception("Unknown field in " + configname + " yaml: " + k)
+                        setattr(self, k, config[k])
+                    else:
+                        pass
+                else:
+                    if not hasattr(self, k):
+                        raise Exception("Unknown field in " + configname + " yaml: " + k)
+                    setattr(self, k, config[k])
