@@ -21,8 +21,6 @@ def convert_by_id_to_tty(by_id):
      to
      /dev/ttyUSB1
     """
-    if not os.path.exists(LINUX_DEFAULT_PATH):
-        return by_id
     import pyudev
     context = pyudev.Context()
     for device in context.list_devices(subsystem='tty', ID_BUS='usb'):
@@ -37,8 +35,6 @@ def convert_address_to_tty(address):
      /dev/ttyUSB1
      Will also work with by_path. Works in docker container.
     """
-    if not os.path.exists(LINUX_DEFAULT_PATH):
-        return address
     import pyudev
     context = pyudev.Context()
     tty=pyudev.Devices.from_device_file(context, address)
