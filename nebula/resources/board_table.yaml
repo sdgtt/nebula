@@ -308,3 +308,39 @@ vcu118_dual_ad9208:
 vcu118_fmcdaq3:
   carrier: VCU118
 
+#RPI
+adis16475-1/pcbz:
+  carrier: RPI
+adis16480bmlz:
+  carrier: RPI
+eval-cn0508-rpiz:
+  carrier: RPI
+cn0511:
+  carrier: RPI
+eval-cn0531-pmdz:
+  carrier: RPI
+cn0554:
+  carrier: RPI
+eval-cn0552-pmdz:
+  carrier: RPI
+eval-adxl355-pmdz:
+  carrier: RPI
+eval-ad7124-8-pmdz:
+  carrier: RPI
+eval_adt7420_pmdz:
+  carrier: RPI
+eval-adxrs290-pmdz:
+  carrier: RPI
+eval-ad5592r-pmdz:
+  carrier: RPI
+eval-ad5593r-pmdz:
+  carrier: RPI
+eval-ad5770r-pmdz:
+  carrier: RPI
+dc1012a-b:
+  carrier: RPI
+dc1962c:
+  carrier: RPI
+dc2873a:
+  carrier: RPI
+
