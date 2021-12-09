@@ -195,7 +195,6 @@ class downloader(utils):
         if os.path.isfile(src):
             shutil.copy(src, dest)
         else:
-            print(os.listdir(source_root))
             raise Exception("File not found: " + src)
 
     def _get_artifactory_file(self, filename, folder, ip, branch, addl, url_template):
@@ -210,7 +209,6 @@ class downloader(utils):
             )
         #get url template base 
         url = gen_url(ip, branch, folder, filename, addl,  url_template)
-        print(url)
         self.url = url
         filename = os.path.join(dest, filename)
         self.download(url, filename)
@@ -223,8 +221,7 @@ class downloader(utils):
                     new_fname = os.path.join(dest,"devicetree.dtb")
                 elif bool(re.search("/arm64/", url)):
                     new_fname = os.path.join(dest,"system.dtb")
-                else:
-                    pass
+
                 try:
                     os.rename(old_fname, new_fname)
                 except WindowsError:
@@ -237,9 +234,9 @@ class downloader(utils):
         if source == "artifactory":
             url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
 
-        print("Get standard boot files")
+        log.info("Getting standard boot files")
         # Get kernel
-        print("Get", kernel)
+        log.info("Getting", kernel)
         self._get_file(kernel, source, kernel_root, source_root, branch, url_template=url_template)
             
         if boot_subfolder is not None:
@@ -247,14 +244,14 @@ class downloader(utils):
         else:
             design_source_root = reference_boot_folder
         # Get BOOT.BIN
-        print("Get BOOT.BIN")
+        log.info("Getting BOOT.BIN")
         self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, url_template=url_template)
         # Get support files (bootgen_sysfiles.tgz)
-        print("Get support")
+        log.info("Getting support files")
         self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, url_template=url_template)
         
         # Get device tree
-        print("Get", dt)
+        log.info("Getting", dt)
         if devicetree_subfolder is not None:
             design_source_root = reference_boot_folder +"/"+ devicetree_subfolder
         else:
@@ -278,19 +275,18 @@ class downloader(utils):
                 url_template = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"     
           
         if hdl_output:
+            log.info("Getting xsa/hdf file")
             try:
-                print("Get system_top.xsa")
                 self._get_file("system_top.xsa", source, design_source_root, source_root, branch, output, url_template)
             except Exception:
-                print("Get system_top.hdf")
                 self._get_file("system_top.hdf", source, design_source_root, source_root, branch, output, url_template)
         else:    
             # Get BOOT.BIN
-            print("Get BOOT.BIN")
+            log.info("Getting BOOT.BIN")
             self._get_file("BOOT.BIN", source, design_source_root, source_root, branch, output, url_template)
                         
             # Get support files (bootgen_sysfiles.tgz)
-            print("Get support")
+            log.info("Getting support files")
             self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, output, url_template)
 
         if source == "artifactory":
@@ -311,17 +307,17 @@ class downloader(utils):
 
         if microblaze:
             design_source_root = arch
-            print("Get simpleimage")
+            log.info("Getting simpleimage")
             simpleimage = "simpleImage." +design_name+ ".strip"
             self._get_file(simpleimage, source, design_source_root, source_root, branch, url_template=url_template)
         else:
             #Get files from linux folder
-            print("Get standard boot files")
+            log.info("Getting standard boot files")
             # Get kernel
-            print("Get", kernel)
+            log.info("Getting", kernel)
             self._get_file(kernel, source, design_source_root, source_root, branch, url_template=url_template)
             # Get device tree
-            print("Get", dt)
+            log.info("Getting", dt)
             dt_dl = design_name + ".dtb"
             design_source_root = arch
             self._get_file(dt_dl, source, design_source_root, source_root, branch, url_template=url_template)
@@ -339,7 +335,6 @@ class downloader(utils):
         #download properties.txt
         if source == "artifactory":
             url_template = "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}/{}/{}".format(source_root, branch, "","", "")
-            print(url_template)
             build_date= get_newest_folder(listFD(url_template)) + "/properties.txt"
             url_template=url_template.format(source_root, branch, build_date)
             file = os.path.join(dest, "properties.txt")
@@ -347,13 +342,13 @@ class downloader(utils):
             #get_gitsha(self.url, daily=False)    
 
         addl = "adi_"+soc+"_defconfig"
-        print("Get overlay")
+        log.info("Getting overlay")
         overlay_f = "overlays/"+ overlay
         url=url_template.format(source_root, branch, build_date, addl, overlay_f)
         file = os.path.join(dest, overlay)
         self.download(url, file)
             
-        print("Get kernel")
+        log.info("Get kernel")
         kernel=kernel+".img"
         url=url_template.format(source_root, branch, build_date, addl, kernel)
         file = os.path.join(dest, kernel)
@@ -393,10 +388,10 @@ class downloader(utils):
         if firmware:
             # Get firmware
             assert (
-                "pluto" in details["carrier"].lower()
-                or "m2k" in details["carrier"].lower()
-                or "adalm-2000" in details["carrier"].lower()
-            ), "Firmware downloads only available for pluto and m2k"
+                    "pluto" in details["carrier"].lower()
+                    or "m2k" in details["carrier"].lower()
+                    or "adalm-2000" in details["carrier"].lower()
+                ), "Firmware downloads only available for pluto and m2k"
             self._download_firmware(details["carrier"], branch)
         else:
 
@@ -484,9 +479,10 @@ class downloader(utils):
                     for hdl_project in hdl_projects:
                         if hdl_project == hdl_folder:
                             val.append(hdl_project)
-                            print("No-OS project:" + project)
+                            log.info("No-OS project:" + project)
+
             if not val:
-                raise Exception("Design has no  support!")
+                raise Exception("Design has no support!")
         else:
             assert design_name in board_configs, "Invalid design name"
 
