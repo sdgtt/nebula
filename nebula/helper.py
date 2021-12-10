@@ -37,7 +37,6 @@ def convert_address_to_tty(address):
     import pyudev
     context = pyudev.Context()
     tty=pyudev.Devices.from_device_file(context, address)
-    print(tty.get('DEVNAME'))
     if tty:
         return tty
     else:
@@ -134,7 +133,6 @@ class helper:
                         # Handle serial translation
                         if section == "uart-config" and field == "address":
                             value = convert_address_to_tty(value)
-                        print('new value: '+str(value))
                     break
             if not updated:
                 raise Exception("")

@@ -71,8 +71,6 @@ class utils:
                         if not hasattr(self, k):
                             raise Exception("Unknown field in " + configname + " yaml: " + k)
                         setattr(self, k, config[k])
-                    else:
-                        pass
                 else:
                     if not hasattr(self, k):
                         raise Exception("Unknown field in " + configname + " yaml: " + k)
