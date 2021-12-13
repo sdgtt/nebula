@@ -333,23 +333,28 @@ class downloader(utils):
         file = os.path.join(dest, "properties.yaml")
         #download properties.txt
         if source == "artifactory":
-            url_template = "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}/{}/{}".format(source_root, branch, "","", "")
-            build_date= get_newest_folder(listFD(url_template)) + "/properties.txt"
-            url_template=url_template.format(source_root, branch, build_date)
+            url_template = "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}"
+            url = url_template.format(source_root, branch,"")
+            build_date= get_newest_folder(listFD(url))
+            url= url_template.format(source_root, branch, build_date+"/properties.txt")
             file = os.path.join(dest, "properties.txt")
-            self.download(url_template, file)
+            self.download(url, file)
             #get_gitsha(self.url, daily=False)    
 
+        url_template = url_template.format(source_root, branch, "{}/{}/{}")
         addl = "adi_"+soc+"_defconfig"
-        log.info("Getting overlay")
+        log.info("Getting overlay")      
+        if "dtbo" not in overlay:
+            overlay = overlay + ".dtbo"
         overlay_f = "overlays/"+ overlay
-        url=url_template.format(source_root, branch, build_date, addl, overlay_f)
+        url=url_template.format(build_date, addl, overlay_f)
         file = os.path.join(dest, overlay)
         self.download(url, file)
             
         log.info("Get kernel")
-        kernel=kernel+".img"
-        url=url_template.format(source_root, branch, build_date, addl, kernel)
+        if "img" not in kernel:
+            kernel=kernel+".img"
+        url=url_template.format(build_date, addl, kernel)
         file = os.path.join(dest, kernel)
         self.download(url, file)
 
@@ -394,12 +399,11 @@ class downloader(utils):
             self._download_firmware(details["carrier"], branch)
         else:
 
-            if source == "local_fs":
+            if source == "local_fs": #to fix
                 if not source_root:
                     source_root = "/var/lib/tftpboot"
                 kernel_root = os.path.join(source_root, kernel_root)
-                # design_source_root = os.path.join(source_root, design_name)
-                reference_boot_folder = os.path.join(source_root, design_name)
+                design_source_root = os.path.join(source_root, design_name)
 
             if noos:
                 self._get_files_hdl(hdl_folder, source, source_root, branch, hdl_output=True)
