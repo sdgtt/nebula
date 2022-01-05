@@ -5,6 +5,7 @@ import threading
 import time
 import datetime
 import glob
+import re
 from tqdm import tqdm
 
 import serial
@@ -16,6 +17,9 @@ log = logging.getLogger(__name__)
 LINUX_SERIAL_FOLDER = "/dev/serial"
 LOG_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
+def escape_ansi(line):
+    ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
+    return ansi_escape.sub('', line)
 
 class uart(utils):
     """ UART Interface Handler
@@ -467,7 +471,7 @@ class uart(utils):
         for d in data:
             if isinstance(d, list):
                 for c in d:
-                    c = c.replace("\r", "")
+                    c = escape_ansi(c.replace("\r", ""))
                     try:
                         ipaddress.ip_address(c)
                         log.info("Found IP: " + str(c))
@@ -476,6 +480,7 @@ class uart(utils):
                         continue
             else:
                 try:
+                    d = escape_ansi(d)
                     ipaddress.ip_address(d)
                     log.info("Found IP: " + str(d))
                     return d
