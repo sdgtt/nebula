@@ -16,12 +16,22 @@ board-config:
     help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD."
     optional: False
   field_2:
+    name: carrier
+    default: ZC702
+    help: "Carrier board name"
+    optional: False
+  field_3:
+    name: daughter
+    default: FMCOMMS2-3
+    help: "Daugther board name"
+    optional: False
+  field_4:
     name: monitoring-interface
     default: uart
     help: "Select monitoring interface"
     options: [uart, netconsole]
     optional: False
-  field_3:
+  field_5:
     name: allow-jtag
     default: False
     help: "Allow use of JTAG"
