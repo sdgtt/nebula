@@ -15,3 +15,4 @@ pygithub
 pynetbox
 artifactory
 usbsdmux
+pyudev
