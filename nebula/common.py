@@ -63,7 +63,7 @@ class utils:
             return
             # raise Exception(configname + "-config field not in yaml config file")
         configsList = configs[configname + "-config"]
-        for config in configsList:             
+        for config in configsList:
             for k in config:
                 if attr:
                     if not isinstance(attr, list):
