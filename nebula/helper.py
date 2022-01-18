@@ -134,6 +134,7 @@ class helper:
                         # Handle serial translation
                         if section == "uart-config" and field == "address":
                             value = convert_address_to_tty(value)
+                    log.info(field+ ': '+ str(value))
                     break
             if not updated:
                 raise Exception("")
