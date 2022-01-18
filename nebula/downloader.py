@@ -52,7 +52,7 @@ def get_newest_folder(links):
     dates = []
     for link in links:
         folder = link.split("/")[-2]
-        matched = re.match("20[1-2][9,0,1]_[0-3][0-9]_[0-3][0-9]", folder)
+        matched = re.match("20[1-2][0,1,2,3,4,5,6,7,8,9]_[0-3][0-9]_[0-3][0-9]", folder)
         is_match = bool(matched)
 
         if is_match:
