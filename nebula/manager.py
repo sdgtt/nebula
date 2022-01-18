@@ -316,36 +316,8 @@ class manager:
         #     kernel_filename="uImage",
         #     devtree_filename="devicetree.dtb",
         # )
-
-        log.info("Power cycling")
-        # self.monitor[0].stop_log()
-        # return
-        # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
-        #stop uart logging first
-        try:
-            self.monitor[0].stop_log()
-            self.power.power_cycle_board()
-            log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
-        except Exception as ex:
-            # Try to reinitialize uart and manually boot via u-boot 
-            log.warning("UART is unavailable.")
-            log.warning(str(ex))
-            # wait longer and restart board using jtag
-            time.sleep(60)
-            self.monitor[0].reinitialize_uart()
-            self.monitor[0].start_log(logappend=True)
-            self.jtag.restart_board()
-            log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
-
-
-        if len(results)==1:
-            raise Exception("u-boot not reached")
-        elif not results[1]:
-            raise Exception("u-boot menu cannot boot kernel")
-        elif not results[2]:
-            raise Exception("Linux not fully booting")
+        # power cycle board
+        self.power_cycle_to_boot()
 
         # Check is networking is working
         if self.net.ping_board():
@@ -431,7 +403,8 @@ class manager:
             results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
 
             if len(results)==1:
-                raise Exception("u-boot not reached")
+                # try power cycling again first
+                self.power_cycle_to_boot()
             elif not results[1]:
                 raise Exception("u-boot menu cannot boot kernel")
             elif not results[2]:
@@ -546,6 +519,36 @@ class manager:
                     self.net.check_board_booted()
                 except Exception as ex:
                     raise Exception("Getting board back failed", str(ex))
+
+    def power_cycle_to_boot(self):
+        log.info("Power cycling")
+        # self.monitor[0].stop_log()
+        # return
+        # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
+        #stop uart logging first
+        try:
+            self.monitor[0].stop_log()
+            self.power.power_cycle_board()
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+        except Exception as ex:
+            # Try to reinitialize uart and manually boot via u-boot 
+            log.warning("UART is unavailable.")
+            log.warning(str(ex))
+            # wait longer and restart board using jtag
+            time.sleep(60)
+            self.monitor[0].reinitialize_uart()
+            self.monitor[0].start_log(logappend=True)
+            self.jtag.restart_board()
+            log.info("Waiting for boot to complete")
+            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+
+        if len(results)==1:
+            raise Exception("u-boot not reached")
+        elif not results[1]:
+            raise Exception("u-boot menu cannot boot kernel")
+        elif not results[2]:
+            raise Exception("Linux not fully booting")
 
     def run_test(self):
         # Move BOOT.BIN, kernel and devtree to target location
