@@ -255,6 +255,7 @@ class manager:
                             raise ne.NetworkNotFunctionalAfterBootFileUpdate
                         else:
                             # Update config file
+                            self.net.dutip = ip
                             self.help.update_yaml(
                                 self.configfilename,
                                 "network-config",
@@ -337,6 +338,7 @@ class manager:
                     self.monitor[0].stop_log()
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
                 else:
+                    self.net.dutip = ip
                     # Update config file
                     self.help.update_yaml(
                         self.configfilename,
@@ -455,6 +457,7 @@ class manager:
                     self.monitor[0].stop_log()
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
                 else:
+                    self.net.dutip = ip
                     # Update config file
                     self.help.update_yaml(
                         self.configfilename,
