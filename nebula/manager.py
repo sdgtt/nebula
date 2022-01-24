@@ -245,7 +245,7 @@ class manager:
                 log.info("Linux fully booted")
 
                 # Check is networking is working
-                if self.net.ping_board():
+                if not self.net.ping_board():
                     ip = self.monitor[0].get_ip_address()
                     if not ip:
                         self.monitor[0].request_ip_dhcp()
@@ -321,7 +321,7 @@ class manager:
         self.power_cycle_to_boot()
 
         # Check is networking is working
-        if self.net.ping_board():
+        if not self.net.ping_board():
             ip = self.monitor[0].get_ip_address()
             if ip != self.net.dutip:
                 log.info("DUT IP changed to: " + str(ip))
@@ -448,7 +448,7 @@ class manager:
             time.sleep(60)
 
         # Check is networking is working
-        if self.net.ping_board():
+        if not self.net.ping_board():
             ip = self.monitor[0].get_ip_address()
             if not ip:
                 self.monitor[0].request_ip_dhcp()
