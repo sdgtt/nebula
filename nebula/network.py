@@ -53,6 +53,7 @@ class network(utils):
             return: True non-zero received, False zero received
         """
         log.info("Checking for board through ping")
+        out=""
         for p in range(tries):
             try:
                 ping = subprocess.Popen(
@@ -67,8 +68,8 @@ class network(utils):
                 if p>=(tries-1):
                     raise Exception("Ping creation sfailed")
                 time.sleep(3)
-            if "0 received" not in str(out):
-                return False
+        if "0 received" in str(out):
+            return False
         return True
 
     def check_ssh(self):
