@@ -39,7 +39,7 @@ def convert_address_to_tty(address):
     context = pyudev.Context()
     tty=pyudev.Devices.from_device_file(context, address)
     if tty:
-        return tty
+        return tty.get('DEVNAME')
     else:
         return False
 
