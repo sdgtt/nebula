@@ -290,8 +290,8 @@ class downloader(utils):
             log.info("Getting support files")
             self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, output, url_template)
 
-        if source == "artifactory":
-            get_gitsha(self.url, daily=True, hdl=True)
+        # if source == "artifactory":
+        #     get_gitsha(self.url, daily=True, hdl=True)
 
     def _get_files_linux(
         self, design_name, source, source_root, branch, kernel, kernel_root, dt, arch, microblaze=False
