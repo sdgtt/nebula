@@ -212,6 +212,7 @@ class downloader(utils):
         url = gen_url(ip, branch, folder, filename, addl,  url_template)
         self.url = url
         filename = os.path.join(dest, filename)
+        log.info("URL: "+url)
         self.download(url, filename)
 
         if bool(re.search("linux", url)) and bool(re.search(".dtb", url)):
@@ -237,7 +238,7 @@ class downloader(utils):
 
         log.info("Getting standard boot files")
         # Get kernel
-        log.info("Getting", kernel)
+        log.info("Getting "+kernel)
         self._get_file(kernel, source, kernel_root, source_root, branch, url_template=url_template)
             
         if boot_subfolder is not None:
@@ -252,7 +253,7 @@ class downloader(utils):
         self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, url_template=url_template)
         
         # Get device tree
-        log.info("Getting", dt)
+        log.info("Getting "+dt)
         if devicetree_subfolder is not None:
             design_source_root = reference_boot_folder +"/"+ devicetree_subfolder
         else:
@@ -290,8 +291,8 @@ class downloader(utils):
             log.info("Getting support files")
             self._get_file("bootgen_sysfiles.tgz", source, design_source_root, source_root, branch, output, url_template)
 
-        # if source == "artifactory":
-        #     get_gitsha(self.url, daily=True, hdl=True)
+        if source == "artifactory":
+            get_gitsha(self.url, daily=True, hdl=True)
 
     def _get_files_linux(
         self, design_name, source, source_root, branch, kernel, kernel_root, dt, arch, microblaze=False
@@ -313,13 +314,12 @@ class downloader(utils):
             self._get_file(simpleimage, source, design_source_root, source_root, branch, url_template=url_template)
         else:
             #Get files from linux folder
-            log.info("Getting standard boot files")
             # Get kernel
-            log.info("Getting", kernel)
+            log.info("Getting "+ kernel)
             self._get_file(kernel, source, design_source_root, source_root, branch, url_template=url_template)
             # Get device tree
-            log.info("Getting", dt)
             dt_dl = design_name + ".dtb"
+            log.info("Getting "+ dt_dl)
             design_source_root = arch
             self._get_file(dt_dl, source, design_source_root, source_root, branch, url_template=url_template)
         
@@ -345,17 +345,17 @@ class downloader(utils):
 
         url_template = url_template.format(source_root, branch, "{}/{}/{}")
         addl = "adi_"+soc+"_defconfig"
-        log.info("Getting overlay")      
         if "dtbo" not in overlay:
             overlay = overlay + ".dtbo"
         overlay_f = "overlays/"+ overlay
+        log.info("Getting overlay "+ overlay)
         url=url_template.format(build_date, addl, overlay_f)
         file = os.path.join(dest, overlay)
         self.download(url, file)
             
-        log.info("Get kernel")
         if "img" not in kernel:
             kernel=kernel+".img"
+        log.info("Get kernel "+ kernel)
         url=url_template.format(build_date, addl, kernel)
         file = os.path.join(dest, kernel)
         self.download(url, file)
