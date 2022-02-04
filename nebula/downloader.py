@@ -83,7 +83,7 @@ def get_gitsha(url, daily=False, linux=False, hdl=False):
     with open(file, "a+") as f:
         path = ArtifactoryPath(str(url))
         props = path.properties
-        exp = "20[1-2][9,0,1]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
+        exp = "20[1-2][0-9]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
         if not daily:
             bootpartition = {"bootpartition_folder": re.findall(exp, url)[0], "linux_git_sha": props["linux_git_sha"][0], "hdl_git_sha": props["hdl_git_sha"][0]}
             yaml.dump(bootpartition, f)
