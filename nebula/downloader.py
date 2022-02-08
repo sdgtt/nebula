@@ -65,8 +65,8 @@ def get_newest_folder(links):
     dates.sort(key=lambda date: convert_to_datetime(date))
 
     n = 0
-    content = {"hdl": 65, "linux": 4, "bootpartition": 75}
-    for k, v in content.items():
+    l = {"hdl_output":130, "boot_files":65, "linux":4, "bootpartition":75}
+    for k,v in l.items():
         if re.search(k, links[-1]):
             n = v
 
