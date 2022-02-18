@@ -595,7 +595,20 @@ def get_mezzanine(
     except Exception as ex:
         print(ex)
 
-
+@task(
+    help={
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
+        + " if no yaml file exists and no address provided auto is used",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "period": "Waiting time in seconds"
+    },
+)
+def get_uart_log(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, period=120):
+    """ Read UART boot message on no-OS builds. """
+    u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name, period=period)
+    u.get_uart_boot_message()
+    
 @task(
     help={
         "nic": "Network interface name to set. Default is eth0",
