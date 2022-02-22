@@ -341,25 +341,24 @@ class downloader(utils):
             self.download(url, file)
             #get_gitsha(self.url, daily=False)    
 
-        url_template = url_template.format(source_root, branch, "{}/{}/{}")
-        addl = "adi_"+soc+"_defconfig"
+        url_template = url_template.format(source_root, branch, "{}/{}")
         if "dtbo" not in overlay:
             overlay = overlay + ".dtbo"
         overlay_f = "overlays/"+ overlay
         log.info("Getting overlay "+ overlay)
-        url=url_template.format(build_date, addl, overlay_f)
+        url=url_template.format(build_date, overlay_f)
         file = os.path.join(dest, overlay)
         self.download(url, file)
             
         if "img" not in kernel:
             kernel=kernel+".img"
         log.info("Get kernel "+ kernel)
-        url=url_template.format(build_date, addl, kernel)
+        url=url_template.format(build_date, kernel)
         file = os.path.join(dest, kernel)
         self.download(url, file)
 
     def _get_files(
-        self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, hdl_folder, details, source, source_root, branch, soc, overlay, rpi_kernel, folder=None, 
+        self, design_name, reference_boot_folder, devicetree_subfolder, boot_subfolder, hdl_folder, details, source, source_root, branch, overlay, rpi_kernel, folder=None, 
         firmware=False, noos=False, microblaze=False, rpi=False
     ):
         kernel = False
@@ -413,7 +412,7 @@ class downloader(utils):
                 self._get_files_linux(design_name, source, source_root, branch, kernel, kernel_root, dt, arch, microblaze)
             
             if rpi:
-                self._get_files_rpi(source, source_root, branch, kernel, soc, overlay)
+                self._get_files_rpi(source, source_root, branch, kernel, overlay)
             
             if folder:
                 if folder == "boot_partition":
@@ -467,7 +466,6 @@ class downloader(utils):
         devicetree_subfolder = self.devicetree_subfolder
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
-        soc = self.soc
         overlay = self.overlay
         rpi_kernel = self.kernel
 
@@ -514,7 +512,6 @@ class downloader(utils):
             source,
             source_root,
             branch,
-            soc,
             overlay,
             rpi_kernel,
             folder,
