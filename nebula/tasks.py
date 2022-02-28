@@ -837,6 +837,7 @@ uart.add_task(set_dhcp)
 uart.add_task(set_static_ip)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
+uart.add_task(get_uart_log)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
 uart.add_task(set_local_nic_ip_from_usbdev)
 
