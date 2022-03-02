@@ -147,6 +147,38 @@ class manager:
         ref = ref + '/' + str(target)
         self.monitor[0].copy_reference(ref, target)
 
+    def network_check(self):
+        if not self.net.ping_board():
+            ip = self.monitor[0].get_ip_address()
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+                # Update config file
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
+                )
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+                if not ip:
+                    self.monitor[0].stop_log()
+                    raise ne.NetworkNotFunctionalAfterBootFileUpdate
+                else:
+                    self.net.dutip = ip
+                    # Update config file
+                    self.help.update_yaml(
+                        self.configfilename,
+                        "network-config",
+                        "dutip",
+                        ip,
+                        self.board_name,
+                    )
+        
+        # Check SSH
+        if self.net.check_ssh():
+            self.monitor[0].stop_log()
+            raise ne.SSHNotFunctionalAfterBootFileUpdate
 
     @_release_thread_lock
     def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
@@ -245,29 +277,7 @@ class manager:
                 log.info("Linux fully booted")
 
                 # Check is networking is working
-                if not self.net.ping_board():
-                    ip = self.monitor[0].get_ip_address()
-                    if not ip:
-                        self.monitor[0].request_ip_dhcp()
-                        ip = self.monitor[0].get_ip_address()
-                        if not ip:
-                            self.monitor[0].stop_log()
-                            raise ne.NetworkNotFunctionalAfterBootFileUpdate
-                        else:
-                            # Update config file
-                            self.net.dutip = ip
-                            self.help.update_yaml(
-                                self.configfilename,
-                                "network-config",
-                                "dutip",
-                                ip,
-                                self.board_name,
-                            )
-
-                # Check SSH
-                if self.net.check_ssh():
-                    self.monitor[0].stop_log()
-                    raise ne.SSHNotFunctionalAfterBootFileUpdate
+                self.network_check()
 
                 print("Home sweet home")
                 self.monitor[0].stop_log()
@@ -321,37 +331,7 @@ class manager:
         self.power_cycle_to_boot()
 
         # Check is networking is working
-        if not self.net.ping_board():
-            ip = self.monitor[0].get_ip_address()
-            if ip != self.net.dutip:
-                log.info("DUT IP changed to: " + str(ip))
-                self.net.dutip = ip
-                self.driver.uri = "ip:" + ip
-                # Update config file
-                self.help.update_yaml(
-                    self.configfilename, "network-config", "dutip", ip, self.board_name
-                )
-            if not ip:
-                self.monitor[0].request_ip_dhcp()
-                ip = self.monitor[0].get_ip_address()
-                if not ip:
-                    self.monitor[0].stop_log()
-                    raise ne.NetworkNotFunctionalAfterBootFileUpdate
-                else:
-                    self.net.dutip = ip
-                    # Update config file
-                    self.help.update_yaml(
-                        self.configfilename,
-                        "network-config",
-                        "dutip",
-                        ip,
-                        self.board_name,
-                    )
-
-        # Check SSH
-        if self.net.check_ssh():
-            self.monitor[0].stop_log()
-            raise ne.SSHNotFunctionalAfterBootFileUpdate
+        self.network_check()
 
         self.monitor[0].stop_log()
 
@@ -448,29 +428,7 @@ class manager:
             time.sleep(60)
 
         # Check is networking is working
-        if not self.net.ping_board():
-            ip = self.monitor[0].get_ip_address()
-            if not ip:
-                self.monitor[0].request_ip_dhcp()
-                ip = self.monitor[0].get_ip_address()
-                if not ip:
-                    self.monitor[0].stop_log()
-                    raise ne.NetworkNotFunctionalAfterBootFileUpdate
-                else:
-                    self.net.dutip = ip
-                    # Update config file
-                    self.help.update_yaml(
-                        self.configfilename,
-                        "network-config",
-                        "dutip",
-                        ip,
-                        self.board_name,
-                    )
-
-        # Check SSH
-        if self.net.check_ssh():
-            self.monitor[0].stop_log()
-            raise ne.SSHNotFunctionalAfterBootFileUpdate
+        self.network_check()
 
         print("Home sweet home")
         self.monitor[0].stop_log()
