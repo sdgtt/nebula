@@ -1,0 +1,23 @@
+name: Nebula non-HW Test
+
+on: [push, pull_request]
+
+jobs:
+  Test:
+    runs-on: ubuntu-latest #change to self runner
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python setup.py install
+
+      - name: non-HW Test
+        run: pytest tests/test_downloader.py tests/test_cli.py -s -v
