@@ -3,7 +3,7 @@ name: Nebula non-HW Test
 on: [push, pull_request]
 
 jobs:
-  Test:
+  non-HW Test:
     runs-on: ubuntu-latest #change to self-hosted runner
 
     steps:
@@ -11,7 +11,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: '3.7'
+          python-version: '3.8'
 
       - name: Install dependencies
         run: |
