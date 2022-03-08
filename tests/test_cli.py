@@ -1,3 +1,5 @@
+import cmd
+#from msilib.schema import Billboard
 import os
 import shutil
 
@@ -7,30 +9,65 @@ from nebula import pdu
 import time
 from fabric import Connection as con
 
+#must include -s
+
+@pytest.fixture(autouse=True)
+def test_downloader():
+    if os.path.isdir("outs"):
+        shutil.rmtree("outs")
+    yield 
+    if os.path.isdir("outs"):
+        shutil.rmtree("outs")
 
 @pytest.mark.dependency()
 def test_cli_help():
-
-    config = "/etc/default/nebula"
-    config = "/etc/nebula/nebula-zynq-adrv9361-z7035-fmc.yaml"
-
     c = con("localhost")
     o = c.local("nebula --help")
     s = "Usage: nebula [--core-opts] <subcommand> [--subcommand-opts] ..."
     assert s in o.stdout
 
-
-@pytest.mark.dependency()
-def test_cli_get_ip():
-
-    config = "/etc/default/nebula"
-    config = "/etc/nebula/nebula-zynq-adrv9361-z7035-fmc.yaml"
-    assert os.path.isfile(config), "Configuration file not found"
-
+def test_update_config():
+    config = os.path.join("nebula_config", "nebula.yaml")
+    board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
-    o = c.local("nebula uart.get-ip -y" + config)
-    s = "192.168.86.35"
+    o = c.local("nebula update-config board-config no-os-project --yamlfilename=" +config+" --board-name=" +board)
+    s = "ad9361"
     assert s in o.stdout
+
+def test_dl_bootfiles():
+    config = os.path.join("nebula_config", "nebula.yaml")
+    board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
+    branch = "release"
+    file = "noos"
+    source_root = "artifactory.analog.com"
+    source = "artifactory"
+    c = con("localhost")
+    cmd = "nebula dl.bootfiles --board-name=" + board + " --source-root="+source_root+ " --source=" +source+" --yamlfilename=" + config+ " --branch=" +branch+" --filetype=" +file
+    print(cmd)
+    o = c.local(cmd)
+    assert os.path.isfile("outs/system_top.hdf")
+
+def test_show_log():
+    config = os.path.join("nebula_config", "nebula.yaml")
+    board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
+    c = con("localhost")
+    o = c.local("nebula show-log update-config board-config no-os-project --yamlfilename=" +config+" --board-name=" +board)
+    #print(o)
+    s = "INFO"
+    assert s in o.stderr
+
+#need to update nebulaconfig to whatever is deployed
+# @pytest.mark.dependency()
+# def test_cli_get_ip():
+
+#     config = "/etc/default/nebula"
+#     config = "/etc/nebula/nebula-zynq-adrv9361-z7035-fmc.yaml"
+#     assert os.path.isfile(config), "Configuration file not found"
+
+#     c = con("localhost")
+#     o = c.local("nebula uart.get-ip -y" + config)
+#     s = "192.168.86.35"
+#     assert s in o.stdout
 
 
 #
