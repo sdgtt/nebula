@@ -1,0 +1,31 @@
+name: Nebula non-HW Test
+
+on: [push, pull_request]
+
+jobs:
+  non-HW-Test:
+    runs-on: ubuntu-latest #change to self-hosted runner
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          pip install setuptools wheel twine
+
+      - name: Install nebula
+        run: |
+          python setup.py build
+          python setup.py install
+          python -c "import nebula"
+
+      - name: non-HW Test
+        run: |
+          cd tests
+          pytest test_downloader.py test_cli.py -s -v
