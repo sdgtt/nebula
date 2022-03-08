@@ -20,7 +20,10 @@ jobs:
           pip install setuptools wheel twine
 
       - name: Install nebula
-        run: python setup.py sdist bdist_wheel
+        run: |
+          python setup.py build
+          python setup.py install
+          python -c "import nebula"
 
       - name: non-HW Test
         run: pytest tests/test_downloader.py tests/test_cli.py -s -v
