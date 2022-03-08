@@ -26,4 +26,6 @@ jobs:
           python -c "import nebula"
 
       - name: non-HW Test
-        run: pytest tests/test_downloader.py tests/test_cli.py -s -v
+        run: |
+          cd tests
+          pytest test_downloader.py test_cli.py -s -v
