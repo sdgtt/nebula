@@ -3,7 +3,7 @@ name: Nebula non-HW Test
 on: [push, pull_request]
 
 jobs:
-  non-HW Test:
+  non-HW-Test:
     runs-on: ubuntu-latest #change to self-hosted runner
 
     steps:
