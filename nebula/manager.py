@@ -386,9 +386,9 @@ class manager:
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
         """ Manager when UART, PDU, and Network are available """
-        self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
-        )
+        # self._check_files_exist(
+        #     system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        # )
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -498,6 +498,91 @@ class manager:
 
         print("Home sweet home")
         self.monitor[0].stop_log()
+
+    @_release_thread_lock
+    def wait_for_boot(self):
+        """ Manager when UART, PDU, and Network are available """
+        # try:
+        # Flush UART
+        self.monitor[0]._read_until_stop()  # Flush
+        self.monitor[0].start_log(logappend=True)
+        # Update board over SSH and reboot
+        # log.info("Update board over SSH and reboot")
+        # self.net.update_boot_partition(
+        #     bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
+        # )
+        log.info("Waiting for reboot to complete")
+
+        # Verify uboot anad linux are reached
+        results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+
+        if len(results)==1:
+            raise Exception("u-boot not reached")
+        elif not results[1]:
+            raise Exception("u-boot menu cannot boot kernel")
+        elif not results[2]:
+            raise Exception("Linux not fully booting")
+
+        log.info("Linux fully booted")
+
+        # except (ne.LinuxNotReached, ne.SSHError, TimeoutError):
+        #     # Power cycle
+        #     log.info("SSH reboot failed again after power cycling")
+        #     log.info("Forcing UART override on reset")
+        #     if self.jtag_use:
+        #         log.info("Reseting with JTAG")
+        #         self.jtag.restart_board()
+        #     else:
+        #         log.info("Power cycling")
+        #         self.power.power_cycle_board()
+
+        #     # Enter u-boot menu
+        #     self.monitor[0]._enter_uboot_menu_from_power_cycle()
+
+        #     if self.tftp:
+        #         # Move files to correct position for TFTP
+        #         # self.monitor[0].load_system_uart_from_tftp()
+
+        #         # Load boot files over tftp
+        #         self.monitor[0].load_system_uart_from_tftp()
+
+        #     else:
+        #         # Load boot files
+        #         self.monitor[0].load_system_uart(
+        #             system_top_bit_filename=system_top_bit_path,
+        #             kernel_filename=uimagepath,
+        #             devtree_filename=devtreepath,
+        #         )
+        #     # NEED A CHECK HERE OR SOMETHING
+        #     log.info("Waiting for boot to complete")
+        #     time.sleep(60)
+
+        # Check is networking is working
+        # if self.net.ping_board():
+        #     ip = self.monitor[0].get_ip_address()
+        #     if not ip:
+        #         self.monitor[0].request_ip_dhcp()
+        #         ip = self.monitor[0].get_ip_address()
+        #         if not ip:
+        #             self.monitor[0].stop_log()
+        #             raise ne.NetworkNotFunctionalAfterBootFileUpdate
+        #         else:
+        #             # Update config file
+        #             self.help.update_yaml(
+        #                 self.configfilename,
+        #                 "network-config",
+        #                 "dutip",
+        #                 ip,
+        #                 self.board_name,
+        #             )
+
+        # Check SSH
+        # if self.net.check_ssh():
+        #     self.monitor[0].stop_log()
+        #     raise ne.SSHNotFunctionalAfterBootFileUpdate
+
+        # print("Home sweet home")
+        # self.monitor[0].stop_log()
 
     def board_reboot(self):
         # Try to reboot over SSH first

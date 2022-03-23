@@ -13,4 +13,4 @@ beautifulsoup4
 requests
 pygithub
 pynetbox
-artifactory
+# artifactory

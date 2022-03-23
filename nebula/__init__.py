@@ -12,7 +12,7 @@ from nebula.driver import driver
 from nebula.builder import builder
 from nebula.common import utils
 from nebula.helper import helper
-from nebula.downloader import downloader
+# from nebula.downloader import downloader
 from nebula.coverage import coverage
 from nebula.jtag import jtag
 from nebula.usbdev import usbdev
