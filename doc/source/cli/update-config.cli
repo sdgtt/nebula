@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] update-config [--options] [other tasks here ...]
 
 Docstring:
-  Update or read field of existing yaml config file 
+  Update or read field of existing yaml config file
 
 Options:
   -b STRING, --board-name=STRING
@@ -11,4 +11,3 @@ Options:
                                      only printed
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      OS_SPECIFIC
-

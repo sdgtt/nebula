@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] uart.get-mezzanine [--options] [other tasks here ...]
 
 Docstring:
-  Get Mezzanine (FMC) name of DUT from UART connection 
+  Get Mezzanine (FMC) name of DUT from UART connection
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a
@@ -11,4 +11,3 @@ Options:
   -b STRING, --board-name=STRING
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-

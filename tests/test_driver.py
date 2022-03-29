@@ -4,7 +4,6 @@ import shutil
 import pytest
 from nebula import driver
 
-
 # def remove_file(files):
 #     for file in files:
 #         if os.path.isfile(file):

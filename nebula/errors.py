@@ -46,6 +46,7 @@ class MultiDevFound(Error):
 
     pass
 
+
 class SSHError(Error):
     """ SSH transaction failed """
 
