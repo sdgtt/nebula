@@ -1,12 +1,13 @@
-import yaml
-import os
-import pathlib
-import netifaces
 import glob
 import logging
+import os
+import pathlib
+
 import click
-from nebula.common import multi_device_check
 import nebula.errors as ne
+import netifaces
+import yaml
+from nebula.common import multi_device_check
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"

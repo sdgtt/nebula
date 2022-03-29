@@ -1,7 +1,8 @@
-import yaml
-import os
-import nebula.errors as ne
 import logging
+import os
+
+import nebula.errors as ne
+import yaml
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"

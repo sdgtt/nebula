@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
+import logging
 import os
 import shutil
 import subprocess
 import time
-import logging
 
 log = logging.getLogger(__name__)
+
 
 class builder:
     vivado_override = None
@@ -16,11 +17,11 @@ class builder:
 
     def shell_out(self, cmd):
         cmd = cmd.split(" ")
-        logging.info("Running command: "+cmd)
+        logging.info("Running command: " + cmd)
         subprocess.run(cmd)
 
     def shell_out2(self, script):
-        logging.info("Running command: "+script)
+        logging.info("Running command: " + script)
         p = subprocess.Popen(script, shell=True, executable="/bin/bash")
         (output, err) = p.communicate()
         # return output.decode("utf-8")
@@ -67,7 +68,7 @@ class builder:
         self.shell_out2(cmd)
 
     def hdl_build(self, dir, project, board):
-        logging.info("Starting HDL build for project: "+project+" board: "+board)
+        logging.info("Starting HDL build for project: " + project + " board: " + board)
         os.chdir(dir)
         vivado = self.add_vivado_path(dir)
         args = "--no-print-directory"

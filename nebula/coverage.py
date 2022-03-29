@@ -1,7 +1,8 @@
-from fabric import Connection
+import os
 import random
 import string
-import os
+
+from fabric import Connection
 
 
 class coverage:

@@ -1,11 +1,9 @@
 import os
 import shutil
+import time
 
 import pytest
-from nebula import uart
-from nebula import pdu
-from nebula import network
-import time
+from nebula import network, pdu, uart
 
 
 def remove_file(files):
