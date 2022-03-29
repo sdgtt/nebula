@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] pdu.power-cycle [--options] [other tasks here ...]
 
 Docstring:
-  Reboot board with PDU 
+  Reboot board with PDU
 
 Options:
   -a STRING, --password=STRING       Password of PDU service (optional)
@@ -14,4 +14,3 @@ Options:
   -u STRING, --username=STRING       Username of PDU service (optional)
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-

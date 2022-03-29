@@ -1,8 +1,7 @@
 Usage: nebula [--core-opts] show-log [--options] [other tasks here ...]
 
 Docstring:
-  Show log for all following tasks 
+  Show log for all following tasks
 
 Options:
   -l STRING, --level=STRING   Set log level. Default is DEBUG
-

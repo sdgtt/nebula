@@ -11,4 +11,3 @@ Options:
                                          to check
   -y STRING, --yamlfilename=STRING       Path to yaml config file. Default:
                                          /etc/default/nebula
-

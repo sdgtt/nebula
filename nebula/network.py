@@ -1,16 +1,16 @@
 import logging
-import subprocess
-import time
-import random
-import string
 import os
 import pathlib
+import random
 import re
+import string
+import subprocess
+import time
 
 import fabric
+import nebula.errors as ne
 from fabric import Connection
 from nebula.common import utils
-import nebula.errors as ne
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class network(utils):
             return: True non-zero received, False zero received
         """
         log.info("Checking for board through ping")
-        out=""
+        out = ""
         for p in range(tries):
             try:
                 ping = subprocess.Popen(
@@ -65,7 +65,7 @@ class network(utils):
                 break
             except:
                 log.error("Ping creation failed")
-                if p>=(tries-1):
+                if p >= (tries - 1):
                     raise Exception("Ping creation sfailed")
                 time.sleep(3)
         if "0 received" in str(out):
@@ -87,9 +87,9 @@ class network(utils):
                 ).run("uname -a", hide=True, timeout=self.ssh_timeout)
                 break
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex))
+                log.warning("Exception raised: " + str(ex))
                 time.sleep(3)
-                if t>=(retries-1):
+                if t >= (retries - 1):
                     raise Exception("SSH Failed")
         return result.failed
 
@@ -129,16 +129,18 @@ class network(utils):
                     raise Exception("PDU reset not implemented yet")
 
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex))
+                log.warning("Exception raised: " + str(ex))
                 time.sleep(3)
-                if t>=(retries-1):
+                if t >= (retries - 1):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
-    
+
     def run_ssh_command(self, command, ignore_exceptions=False):
         retries = 3
-        result=None
+        result = None
         for t in range(retries):
-            log.info("ssh command:" + command +" to "+self.dutusername + "@" + self.dutip)
+            log.info(
+                "ssh command:" + command + " to " + self.dutusername + "@" + self.dutip
+            )
             try:
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
@@ -148,17 +150,17 @@ class network(utils):
                     raise Exception("Failed to run command:", command)
                 break
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex))
+                log.warning("Exception raised: " + str(ex))
                 if not ignore_exceptions:
                     time.sleep(3)
-                    if t>=(retries-1):
+                    if t >= (retries - 1):
                         raise Exception("SSH Failed")
-                
+
         return result
 
     def copy_file_to_remote(self, src, dest):
         retries = 3
-        log.info("Copying file to remote: "+src)
+        log.info("Copying file to remote: " + src)
         for t in range(retries):
             try:
                 Connection(
@@ -166,9 +168,9 @@ class network(utils):
                     connect_kwargs={"password": self.dutpassword},
                 ).put(src, remote=dest)
             except Exception as ex:
-                log.warning("Exception raised: "+str(ex))
+                log.warning("Exception raised: " + str(ex))
                 time.sleep(3)
-                if t>=(retries-1):
+                if t >= (retries - 1):
                     raise ne.SSHError
 
     def update_boot_partition(
@@ -200,7 +202,7 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
-        self.run_ssh_command("sudo reboot",ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """ update_boot_partition_existing_files:
@@ -249,13 +251,17 @@ class network(utils):
         tmp_filename_err = "/tmp/" + tmp_filename_root + "_err"
         tmp_filename_war = "/tmp/" + tmp_filename_root + "_warn"
 
-        if self.board_name == 'pluto':
-            with open(tmp_filename_root, 'w') as outfile:
+        if self.board_name == "pluto":
+            with open(tmp_filename_root, "w") as outfile:
                 outfile.write(self.run_ssh_command("dmesg").stdout)
-            with open(tmp_filename_root + "_warn", 'w') as outfile:
-                outfile.write(self.run_ssh_command('dmesg -r | { grep "^.4" || true; }').stdout)
-            with open(tmp_filename_root + "_err", 'w') as outfile:
-                outfile.write(self.run_ssh_command('dmesg -r | { grep "^.3" || true; }').stdout)
+            with open(tmp_filename_root + "_warn", "w") as outfile:
+                outfile.write(
+                    self.run_ssh_command('dmesg -r | { grep "^.4" || true; }').stdout
+                )
+            with open(tmp_filename_root + "_err", "w") as outfile:
+                outfile.write(
+                    self.run_ssh_command('dmesg -r | { grep "^.3" || true; }').stdout
+                )
         else:
             self.run_ssh_command("dmesg > " + tmp_filename)
             self.run_ssh_command("dmesg -l warn > " + tmp_filename_war)
@@ -281,14 +287,18 @@ class network(utils):
         res = os.path.join(path, "resources", "err_rejects.txt")
         with open(res) as f:
             error_rejects = f.readlines()
-        
-        error_log_filetered = [i for i in error_log if re.sub( r'^\[[\s\.\d]*\] ', '',i) not in error_rejects]
 
-        with open('dmesg_err_filtered.log', 'w') as outfile:
+        error_log_filetered = [
+            i
+            for i in error_log
+            if re.sub(r"^\[[\s\.\d]*\] ", "", i) not in error_rejects
+        ]
+
+        with open("dmesg_err_filtered.log", "w") as outfile:
             if error_log_filetered:
                 for line in error_log_filetered:
                     outfile.write(line)
-  
+
         if len(error_log_filetered) > 0:
             log.info("Errors found in dmesg logs")
 
@@ -302,15 +312,16 @@ class network(utils):
             return:
                 status: 0 if no errors found, 1 otherwise
         """
-        #check if can connect to board
+        # check if can connect to board
         self.check_board_booted()
-        report_file_name = self.board_name + '_diag_report.tar.bz2'
-        #execute adi_diagnostic_report
-        result = self.run_ssh_command("adi_diagnostic_report --file-name {}".\
-                                      format(report_file_name))
+        report_file_name = self.board_name + "_diag_report.tar.bz2"
+        # execute adi_diagnostic_report
+        result = self.run_ssh_command(
+            "adi_diagnostic_report --file-name {}".format(report_file_name)
+        )
         if not result.ok:
             raise Exception("Running diagnostics failed")
 
-        #fetch file
+        # fetch file
         self._dl_file(report_file_name)
         log.info("Diagnostic report {} collected".format(report_file_name))

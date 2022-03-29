@@ -6,4 +6,3 @@ Docstring:
 
 Options:
   -f STRING, --filter=STRING   Required substring in design names
-

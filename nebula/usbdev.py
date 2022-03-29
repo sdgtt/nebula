@@ -1,13 +1,13 @@
+import logging
 import os
 import shutil
 import subprocess
+import tempfile
+import time
 
 # import psutil
 import fabric
 from fabric import Connection
-import logging
-import time
-import tempfile
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +49,7 @@ class usbdev:
                 return False, False
             cmd = "sudo mount -l | grep `sudo blkid -L " + name + "` | grep dev"
             out = self.shell_out2(cmd)
-            log.info("Partition query result: "+out)
+            log.info("Partition query result: " + out)
             out = out.split(" ")
             if len(out) > 1:
                 partition = out[0]
@@ -59,7 +59,9 @@ class usbdev:
                 log.info("Waiting for automount first")
                 time.sleep(15)
             else:
-                log.info("Partition from USB does not appear to be mounted. Trying to mount...")
+                log.info(
+                    "Partition from USB does not appear to be mounted. Trying to mount..."
+                )
                 if do_mount:
                     self._mount_dev(name)
                 partition = False

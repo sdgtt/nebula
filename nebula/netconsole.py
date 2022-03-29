@@ -60,7 +60,9 @@ class netconsole:
                         try:
                             data = sock.recv(self.rxbuff_max)
                             if data:
-                                log.info("Got data of length " + str(len(data)) + " bytes")
+                                log.info(
+                                    "Got data of length " + str(len(data)) + " bytes"
+                                )
                                 file.write(str(data))
                                 if self.print_to_console:
                                     print("OK... " + str(data))

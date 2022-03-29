@@ -1,25 +1,27 @@
-import os
-import ipaddress
-import logging
-import threading
-import time
 import datetime
 import glob
+import ipaddress
+import logging
+import os
 import re
-from tqdm import tqdm
+import threading
+import time
 
 import serial
-from nebula.common import utils
 import xmodem
+from nebula.common import utils
+from tqdm import tqdm
 
 log = logging.getLogger(__name__)
 
 LINUX_SERIAL_FOLDER = "/dev/serial"
 LOG_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
+
 def escape_ansi(line):
-    ansi_escape =re.compile(r'(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]')
-    return ansi_escape.sub('', line)
+    ansi_escape = re.compile(r"(\x9B|\x1B\[)[0-?]*[ -\/]*[@-~]")
+    return ansi_escape.sub("", line)
+
 
 class uart(utils):
     """ UART Interface Handler
@@ -79,7 +81,9 @@ class uart(utils):
         # Automatically set UART address
         if "auto" in self.address.lower():
             self._auto_set_address()
-        self.com = serial.Serial(self.address, self.baudrate, timeout=0.5, write_timeout=5)
+        self.com = serial.Serial(
+            self.address, self.baudrate, timeout=0.5, write_timeout=5
+        )
         self.com.reset_input_buffer()
 
     def __del__(self):
@@ -125,7 +129,7 @@ class uart(utils):
 
     def start_log(self, logappend=False, force=False):
         """ Trigger monitoring with UART interface """
-        if not self.listen_thread_run or force: 
+        if not self.listen_thread_run or force:
             self.listen_thread_run = True
             print("STARTING UART LOG")
             log.info("Launching UART listening thread")
@@ -261,19 +265,21 @@ class uart(utils):
         # cmd = "bootm 0x3000000 0x2000000 0x2a000000"
         self._write_data(cmd)
 
-    def copy_reference(self, reference="BOOT.BIN.ORG",target="BOOT.BIN", done_string = None):
+    def copy_reference(
+        self, reference="BOOT.BIN.ORG", target="BOOT.BIN", done_string=None
+    ):
         """ Using reference files """
         if not done_string:
             done_string = self.uboot_done_string
         if self.listen_thread_run:
-           restart = True
-           self.stop_log()
+            restart = True
+            self.stop_log()
         else:
             restart = False
         cmd = "fatload mmc 0 0x8000000 {}".format(reference)
         self._write_data(cmd)
         self._read_until_done(done_string)
-        cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
+        cmd = "fatwrite mmc 0 0x8000000 " + target + " ${filesize}"
         self._write_data(cmd)
         self._read_until_done(done_string)
         if restart:
@@ -286,22 +292,22 @@ class uart(utils):
         and to SD card
         """
         if self.listen_thread_run:
-           restart = True
-           self.stop_log()
+            restart = True
+            self.stop_log()
         else:
             restart = False
         if "uImage" in str(kernel_filename):
-            filenames = ["BOOT.BIN","uImage","devicetree.dtb"]
+            filenames = ["BOOT.BIN", "uImage", "devicetree.dtb"]
         else:
-            filenames = ["BOOT.BIN","Image","system.dtb"]
+            filenames = ["BOOT.BIN", "Image", "system.dtb"]
         done_string = self.uboot_done_string
         source_fn = [bootbin, kernel_filename, devtree_filename]
         for i, target in enumerate(filenames):
-            log.info("Copying over: "+source_fn[i])
+            log.info("Copying over: " + source_fn[i])
             self._send_file(source_fn[i], "0x8000000")
             self._read_until_done(done_string)
-            log.info("Writing over: "+target)
-            cmd = "fatwrite mmc 0 0x8000000 "+target+" ${filesize}"
+            log.info("Writing over: " + target)
+            cmd = "fatwrite mmc 0 0x8000000 " + target + " ${filesize}"
             self._write_data(cmd)
             self._read_until_done(done_string)
         if restart:
@@ -337,13 +343,13 @@ class uart(utils):
             if isinstance(d, list):
                 for c in d:
                     c = c.replace("\r", "")
-                    if username+"@" in c or "#" in c:
+                    if username + "@" in c or "#" in c:
                         log.info("Logged in success")
                         logged_in = True
         return logged_in
 
     def _check_for_login(self):
-        logged_in=False
+        logged_in = False
         try:
             for _ in range(2):  # Check at least twice
                 cmd = ""
@@ -357,14 +363,14 @@ class uart(utils):
                             log.info(c)
                             if "login:" in c:
                                 needs_login = True
-            
+
             if needs_login:
                 # Do login
-                if self._attemp_login("root","analog"):
+                if self._attemp_login("root", "analog"):
                     return True
                 else:
                     log.info("Attempting to login as analog")
-                    logged_in = self._attemp_login("analog","analog")
+                    logged_in = self._attemp_login("analog", "analog")
             else:
                 return True
         except serial.serialutil.SerialTimeoutException as e:
@@ -424,7 +430,7 @@ class uart(utils):
         for d in data:
             if isinstance(d, list):
                 for c in d:
-                    log.info("command response: "+c)
+                    log.info("command response: " + c)
                     c = c.replace("\r", "")
                     try:
                         if len(findstring) == 0:
@@ -436,7 +442,7 @@ class uart(utils):
                     except:
                         continue
             else:
-                log.info("command response: "+d)
+                log.info("command response: " + d)
                 try:
                     if len(findstring) == 0:
                         if (len(d) > 0) and (d != cmd) and (cmd not in d):
@@ -495,7 +501,7 @@ class uart(utils):
             time.sleep(1)
         return data
 
-    def _read_until_done_multi(self, done_strings=["done","done"], max_time=None):
+    def _read_until_done_multi(self, done_strings=["done", "done"], max_time=None):
         if self.listen_thread_run:
             restart_log = True
             self.stop_log()
@@ -504,45 +510,45 @@ class uart(utils):
         data = []
         mt = max_time or self.max_read_time
         founds = []
-        lastd = ''
+        lastd = ""
         for indx, done_string in enumerate(done_strings):
-            log.info("Looking for: "+done_string)
+            log.info("Looking for: " + done_string)
             for t in range(mt):
                 breakbreak = False
                 data = self._read_until_stop()
                 if isinstance(data, list):
                     for d in data:
-                        d = lastd+d
-                        lastd = ''
+                        d = lastd + d
+                        lastd = ""
                         if done_string in d:
-                            log.info(done_string+" found in data")
+                            log.info(done_string + " found in data")
                             founds.append(True)
-                            if indx == len(done_strings)-1:
+                            if indx == len(done_strings) - 1:
                                 if restart_log:
                                     self.start_log(logappend=True)
                                 return founds
-                            lastd = d[d.find(done_string):]
+                            lastd = d[d.find(done_string) :]
                             breakbreak = True
                             break
                     if breakbreak:
                         break
-                elif done_string in lastd+data:
-                    log.info(done_string+" found in data")
+                elif done_string in lastd + data:
+                    log.info(done_string + " found in data")
                     founds.append(True)
-                    if indx == len(done_strings)-1:
+                    if indx == len(done_strings) - 1:
                         if restart_log:
                             self.start_log(logappend=True)
                         return founds
                     else:
-                        lastd = lastd+data
-                        lastd = lastd[lastd.find(done_string):]
+                        lastd = lastd + data
+                        lastd = lastd[lastd.find(done_string) :]
                         break
                 else:
-                    lastd = ''
+                    lastd = ""
                     log.info("Still waiting")
                 time.sleep(1)
-            if t == mt-1:
-                log.info(done_string+" not found in time")
+            if t == mt - 1:
+                log.info(done_string + " not found in time")
                 if restart_log:
                     self.start_log(logappend=True)
                 founds.append(False)
@@ -551,7 +557,6 @@ class uart(utils):
         #     self.start_log()
         # founds.append(False)
         # return founds
-
 
     def _read_until_done(self, done_string="done", max_time=None):
         if self.listen_thread_run:
@@ -603,7 +608,7 @@ class uart(utils):
                 for c in d:
                     c = c.replace("\r", "")
                     for string in string_list:
-                        log.info("RAW: "+str(c)+" | Looking for: "+string)
+                        log.info("RAW: " + str(c) + " | Looking for: " + string)
                         if string in c:
                             return True
         return False
@@ -623,8 +628,8 @@ class uart(utils):
         log.info("Spamming ENTER to get UART console")
         # stop_at_done = False
         if self.listen_thread_run:
-           restart = True
-           self.stop_log()
+            restart = True
+            self.stop_log()
         else:
             restart = False
         for _ in range(30):
@@ -686,8 +691,8 @@ class uart(utils):
     ):
         """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
         if self.listen_thread_run:
-           restart = True
-           self.stop_log()
+            restart = True
+            self.stop_log()
         else:
             restart = False
         self._send_file(system_top_bit_filename, "0x1000000")

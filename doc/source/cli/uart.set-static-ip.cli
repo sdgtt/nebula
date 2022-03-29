@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] uart.set-static-ip [--options] [other tasks here ...]
 
 Docstring:
-  Set Static IP address of board of DUT from UART connection 
+  Set Static IP address of board of DUT from UART connection
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a
@@ -14,4 +14,3 @@ Options:
                                      eth0
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-
