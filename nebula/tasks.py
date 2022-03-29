@@ -1,10 +1,10 @@
-from invoke import Collection
-from invoke import task
-import nebula
 import logging
-import time
-import yaml
 import os
+import time
+
+import nebula
+import yaml
+from invoke import Collection, task
 
 logging.getLogger().setLevel(logging.WARNING)
 
@@ -267,7 +267,7 @@ def download_boot_files(
     c,
     source="local_fs",
     source_root=None,
-    branch='[boot_partition, master]',
+    branch="[boot_partition, master]",
     yamlfilename="/etc/default/nebula",
     board_name=None,
     firmware=False,
@@ -446,7 +446,8 @@ def update_config(
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def update_boot_files_jtag_manager(c,
+def update_boot_files_jtag_manager(
+    c,
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -454,7 +455,6 @@ def update_boot_files_jtag_manager(c,
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
-
 ):
     """ Update boot files through JTAG (Assuming board is running) """
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -471,7 +471,6 @@ def update_boot_files_jtag_manager(c,
         m.board_reboot_auto_folder(folder, design_name=board_name, jtag_mode=True)
 
 
-
 @task(
     help={
         "system_top_bit_path": "Path to system_top.bit",
@@ -481,7 +480,7 @@ def update_boot_files_jtag_manager(c,
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-        "sdcard": "No arguments required. If set, reference files is obtained from SD card."
+        "sdcard": "No arguments required. If set, reference files is obtained from SD card.",
     },
 )
 def recovery_device_manager(
@@ -507,7 +506,7 @@ def recovery_device_manager(
             recover=True,
         )
     else:
-        m.board_reboot_auto_folder(folder, sdcard, design_name=board_name,recover=True)
+        m.board_reboot_auto_folder(folder, sdcard, design_name=board_name, recover=True)
 
 
 @task(
@@ -905,6 +904,7 @@ def update_boot_files(
         bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
     )
 
+
 @task(
     help={
         "ip": "IP address of board. Default from yaml",
@@ -914,17 +914,14 @@ def update_boot_files(
     }
 )
 def run_diagnostics(
-    c,
-    ip=None,
-    user="root",
-    password="analog",
-    board_name=None,
+    c, ip=None, user="root", password="analog", board_name=None,
 ):
     """ Run adi_diagnostics and fetch result"""
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
     n.run_diagnostics()
+
 
 net = Collection("net")
 net.add_task(restart_board)

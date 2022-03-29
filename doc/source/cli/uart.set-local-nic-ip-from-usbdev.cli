@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] uart.set-local-nic-ip-from-usbdev [--options] [other tasks here ...]
 
 Docstring:
-  Set IP of virtual NIC created from DUT based on found MAC 
+  Set IP of virtual NIC created from DUT based on found MAC
 
 Options:
   -a STRING, --address=STRING        UART device address (/dev/ttyACMO). If a
@@ -11,4 +11,3 @@ Options:
   -b STRING, --board-name=STRING
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-

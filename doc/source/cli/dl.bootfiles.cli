@@ -1,15 +1,15 @@
 Usage: nebula [--core-opts] dl.bootfiles [--options] [other tasks here ...]
 
 Docstring:
-  Download bootfiles for a specific development system 
+  Download bootfiles for a specific development system
 
 Options:
   -a STRING, --board-name=STRING
-  -b STRING, --branch=STRING         Name of branches to get related files. It can 
-                                     be from Linux+HDL folders or from the 
+  -b STRING, --branch=STRING         Name of branches to get related files. It can
+                                     be from Linux+HDL folders or from the
                                      boot partition folder.
                                      For Linx+HDL, enterstring [<linuxbranch>, <hdlbranch>].
-                                     For boot partition, enter [boot_partition, <bootpartitionbranch>]. 
+                                     For boot partition, enter [boot_partition, <bootpartitionbranch>].
                                      This is only used for http and artifactory sources.
                                      Default is [boot_partition, master]
   -f, --firmware                     No arguments required. If set Pluto
@@ -23,4 +23,3 @@ Options:
                                      Default: local_fs
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-

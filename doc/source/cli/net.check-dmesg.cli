@@ -12,4 +12,3 @@ Options:
   -i STRING, --ip=STRING           IP address of board
   -p STRING, --password=STRING     Password for board. Default: analog
   -u STRING, --user=STRING         Board username. Default: root
-

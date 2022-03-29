@@ -1,11 +1,10 @@
 import os
 import shutil
+import time
 
 import pytest
-from nebula import uart
-from nebula import pdu
-import time
 from fabric import Connection as con
+from nebula import pdu, uart
 
 
 @pytest.mark.dependency()

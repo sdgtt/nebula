@@ -7,6 +7,7 @@ Using nebula through a fixture
 
   import nebula
 
+
   @pytest.fixture(scope="session", autouse=True)
   def load_boot_file(request):
       ### Before test
