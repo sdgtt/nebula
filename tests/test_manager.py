@@ -32,4 +32,4 @@ def test_board_reboot_uart_net_pdu():
 
 
 if __name__ == "__main__":
-    board_reboot_uart_net_pdu()
+    test_board_reboot_uart_net_pdu()

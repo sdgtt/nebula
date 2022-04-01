@@ -59,7 +59,7 @@ class manager:
                         except Exception as e:
                             log.info(str(e))
                             log.info(
-                                "Power cycling board and will attemp jtag connection again."
+                                "Power cycling board and will attempt jtag connection again."
                             )
                             self.power.power_cycle_board()
                             time.sleep(60)
@@ -236,7 +236,7 @@ class manager:
                 log.info("SSH reboot failed again after power cycling")
                 log.info("Forcing UART override on reset")
                 if self.jtag_use:
-                    log.info("Reseting with JTAG")
+                    log.info("Resetting with JTAG")
                     self.jtag.restart_board()
                 else:
                     # TODO: consider zed boards which uart closes after a powercycle
@@ -308,13 +308,13 @@ class manager:
         over JTAG. Then over UART boot
         """
         # self.monitor[0].start_log()
-        log.info("Reseting and looking DDR with boot files")
+        log.info("Resetting and looking DDR with boot files")
         # self.jtag.full_boot()
         # Check if u-boot loads first
-        # log.info("Reseting with JTAG and checking if u-boot is reachable")
+        # log.info("Resetting with JTAG and checking if u-boot is reachable")
         # self.jtag.restart_board()
         # do a power cylcle rather than jtag reboot to make sure jtag devices are working
-        log.info("Reseting with JTAG and checking if u-boot is reachable")
+        log.info("Resetting with JTAG and checking if u-boot is reachable")
         self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
@@ -419,7 +419,7 @@ class manager:
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on reset")
             if self.jtag_use:
-                log.info("Reseting with JTAG")
+                log.info("Resetting with JTAG")
                 self.jtag.restart_board()
             else:
                 log.info("Power cycling")
