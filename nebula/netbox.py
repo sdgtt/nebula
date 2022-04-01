@@ -21,6 +21,6 @@ class netbox(utils):
     def get_mac_from_asset_tag(self, asset_tag):
         dev = self.nb.dcim.devices.get(asset_tag=asset_tag)
         if not dev:
-            raise Exception(f"No devices for with asset tage: {asset_tag}")
+            raise Exception(f"No devices for with asset tag: {asset_tag}")
         intf = self.nb.dcim.interfaces.get(device_id=dev.id)
         return intf.mac_address

@@ -60,7 +60,7 @@ class helper:
         """ Update single field of exist config file """
 
         if not os.path.isfile(configfilename):
-            raise Exception("Specificied yaml file does not exist")
+            raise Exception("Specified yaml file does not exist")
         with open(configfilename, "r") as stream:
             configs = yaml.safe_load(stream)
         board_name_request = field == "board-name" and section == "board-config"

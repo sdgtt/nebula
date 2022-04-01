@@ -42,7 +42,7 @@ class PingFailedAfterReboot(Error):
 
 
 class MultiDevFound(Error):
-    """ Multi-device config found. Board name must be specificied """
+    """ Multi-device config found. Board name must be specified """
 
     pass
 
