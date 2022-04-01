@@ -33,7 +33,7 @@ def load_yaml(filename):
 #############################################
 @task(
     help={
-        "vivado_version": "Set vivado version. Defauts to 2019.1",
+        "vivado_version": "Set vivado version. Defaults to 2019.1",
         "custom_vivado_path": "Full path to vivado settings64 file. When set ignores vivado version",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -624,7 +624,7 @@ def set_static_ip(
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "reboot": "Reboot board from linux console to get to u-boot menu. Defaut False",
+        "reboot": "Reboot board from linux console to get to u-boot menu. Default False",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )

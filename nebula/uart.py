@@ -57,7 +57,7 @@ class uart(utils):
         yamlfilename=None,
         board_name=None,
     ):
-        self.com = []  # Preset incase __del__ is called before set
+        self.com = []  # Preset in case __del__ is called before set
         self.tftpserverip = tftpserverip
         self.address = address
         self.fmc = fmc
