@@ -89,4 +89,4 @@ def test_dmesg_read():
 
 
 if __name__ == "__main__":
-    test_adrv9361_fmc_uboot_boot()
+    test_adrv9361_fmc_network_update()

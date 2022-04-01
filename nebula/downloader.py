@@ -266,7 +266,7 @@ class downloader(utils):
             ip = self.http_server_ip
         if not ip:
             raise Exception(
-                "No server IP or domain name specificied. Must be defined in yaml or provided as input"
+                "No server IP or domain name specified. Must be defined in yaml or provided as input"
             )
         url = gen_url(ip, branch, folder, filename, url_template)
         filename = os.path.join(dest, filename)

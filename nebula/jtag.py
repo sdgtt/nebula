@@ -39,7 +39,7 @@ class jtag(utils):
             jtag_connected = self.run_xsdb(cmd)
             if jtag_connected:
                 log.info(
-                    "JTAG {} connection attempt succesful".format(self.jtag_cable_id)
+                    "JTAG {} connection attempt successful".format(self.jtag_cable_id)
                 )
                 break
             log.warning(

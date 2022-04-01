@@ -12,7 +12,7 @@ Options:
   -b STRING, --board-name=STRING
   -d STRING, --devtreepath=STRING               Path to devicetree.
   -r, --reboot                                  Reboot board from linux console
-                                                to get to u-boot menu. Defaut
+                                                to get to u-boot menu. Default
                                                 False
   -s STRING, --system-top-bit-filename=STRING
   -u STRING, --uimagepath=STRING                Path to kernel image.
