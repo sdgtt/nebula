@@ -4,7 +4,7 @@ from nebula.common import utils
 
 try:
     import iio
-except:
+except ImportError:
     print(
         "--WARNING: IIO bindings not on-path, libIIO dependent operations will not work"
     )
@@ -28,8 +28,8 @@ class driver(utils):
         pass
 
     def check_iio_devices(self):
-        """ Verify all IIO drivers appear on system as expected.
-            Exception is raised otherwise
+        """Verify all IIO drivers appear on system as expected.
+        Exception is raised otherwise
         """
         log.info("Checking uri: " + self.uri)
         ctx = iio.Context(self.uri)

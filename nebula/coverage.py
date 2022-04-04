@@ -6,12 +6,15 @@ from fabric import Connection
 
 
 class coverage:
-    """ Test coverage management """
+    """Test coverage management"""
 
     def __init__(self, address="192.168.86.33", username="root", password="analog"):
         self.address = address
         self.conn = Connection(
-            "{username}@{ip}".format(username=username, ip=address,),
+            "{username}@{ip}".format(
+                username=username,
+                ip=address,
+            ),
             connect_kwargs={"password": password},
         )
         self.unpacked = None
@@ -29,18 +32,24 @@ class coverage:
         print(result.stdout)
 
     def collect_gcov_trackers(self):
-        """ Collect gcov traces from remote board """
+        """Collect gcov traces from remote board"""
         tmp_folder = "".join(random.choice(string.ascii_lowercase) for i in range(16))
         tmp_folder = "/tmp/" + tmp_folder
         GCDA = "/sys/kernel/debug/gcov"
-        cmd = "find " + GCDA + " -type d -exec mkdir -p " + tmp_folder + "/\{\} \;"
+        cmd = (
+            "find "
+            + GCDA
+            + " -type d -exec mkdir -p "
+            + tmp_folder
+            + "/\{\} \;"  # noqa: W605
+        )
         self._crun(cmd)
         cmd = (
             "find "
             + GCDA
             + " -name '*.gcda' -exec sh -c 'cat < $0 > '"
             + tmp_folder
-            + "'/$0' {} \;"
+            + "'/$0' {} \;"  # noqa: W605
         )
         self._crun(cmd)
         cmd = (
@@ -48,7 +57,7 @@ class coverage:
             + GCDA
             + " -name '*.gcno' -exec sh -c 'cp -d $0 '"
             + tmp_folder
-            + "'/$0' {} \;"
+            + "'/$0' {} \;"  # noqa: W605
         )
         self._crun(cmd)
         dest = (
@@ -65,7 +74,7 @@ class coverage:
         self._lrun("rm " + dest)
 
     def gen_lcov_html_report(self, linux_build_dir):
-        """ Generate lcov report from linux build dir and gcov traces """
+        """Generate lcov report from linux build dir and gcov traces"""
         report = os.getcwd() + "/report"
         cmd = "lcov -b " + linux_build_dir + " -c -d " + self.unpacked + " > " + report
         self._lrun(cmd)

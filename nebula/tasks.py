@@ -178,8 +178,7 @@ def jtag_reboot(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Reboot board using JTAG
-    """
+    """Reboot board using JTAG"""
     j = nebula.jtag(
         vivado_version=vivado_version,
         custom_vivado_path=custom_vivado_path,
@@ -192,17 +191,20 @@ def jtag_reboot(
 jtag = Collection("jtag")
 jtag.add_task(jtag_reboot, "reboot")
 
+
 #############################################
-@task(help={"filter": "Required substring in design names"},)
+@task(
+    help={"filter": "Required substring in design names"},
+)
 def supported_boards(c, filter=None):
-    """ Print out list of supported design names
-    """
+    """Print out list of supported design names"""
     h = nebula.helper()
     h.list_supported_boards(filter)
 
 
 info = Collection("info")
 info.add_task(supported_boards, "supported_boards")
+
 
 #############################################
 @task(
@@ -214,10 +216,14 @@ info.add_task(supported_boards, "supported_boards")
     },
 )
 def check_iio_devices(
-    c, uri, iio_device_names=None, yamlfilename="/etc/default/nebula", board_name=None,
+    c,
+    uri,
+    iio_device_names=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
 ):
-    """ Verify all IIO drivers appear on system as expected.
-        Exception is raised otherwise
+    """Verify all IIO drivers appear on system as expected.
+    Exception is raised otherwise
     """
     d = nebula.driver(yamlfilename=yamlfilename, uri=uri, board_name=board_name)
     d.check_iio_devices()
@@ -225,6 +231,7 @@ def check_iio_devices(
 
 driver = Collection("driver")
 driver.add_task(check_iio_devices, "check_iio_devices")
+
 
 #############################################
 @task(
@@ -236,7 +243,7 @@ driver.add_task(check_iio_devices, "check_iio_devices")
     },
 )
 def kernel_cov(c, ip, linux_build_dir, username="root", password="analog"):
-    """ Collect DUT gcov kernel logs and generate html report (Requires lcov to be installed locally) """
+    """Collect DUT gcov kernel logs and generate html report (Requires lcov to be installed locally)"""
     cov = nebula.coverage(ip, username, password)
     cov.collect_gcov_trackers()
     cov.gen_lcov_html_report(linux_build_dir)
@@ -247,9 +254,13 @@ cov.add_task(kernel_cov, "kernel")
 
 
 #############################################
-@task(help={"release": "Name of release to download. Default is 2019_R1",},)
+@task(
+    help={
+        "release": "Name of release to download. Default is 2019_R1",
+    },
+)
 def download_sdcard(c, release="2019_R1"):
-    """ Download, verify, and decompress SD card image """
+    """Download, verify, and decompress SD card image"""
     d = nebula.downloader()
     d.download_sdcard_release(release)
 
@@ -273,7 +284,7 @@ def download_boot_files(
     board_name=None,
     firmware=False,
 ):
-    """ Download bootfiles for a specific development system """
+    """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
     d.download_boot_files(board_name, source, source_root, branch, firmware)
 
@@ -305,18 +316,24 @@ def repo(
     githuborg="analogdevicesinc",
     vivado_version=None,
 ):
-    """ Clone and build git project """
+    """Clone and build git project"""
     if vivado_version == "Inherit":
         vivado_version = None
     p = nebula.builder()
     p.vivado_override = vivado_version
     p.analog_clone_build(
-        repo, branch, project, board, def_config, githuborg,
+        repo,
+        branch,
+        project,
+        board,
+        def_config,
+        githuborg,
     )
 
 
 builder = Collection("build")
 builder.add_task(repo)
+
 
 #############################################
 @task(
@@ -340,7 +357,7 @@ def power_cycle(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Reboot board with PDU """
+    """Reboot board with PDU"""
     p = nebula.pdu(
         pdu_type=pdutype,
         pduip=pduip,
@@ -400,10 +417,11 @@ pdu = Collection("pdu")
 pdu.add_task(power_cycle)
 pdu.add_task(power_onoff)
 
+
 #############################################
 @task()
 def gen_config(c):
-    """ Generate YAML configuration interactively """
+    """Generate YAML configuration interactively"""
     try:
         h = nebula.helper()
         h.create_config_interactive()
@@ -424,7 +442,7 @@ def gen_config(c):
 def update_config(
     c, section, field, value=None, yamlfilename=DEFAULT_NEBULA_CONFIG, board_name=None
 ):
-    """ Update or read field of existing yaml config file """
+    """Update or read field of existing yaml config file"""
     h = nebula.helper()
     h.update_yaml(
         configfilename=yamlfilename,
@@ -457,7 +475,7 @@ def update_boot_files_jtag_manager(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Update boot files through JTAG (Assuming board is running) """
+    """Update boot files through JTAG (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
     # m.board_reboot_jtag_uart()
 
@@ -495,7 +513,7 @@ def recovery_device_manager(
     board_name=None,
     sdcard=False,
 ):
-    """ Recover device through many methods (Assuming board is running) """
+    """Recover device through many methods (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
 
     if not folder:
@@ -531,7 +549,7 @@ def update_boot_files_manager(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Update boot files through u-boot menu (Assuming board is running) """
+    """Update boot files through u-boot menu (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
 
     if not folder:
@@ -550,6 +568,7 @@ manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 
+
 #############################################
 @task(
     help={
@@ -562,7 +581,7 @@ manager.add_task(recovery_device_manager, name="recovery_device_manager")
 def restart_board_uart(
     c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
 ):
-    """ Reboot DUT from UART connection assuming Linux is accessible"""
+    """Reboot DUT from UART connection assuming Linux is accessible"""
     try:
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -590,7 +609,7 @@ def restart_board_uart(
     },
 )
 def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None):
-    """ Get IP of DUT from UART connection """
+    """Get IP of DUT from UART connection"""
     #     try:
     # YAML will override
     u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name)
@@ -618,11 +637,11 @@ def get_ip(c, address="auto", yamlfilename="/etc/default/nebula", board_name=Non
 def set_local_nic_ip_from_usbdev(
     c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
 ):
-    """ Set IP of virtual NIC created from DUT based on found MAC """
+    """Set IP of virtual NIC created from DUT based on found MAC"""
     try:
         import os
 
-        if not os.name in ["nt", "posix"]:
+        if os.name not in ["nt", "posix"]:
             raise Exception("This command only works on Linux currently")
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -684,7 +703,7 @@ def set_local_nic_ip_from_usbdev(
 def get_carriername(
     c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
 ):
-    """ Get Carrier (FPGA) name of DUT from UART connection """
+    """Get Carrier (FPGA) name of DUT from UART connection"""
     try:
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -718,7 +737,7 @@ def get_carriername(
 def get_mezzanine(
     c, address="auto", yamlfilename="/etc/default/nebula", board_name=None
 ):
-    """ Get Mezzanine (FMC) name of DUT from UART connection """
+    """Get Mezzanine (FMC) name of DUT from UART connection"""
     try:
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -749,7 +768,7 @@ def get_mezzanine(
 def set_dhcp(
     c, address="auto", nic="eth0", yamlfilename="/etc/default/nebula", board_name=None
 ):
-    """ Set board to use DHCP for networking from UART connection """
+    """Set board to use DHCP for networking from UART connection"""
     try:
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -779,7 +798,7 @@ def set_static_ip(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Set Static IP address of board of DUT from UART connection """
+    """Set Static IP address of board of DUT from UART connection"""
     try:
         u = nebula.uart(
             address=address, yamlfilename=yamlfilename, board_name=board_name
@@ -813,7 +832,7 @@ def update_boot_files_uart(
     reboot=False,
     board_name=None,
 ):
-    """ Update boot files through u-boot menu (Assuming board is running) """
+    """Update boot files through u-boot menu (Assuming board is running)"""
     u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name)
     u.print_to_console = False
     if reboot:
@@ -836,6 +855,7 @@ uart.add_task(get_mezzanine)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
 uart.add_task(set_local_nic_ip_from_usbdev)
 
+
 #############################################
 @task(
     help={
@@ -846,11 +866,11 @@ uart.add_task(set_local_nic_ip_from_usbdev)
     }
 )
 def check_dmesg(c, ip, user="root", password="analog", board_name=None):
-    """ Download and parse remote board's dmesg log
-        Three log files will be produced:
-            dmesg.log - Full dmesg
-            dmesg_err.log - dmesg errors only
-            dmesg_warn.log - dmesg warnings only
+    """Download and parse remote board's dmesg log
+    Three log files will be produced:
+        dmesg.log - Full dmesg
+        dmesg_err.log - dmesg errors only
+        dmesg_warn.log - dmesg warnings only
     """
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
@@ -869,7 +889,7 @@ def check_dmesg(c, ip, user="root", password="analog", board_name=None):
     }
 )
 def restart_board(c, ip, user="root", password="analog", board_name=None):
-    """ Reboot development system over IP """
+    """Reboot development system over IP"""
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
@@ -897,7 +917,7 @@ def update_boot_files(
     devtreepath=None,
     board_name=None,
 ):
-    """ Update boot files on SD Card over SSH """
+    """Update boot files on SD Card over SSH"""
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
@@ -915,9 +935,13 @@ def update_boot_files(
     }
 )
 def run_diagnostics(
-    c, ip=None, user="root", password="analog", board_name=None,
+    c,
+    ip=None,
+    user="root",
+    password="analog",
+    board_name=None,
 ):
-    """ Run adi_diagnostics and fetch result"""
+    """Run adi_diagnostics and fetch result"""
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
@@ -930,12 +954,15 @@ net.add_task(update_boot_files)
 net.add_task(check_dmesg)
 net.add_task(run_diagnostics)
 
+
 #############################################
 @task(
-    help={"level": "Set log level. Default is DEBUG",}
+    help={
+        "level": "Set log level. Default is DEBUG",
+    }
 )
 def show_log(c, level="DEBUG"):
-    """ Show log for all following tasks """
+    """Show log for all following tasks"""
     log = logging.getLogger("nebula")
     log.setLevel(getattr(logging, level))
     log = logging.getLogger()
