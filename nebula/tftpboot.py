@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 
 class tftpboot(utils):
-    """ TFTP Boot Module """
+    """TFTP Boot Module"""
 
     def __init__(
         self,
@@ -44,8 +44,7 @@ class tftpboot(utils):
         return "inactive" not in output
 
     def update_boot_files(self, dir=False):
-        """ Move bootfiles (BOOT.BIN, uImage, devtree) into root of tftpserver share
-        """
+        """Move bootfiles (BOOT.BIN, uImage, devtree) into root of tftpserver share"""
         if not dir:
             dir = self.default_target
         print("Updating boot files for: " + dir)

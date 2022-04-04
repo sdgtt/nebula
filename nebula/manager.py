@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 class manager:
-    """ Board Manager """
+    """Board Manager"""
 
     def __init__(
         self, monitor_type="uart", configfilename=None, board_name=None, extras=None
@@ -108,7 +108,7 @@ class manager:
         self.board_name = board_name
 
     def _release_thread_lock(func):
-        """ A decorator to force a method to close thread resource """
+        """A decorator to force a method to close thread resource"""
 
         def inner(self, *args, **kwargs):
             try:
@@ -191,7 +191,7 @@ class manager:
     def recover_board(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False
     ):
-        """ Recover boards with UART, PDU, JTAG, and Network are available """
+        """Recover boards with UART, PDU, JTAG, and Network are available"""
         self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
         )
@@ -295,7 +295,7 @@ class manager:
                 self.monitor[0].stop_log()
 
             # JTAG RECOVERY
-            except:
+            except Exception:
                 self.board_reboot_jtag_uart(
                     bootbinpath, uimagepath, devtreepath, sdcard
                 )
@@ -357,7 +357,7 @@ class manager:
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
-        """ Manager when UART, PDU, and Network are available """
+        """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
         )
@@ -556,7 +556,6 @@ class manager:
     def _find_boot_files(self, folder):
         if not os.path.isdir(folder):
             raise Exception("Boot files folder not found")
-        src = os.path.join(folder, "*")
         files = os.listdir(folder)
         res = []
         for file in files:

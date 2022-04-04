@@ -35,7 +35,7 @@ class network(utils):
         )
         props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
         for prop in props:
-            if eval(prop) != None:
+            if eval(prop) is not None:
                 setattr(self, prop, eval(prop))
         # Set sane defaults if everything still blank
         if not self.dutusername:
@@ -48,9 +48,9 @@ class network(utils):
         self.board_name = board_name
 
     def ping_board(self, tries=10):
-        """ Ping board and check if any received
+        """Ping board and check if any received
 
-            return: True non-zero received, False zero received
+        return: True non-zero received, False zero received
         """
         log.info("Checking for board through ping")
         out = ""
@@ -63,7 +63,7 @@ class network(utils):
                 )
                 out, error = ping.communicate()
                 break
-            except:
+            except Exception:
                 log.error("Ping creation failed")
                 if p >= (tries - 1):
                     raise Exception("Ping creation sfailed")
@@ -73,9 +73,9 @@ class network(utils):
         return True
 
     def check_ssh(self):
-        """ SSH to board board and check if its possible to run any command
+        """SSH to board board and check if its possible to run any command
 
-            return: True working ssh, False non-working ssh
+        return: True working ssh, False non-working ssh
         """
         retries = 3
         for t in range(retries):
@@ -94,8 +94,8 @@ class network(utils):
         return result.failed
 
     def check_board_booted(self):
-        """ Check if board has network activity with ping, then check SSH working
-            This function raises exceptions on failures
+        """Check if board has network activity with ping, then check SSH working
+        This function raises exceptions on failures
         """
         if not self.ping_board():
             raise Exception("Board not booted")
@@ -108,8 +108,7 @@ class network(utils):
             logging.info("SSH PASSED")
 
     def reboot_board(self, bypass_sleep=False):
-        """ Reboot board over SSH, otherwise raise exception
-        """
+        """Reboot board over SSH, otherwise raise exception"""
         log.info("Rebooting board over SSH")
         # Try to reboot board with SSH if possible
         retries = 3
@@ -176,21 +175,21 @@ class network(utils):
     def update_boot_partition(
         self, bootbinpath=None, uimagepath=None, devtreepath=None
     ):
-        """ update_boot_partition:
-                Update boot files on existing card which from remote files
+        """update_boot_partition:
+        Update boot files on existing card which from remote files
         """
         log.info("Updating boot files over SSH")
         try:
             self.run_ssh_command("ls /tmp/sdcard")
             dir_exists = True
-        except:
+        except Exception:
             log.info("Existing /tmp/sdcard directory not found. Will need to create it")
             dir_exists = False
         if dir_exists:
             try:
                 log.info("Trying to unmounting directory")
                 self.run_ssh_command("umount /tmp/sdcard")
-            except:
+            except Exception:
                 log.info("Unmount failed... Likely not mounted")
                 pass
         else:
@@ -205,12 +204,12 @@ class network(utils):
         self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
-        """ update_boot_partition_existing_files:
-                Update boot files on existing card which contains reference
-                files in the BOOT partition
+        """update_boot_partition_existing_files:
+        Update boot files on existing card which contains reference
+        files in the BOOT partition
 
-                You must specify the subfolder with the BOOT partition to use.
-                For example: zynq-zc706-adv7511-fmcdaq2
+        You must specify the subfolder with the BOOT partition to use.
+        For example: zynq-zc706-adv7511-fmcdaq2
         """
         log.info("Updating boot files over SSH from SD card itself")
         if not subfolder:
@@ -237,12 +236,12 @@ class network(utils):
         ).get(filename)
 
     def check_dmesg(self, error_on_warnings=False):
-        """ check_dmesg:
-            Download and parse remote board's dmesg log
+        """check_dmesg:
+        Download and parse remote board's dmesg log
 
-            return:
-                dmesg_log string of dmesg log
-                status: 0 if no errors found, 1 otherwise
+        return:
+            dmesg_log string of dmesg log
+            status: 0 if no errors found, 1 otherwise
         """
         tmp_filename_root = "".join(
             random.choice(string.ascii_lowercase) for i in range(16)
@@ -306,11 +305,11 @@ class network(utils):
         return len(error_log_filetered) > 0, logs
 
     def run_diagnostics(self):
-        """ run_diagnostics:
-            execute and download adi_diagnostic report
+        """run_diagnostics:
+        execute and download adi_diagnostic report
 
-            return:
-                status: 0 if no errors found, 1 otherwise
+        return:
+            status: 0 if no errors found, 1 otherwise
         """
         # check if can connect to board
         self.check_board_booted()

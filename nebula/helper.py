@@ -57,7 +57,7 @@ class helper:
                 print(config)
 
     def update_yaml(self, configfilename, section, field, new_value, board_name=None):
-        """ Update single field of exist config file """
+        """Update single field of exist config file"""
 
         if not os.path.isfile(configfilename):
             raise Exception("Specified yaml file does not exist")
@@ -107,12 +107,12 @@ class helper:
                     break
             if not updated:
                 raise Exception("")
-        except:
+        except Exception:
             raise Exception("Field or section does not exist")
         if new_value:
             self._write_config_file(configfilename, configs)
 
-    def create_config_interactive(self):
+    def create_config_interactive(self):  # noqa: C901
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "template_gen.yaml")
@@ -237,7 +237,7 @@ class helper:
 
     def _write_config_file(self, filename, outconfig):
         with open(filename, "w") as file:
-            documents = yaml.dump(outconfig, file, default_flow_style=False)
+            yaml.dump(outconfig, file, default_flow_style=False)
 
         # Post process to fix yaml.dump bug where boolean are all lowercase
         file1 = open(filename, "r")
