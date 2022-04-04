@@ -63,8 +63,8 @@ def get_newest_folder(links):
     dates.sort(key=lambda date: convert_to_datetime(date))
 
     n = 0
-    l = {"hdl": 65, "linux": 4, "bootpartition": 75}
-    for k, v in l.items():
+    content = {"hdl": 65, "linux": 4, "bootpartition": 75}
+    for k, v in content.items():
         if re.search(k, links[-1]):
             n = v
 
@@ -513,23 +513,23 @@ class downloader(utils):
         branch="[boot_partition, master]",
         firmware=None,
     ):
-        """ download_boot_files Download bootfiles for target design.
-            This method can download or move files from different locations
-            based on the source specified.
+        """download_boot_files Download bootfiles for target design.
+        This method can download or move files from different locations
+        based on the source specified.
 
-            Parameters:
-                design_name: Target design name (same as boot file folder on SD card)
-                source: Source location type. Options: local_fs, http, artifactory
-                source_root: Root location of files. Dependent on source parameter
-                    For local_fs this is a system path
-                    For http this is a IP or domain name (no http://)
-                    For artifactory this is a domain name of the artifactory server
-                    (ex. artifactory.analog.com, no http://)
-                branch: Name of branch to get related files. This is only used for
-                    http and artifactory sources. Default is master
+        Parameters:
+            design_name: Target design name (same as boot file folder on SD card)
+            source: Source location type. Options: local_fs, http, artifactory
+            source_root: Root location of files. Dependent on source parameter
+                For local_fs this is a system path
+                For http this is a IP or domain name (no http://)
+                For artifactory this is a domain name of the artifactory server
+                (ex. artifactory.analog.com, no http://)
+            branch: Name of branch to get related files. This is only used for
+                http and artifactory sources. Default is master
 
-            Returns:
-                A folder with name outs is created with the downloaded boot files
+        Returns:
+            A folder with name outs is created with the downloaded boot files
         """
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "board_table.yaml")
@@ -642,7 +642,11 @@ class downloader(utils):
             raise Exception(fname.lstrip("outs/") + " - File not found!")
         total = int(resp.headers.get("content-length", 0))
         with open(fname, "wb") as file, tqdm(
-            desc=fname, total=total, unit="iB", unit_scale=True, unit_divisor=1024,
+            desc=fname,
+            total=total,
+            unit="iB",
+            unit_scale=True,
+            unit_divisor=1024,
         ) as bar:
             for data in resp.iter_content(chunk_size=1024):
                 size = file.write(data)

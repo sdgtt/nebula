@@ -43,7 +43,7 @@ def multi_device_check(configs, board_name):
 
 class utils:
     def update_defaults_from_yaml(self, filename, configname=None, board_name=None):
-        """ Utility class for processing yaml files """
+        """Utility class for processing yaml files"""
         if not filename:
             if os.name in ["nt", "posix"]:
                 if os.path.exists(LINUX_DEFAULT_PATH):
