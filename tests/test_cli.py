@@ -10,9 +10,6 @@ from nebula import pdu, uart
 @pytest.mark.dependency()
 def test_cli_help():
 
-    config = "/etc/default/nebula"
-    config = "/etc/nebula/nebula-zynq-adrv9361-z7035-fmc.yaml"
-
     c = con("localhost")
     o = c.local("nebula --help")
     s = "Usage: nebula [--core-opts] <subcommand> [--subcommand-opts] ..."

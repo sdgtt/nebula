@@ -42,7 +42,7 @@ class usbdev:
     def _check_disk_mounted(
         self, name="PlutoSDR", skip_exception=False, do_mount=False
     ):
-        for l in range(3):
+        for i in range(3):
             cmd = "sudo blkid -L " + name
             out = self.shell_out2(cmd)
             if len(out) == 0:
@@ -55,7 +55,7 @@ class usbdev:
                 partition = out[0]
                 mountpoint = out[2]
                 break
-            elif l == 0:
+            elif i == 0:
                 log.info("Waiting for automount first")
                 time.sleep(15)
             else:

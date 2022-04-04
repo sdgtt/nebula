@@ -24,25 +24,25 @@ def escape_ansi(line):
 
 
 class uart(utils):
-    """ UART Interface Handler
-            This class enables monitoring and sending commands
-            over a UART interface. Monitoring is done using
-            threads so monitor will not block.
+    """UART Interface Handler
+        This class enables monitoring and sending commands
+        over a UART interface. Monitoring is done using
+        threads so monitor will not block.
 
-        Attributes
-        ----------
-        address
-            File descriptor of serial/COM interface
-        tftpserverip
-            IP address of TFTP server
-        logfilename
-            Filename to save output log of console
-        bootargs
-            Kernel bootargs
-        baudrate
-            Baudrate of UART interface in bits per second (default is 115200)
-        print_to_console
-            Print output of UART console. Output will appear in log file as well
+    Attributes
+    ----------
+    address
+        File descriptor of serial/COM interface
+    tftpserverip
+        IP address of TFTP server
+    logfilename
+        Filename to save output log of console
+    bootargs
+        Kernel bootargs
+    baudrate
+        Baudrate of UART interface in bits per second (default is 115200)
+    print_to_console
+        Print output of UART console. Output will appear in log file as well
     """
 
     def __init__(
@@ -102,7 +102,7 @@ class uart(utils):
             self.com.reset_input_buffer()
 
     def _auto_set_address(self):
-        """ Try to set yaml automatically """
+        """Try to set yaml automatically"""
         if os.name in ["nt", "posix"]:
             if os.path.isdir(LINUX_SERIAL_FOLDER):
                 fds = glob.glob(LINUX_SERIAL_FOLDER + "/by-id/*")
@@ -128,7 +128,7 @@ class uart(utils):
         self.com.reset_input_buffer()
 
     def start_log(self, logappend=False, force=False):
-        """ Trigger monitoring with UART interface """
+        """Trigger monitoring with UART interface"""
         if not self.listen_thread_run or force:
             self.listen_thread_run = True
             print("STARTING UART LOG")
@@ -141,7 +141,7 @@ class uart(utils):
             log.info("UART console is already running... Skipping setting on")
 
     def stop_log(self, force=False):
-        """ Stop monitoring with UART interface """
+        """Stop monitoring with UART interface"""
         if self.listen_thread_run or force:
             self.listen_thread_run = False
             log.info("Waiting for UART reading thread")
@@ -151,7 +151,7 @@ class uart(utils):
             log.info("UART logging thread not running. Skipping setting off")
 
     def pipe_to_log_file(self, data, logappend=True, force=False):
-        """ Write data to log file"""
+        """Write data to log file"""
         ws = "w"
         if logappend:
             ws = "a"
@@ -231,7 +231,7 @@ class uart(utils):
             return modem.send(infile, timeout=10, quiet=True, callback=callback)
 
     def update_fpga(self, skip_tftpload=False):
-        """ Transfter and load system_top.bit over TFTP to system during uboot """
+        """Transfter and load system_top.bit over TFTP to system during uboot"""
         if not skip_tftpload:
             cmd = "tftpboot 0x1000000 " + self.tftpserverip + ":system_top.bit"
             self._write_data(cmd)
@@ -242,25 +242,25 @@ class uart(utils):
         self._read_until_done(done_string=self.uboot_done_string)
 
     def update_dev_tree(self):
-        """ Transfter devicetree over TFTP to system during uboot """
+        """Transfter devicetree over TFTP to system during uboot"""
         cmd = "tftpboot 0x2A00000 " + self.tftpserverip + ":devicetree.dtb"
         self._write_data(cmd)
         self._read_until_done(done_string=self.uboot_done_string)
 
     def update_kernel(self):
-        """ Transfter kernel image over TFTP to system during uboot """
+        """Transfter kernel image over TFTP to system during uboot"""
         cmd = "tftpboot 0x3000000 " + self.tftpserverip + ":uImage"
         self._write_data(cmd)
         self._read_until_done(done_string=self.uboot_done_string)
 
     def update_boot_args(self):
-        """ Update kernel boot arguments during uboot """
+        """Update kernel boot arguments during uboot"""
         cmd = "setenv bootargs " + self.bootargs
         self._write_data(cmd)
         self._read_until_done(done_string=self.uboot_done_string)
 
     def boot(self):
-        """ Boot kernel from uboot menu """
+        """Boot kernel from uboot menu"""
         cmd = "bootm 0x3000000 - 0x2A00000"
         # cmd = "bootm 0x3000000 0x2000000 0x2a000000"
         self._write_data(cmd)
@@ -268,7 +268,7 @@ class uart(utils):
     def copy_reference(
         self, reference="BOOT.BIN.ORG", target="BOOT.BIN", done_string=None
     ):
-        """ Using reference files """
+        """Using reference files"""
         if not done_string:
             done_string = self.uboot_done_string
         if self.listen_thread_run:
@@ -288,7 +288,7 @@ class uart(utils):
     def load_system_uart_copy_to_sdcard(
         self, bootbin, devtree_filename, kernel_filename
     ):
-        """ Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
+        """Load complete system (BOOT.BIN, devtree, kernel) during uboot from UART (XMODEM)
         and to SD card
         """
         if self.listen_thread_run:
@@ -388,7 +388,7 @@ class uart(utils):
         cmd = "/usr/local/bin/enable_static_ip.sh " + address + " " + nic
         self._write_data(cmd)
         if restart:
-            data = self._read_for_time(period=1)
+            self._read_for_time(period=1)
             self.start_log(logappend=True)
 
     def request_ip_dhcp(self, nic="eth0"):
@@ -401,18 +401,18 @@ class uart(utils):
             raise Exception("Console inaccessible due to login failure")
         cmd = "/usr/local/bin/enable_dhcp.sh"
         self._write_data(cmd)
-        data = self._read_for_time(period=1)
+        self._read_for_time(period=1)
         cmd = "dhclient -r " + nic
         self._write_data(cmd)
-        data = self._read_for_time(period=1)
+        self._read_for_time(period=1)
         cmd = "dhclient " + nic
         self._write_data(cmd)
-        data = self._read_for_time(period=1)
+        self._read_for_time(period=1)
         if restart:
             self.start_log(logappend=True)
 
     def get_uart_command_for_linux(self, cmd, findstring):
-        """ Write command to UART and wait for a specific string """
+        """Write command to UART and wait for a specific string"""
         restart = False
         if self.listen_thread_run:
             restart = True
@@ -439,7 +439,7 @@ class uart(utils):
                         elif findstring in c:
                             log.info("Found substring: " + str(c))
                             return c
-                    except:
+                    except Exception:
                         continue
             else:
                 log.info("command response: " + d)
@@ -450,17 +450,17 @@ class uart(utils):
                     elif findstring in d:
                         log.info("Found substring: " + str(d))
                         return d
-                except:
+                except Exception:
                     continue
         return None
 
     def get_local_mac_usbdev(self):
-        """ Read MAC Address of enumerated NIC on host from DUT (Pluto/M2K only) """
+        """Read MAC Address of enumerated NIC on host from DUT (Pluto/M2K only)"""
         cmd = "cat /www/index.html | grep '00:' | grep -v `cat /sys/class/net/usb0/address` | sed 's/ *<[^>]*> */ /g'"
         return self.get_uart_command_for_linux(cmd, "00")
 
     def get_ip_address(self):
-        """ Read IP address of DUT using ip command from UART """
+        """Read IP address of DUT using ip command from UART"""
         # cmd = "ip -4 addr | grep -oP '(?<=inet\s)\d+(\.\d+){3}' | grep -v 127"
         cmd = "ip -4 addr | grep -v 127 | awk '$1 == \"inet\" {print $2}' | awk -F'/' '{print $1}'"
         restart = False
@@ -482,7 +482,7 @@ class uart(utils):
                         ipaddress.ip_address(c)
                         log.info("Found IP: " + str(c))
                         return c
-                    except:
+                    except Exception:
                         continue
             else:
                 try:
@@ -490,7 +490,7 @@ class uart(utils):
                     ipaddress.ip_address(d)
                     log.info("Found IP: " + str(d))
                     return d
-                except:
+                except Exception:
                     continue
         return None
 
@@ -614,7 +614,7 @@ class uart(utils):
         return False
 
     def _wait_for_boot_complete_linaro(self, done_string="Welcome to Linaro 14.04"):
-        """ Wait for Linux to boot by waiting for Welcome message """
+        """Wait for Linux to boot by waiting for Welcome message"""
         restart = False
         if self.listen_thread_run:
             restart = True
@@ -649,7 +649,7 @@ class uart(utils):
         return False
 
     def load_system_uart_from_tftp(self):
-        """ Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
+        """Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
 
         restart = False
         if self.listen_thread_run:
@@ -689,7 +689,7 @@ class uart(utils):
     def load_system_uart(
         self, system_top_bit_filename, devtree_filename, kernel_filename
     ):
-        """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
+        """Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM)"""
         if self.listen_thread_run:
             restart = True
             self.stop_log()
@@ -707,7 +707,7 @@ class uart(utils):
     def update_boot_files_from_running(
         self, system_top_bit_filename, devtree_filename, kernel_filename
     ):
-        """ Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM) from a running system """
+        """Load complete system (bitstream, devtree, kernel) during uboot from UART (XMODEM) from a running system"""
         # Spam enter while reboot to get to u-boot menu
         log.info("Spamming ENTER to get UART console")
         for _ in range(60):

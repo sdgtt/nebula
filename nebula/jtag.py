@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class jtag(utils):
-    """ JTAG Module """
+    """JTAG Module"""
 
     def __init__(
         self,
@@ -114,7 +114,7 @@ class jtag(utils):
         )
 
     def boot_to_uboot(self):
-        """ From JTAG reset board and load up FSBL and uboot
+        """From JTAG reset board and load up FSBL and uboot
         This should be followed by uboot interaction to stop it"""
         assert os.path.isfile("fsbl.elf")
         assert os.path.isfile("u-boot.elf")
