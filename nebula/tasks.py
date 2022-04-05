@@ -1,3 +1,4 @@
+from operator import truediv
 from invoke import Collection
 from invoke import task
 import nebula
@@ -276,7 +277,7 @@ def download_sdcard(c, release="2019_R1"):
         "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), rpi (rpi files), firmware . Default: boot",
-        "boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
+        #"boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
     },
 )
 def download_boot_files(
@@ -287,22 +288,24 @@ def download_boot_files(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     filetype="boot_partition",
-    boot_partition=True,
 ):
-    """Download bootfiles for a specific development system"""
-    d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    if filetype == "noos":
-        d.download_boot_files(board_name, source, source_root, branch, noos=True)
-    elif filetype == "microblaze":
-        d.download_boot_files(board_name, source, source_root, branch, microblaze=True)
-    elif filetype == "firmware":
-        d.download_boot_files(board_name, source, source_root, branch, firmware=True)
-    elif filetype == "rpi":
-        d.download_boot_files(board_name, source, source_root, branch, rpi=True)
-    elif filetype == "boot_partition":
-        d.download_boot_files(board_name, source, source_root, branch, boot_partition=boot_partition)
-    else: 
-        d.download_boot_files(board_name, source, source_root, branch, boot_partition=True)
+    """ Download bootfiles for a specific development system """
+    d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name) 
+    try:
+        file = {"firmware":None,"boot_partition":True,"noos":None,"microblaze":None,"rpi":None}
+        if filetype == "hdl_linux":
+            file["boot_partition"] = False
+        else:
+            file[filetype] = True
+    except Exception as ex:
+        raise Exception('Filetype no supported.') 
+        
+    d.download_boot_files(board_name, source, source_root, branch,
+        firmware=file["firmware"],
+        boot_partition=file["boot_partition"],
+        noos=file["noos"],
+        microblaze=file["microblaze"],
+        rpi=file["rpi"])
 
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
