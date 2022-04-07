@@ -1,10 +1,7 @@
-from operator import truediv
-from invoke import Collection
-from invoke import task
-import nebula
 import logging
 import os
 import time
+from operator import truediv
 
 import nebula
 import yaml
@@ -145,7 +142,7 @@ def download_sdcard(c, release="2019_R1"):
         "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), rpi (rpi files), firmware . Default: boot",
-        #"boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
+        # "boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
     },
 )
 def download_boot_files(
@@ -157,23 +154,35 @@ def download_boot_files(
     board_name=None,
     filetype="boot_partition",
 ):
-    """ Download bootfiles for a specific development system """
-    d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name) 
+    """Download bootfiles for a specific development system"""
+    d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
     try:
-        file = {"firmware":None,"boot_partition":True,"noos":None,"microblaze":None,"rpi":None}
+        file = {
+            "firmware": None,
+            "boot_partition": True,
+            "noos": None,
+            "microblaze": None,
+            "rpi": None,
+        }
         if filetype == "hdl_linux":
             file["boot_partition"] = False
         else:
             file[filetype] = True
-    except Exception as ex:
-        raise Exception('Filetype no supported.') 
-        
-    d.download_boot_files(board_name, source, source_root, branch,
+    except Exception:
+        raise Exception("Filetype no supported.")
+
+    d.download_boot_files(
+        board_name,
+        source,
+        source_root,
+        branch,
         firmware=file["firmware"],
         boot_partition=file["boot_partition"],
         noos=file["noos"],
         microblaze=file["microblaze"],
-        rpi=file["rpi"])
+        rpi=file["rpi"],
+    )
+
 
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
@@ -598,20 +607,26 @@ def get_mezzanine(
     except Exception as ex:
         print(ex)
 
+
 @task(
     help={
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-        "period": "Waiting time in seconds"
+        "period": "Waiting time in seconds",
     },
 )
-def get_uart_log(c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, period=120):
-    """ Read UART boot message on no-OS builds. """
-    u = nebula.uart(address=address, yamlfilename=yamlfilename, board_name=board_name, period=period)
+def get_uart_log(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, period=120
+):
+    """Read UART boot message on no-OS builds."""
+    u = nebula.uart(
+        address=address, yamlfilename=yamlfilename, board_name=board_name, period=period
+    )
     u.get_uart_boot_message()
-    
+
+
 @task(
     help={
         "nic": "Network interface name to set. Default is eth0",
