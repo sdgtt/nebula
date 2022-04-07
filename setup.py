@@ -30,7 +30,12 @@ setuptools.setup(
     url="https://github.com/tfcollins/nebula",
     packages=setuptools.find_packages(),
     package_data={
-        "nebula": ["resources/template_gen.yaml", "resources/board_table.yaml", "resources/err_rejects.txt", "resources/noOS_projects.yaml"]
+        "nebula": [
+            "resources/template_gen.yaml",
+            "resources/board_table.yaml",
+            "resources/err_rejects.txt",
+            "resources/noOS_projects.yaml",
+        ]
     },
     include_package_data=True,
     python_requires=">=3.6",

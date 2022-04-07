@@ -56,7 +56,7 @@ class uart(utils):
         dhcp=False,
         yamlfilename=None,
         board_name=None,
-        period=30
+        period=30,
     ):
         self.com = []  # Preset in case __del__ is called before set
         self.tftpserverip = tftpserverip
@@ -496,7 +496,7 @@ class uart(utils):
         return None
 
     def get_uart_boot_message(self):
-        """ Read UART boot message on no-OS builds. """
+        """Read UART boot message on no-OS builds."""
         self.start_log(logappend=True)
         time.sleep(self.max_read_time)
         self.stop_log()
