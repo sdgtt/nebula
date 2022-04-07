@@ -1,4 +1,4 @@
-#BOOT PARTITION 
+#BOOT PARTITION
 socfpga_arria10_socdk_ad9172_fmc:
   addons:
   - EVAL-AD9172
@@ -274,7 +274,7 @@ kc705_fmcdaq2:
 kc705_fmcjesdadc1:
   carrier: KC705
 kc705_fmcomms2-3:
-  carrier: KC705  
+  carrier: KC705
 kc705_fmcomms4:
   carrier: KC705
 kcu105_adrv9371x:
@@ -343,4 +343,3 @@ dc1962c:
   carrier: RPI
 dc2873a:
   carrier: RPI
-
