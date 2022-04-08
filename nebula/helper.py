@@ -15,6 +15,38 @@ WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 log = logging.getLogger(__name__)
 
 
+def convert_by_id_to_tty(by_id):
+    """Translate frandom:
+    /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+    to
+    /dev/ttyUSB1
+    """
+    import pyudev
+
+    context = pyudev.Context()
+    for device in context.list_devices(subsystem="tty", ID_BUS="usb"):
+        if by_id in device.device_links:
+            return device.device_node
+    return False
+
+
+def convert_address_to_tty(address):
+    """Translate frandom:
+    /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+    to
+    /dev/ttyUSB1
+    Will also work with by_path. Works in docker container.
+    """
+    import pyudev
+
+    context = pyudev.Context()
+    tty = pyudev.Devices.from_device_file(context, address)
+    if tty:
+        return tty.get("DEVNAME")
+    else:
+        return False
+
+
 def get_uarts():
     strs = "\n(Found: "
     default = None
@@ -56,7 +88,9 @@ class helper:
             if filter in config or not filter:
                 print(config)
 
-    def update_yaml(self, configfilename, section, field, new_value, board_name=None):
+    def update_yaml(  # noqa: C901
+        self, configfilename, section, field, new_value, board_name=None
+    ):
         """Update single field of exist config file"""
 
         if not os.path.isfile(configfilename):
@@ -103,7 +137,11 @@ class helper:
                             new_value,
                         )
                     else:
-                        print(value)
+                        # Handle serial translation
+                        if section == "uart-config" and field == "address":
+                            value = convert_address_to_tty(value)
+                        print(str(value))
+                    log.info(field + ": " + str(value))
                     break
             if not updated:
                 raise Exception("")

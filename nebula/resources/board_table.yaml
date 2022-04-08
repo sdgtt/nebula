@@ -1,3 +1,4 @@
+#BOOT PARTITION
 socfpga_arria10_socdk_ad9172_fmc:
   addons:
   - EVAL-AD9172
@@ -264,3 +265,81 @@ pluto:
   carrier: ADALM-PLUTO
 m2k:
   carrier: ADALM-2000
+
+#MICROBLAZE
+kc705_ad9467_fmc:
+  carrier: KC705
+kc705_fmcdaq2:
+  carrier: KC705
+kc705_fmcjesdadc1:
+  carrier: KC705
+kc705_fmcomms2-3:
+  carrier: KC705
+kc705_fmcomms4:
+  carrier: KC705
+kcu105_adrv9371x:
+  carrier: KCU105
+kcu105_fmcdaq2:
+  carrier: KCU105
+kcu105_fmcdaq3:
+  carrier: KCU105
+kcu105_fmcomms2-3:
+  carrier: KCU105
+kcu105_fmcomms4:
+  carrier: KCU105
+vc707_ad6676evb:
+  carrier: VC707
+vc707_fmcadc2:
+  carrier: VC707
+vc707_fmcadc5:
+  carrier: VC707
+vc707_fmcdaq2:
+  carrier: VC707
+vc707_fmcjesdadc1:
+  carrier: VC707
+vc707_fmcomms2-3:
+  carrier: VC707
+vcu118_ad9081:
+  carrier: VCU118
+vcu118_ad9081_m8_l4:
+  carrier: VCU118
+vcu118_dual_ad9208:
+  carrier: VCU118
+vcu118_fmcdaq3:
+  carrier: VCU118
+
+#RPI
+adis16475-1/pcbz:
+  carrier: RPI
+adis16480bmlz:
+  carrier: RPI
+eval-cn0508-rpiz:
+  carrier: RPI
+cn0511:
+  carrier: RPI
+eval-cn0531-pmdz:
+  carrier: RPI
+cn0554:
+  carrier: RPI
+eval-cn0552-pmdz:
+  carrier: RPI
+eval-adxl355-pmdz:
+  carrier: RPI
+eval-ad7124-8-pmdz:
+  carrier: RPI
+eval_adt7420_pmdz:
+  carrier: RPI
+eval-adxrs290-pmdz:
+  carrier: RPI
+eval-ad5592r-pmdz:
+  carrier: RPI
+eval-ad5593r-pmdz:
+  carrier: RPI
+eval-ad5770r-pmdz:
+  carrier: RPI
+dc1012a-b:
+  carrier: RPI
+dc1962c:
+  carrier: RPI
+dc2873a:
+  carrier: RPI

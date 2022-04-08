@@ -34,6 +34,7 @@ setuptools.setup(
             "resources/template_gen.yaml",
             "resources/board_table.yaml",
             "resources/err_rejects.txt",
+            "resources/noOS_projects.yaml",
         ]
     },
     include_package_data=True,

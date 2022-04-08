@@ -56,6 +56,7 @@ class uart(utils):
         dhcp=False,
         yamlfilename=None,
         board_name=None,
+        period=30,
     ):
         self.com = []  # Preset in case __del__ is called before set
         self.tftpserverip = tftpserverip
@@ -68,7 +69,7 @@ class uart(utils):
         self.thread = None
         self.print_to_console = False
         self.dhcp = dhcp
-        self.max_read_time = 30
+        self.max_read_time = period
         self.fds_to_skip = ["Digilent"]
         self.uboot_done_string = ["zynq-uboot>", "Zynq>", "ZynqMP>"]
         self.update_defaults_from_yaml(
@@ -493,6 +494,12 @@ class uart(utils):
                 except Exception:
                     continue
         return None
+
+    def get_uart_boot_message(self):
+        """Read UART boot message on no-OS builds."""
+        self.start_log(logappend=True)
+        time.sleep(self.max_read_time)
+        self.stop_log()
 
     def _read_for_time(self, period):
         data = []

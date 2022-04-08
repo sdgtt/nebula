@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from operator import truediv
 
 import nebula
 import yaml
@@ -136,25 +137,51 @@ def download_sdcard(c, release="2019_R1"):
 @task(
     help={
         "board_name": "Board configuration name. Ex: zynq-zc702-adv7511-ad9361-fmcomms2-3",
-        "source": "Boot file download source. Options are: local_fs, http, artifactory, remote.\nDefault: local_fs",
-        "source_root": "Location of source boot files. Dependent on source.\nFor http and artifactory sources this is a IP or domain name (no http://)",
-        "branch": "Name of branches to get related files. It can be from Linux+HDL folders or from the boot partition folder.\nFor Linx+HDL, enter string [<linuxbranch>, <hdlbranch>]. For boot partition, enter [boot_partition, <bootpartitionbranch>]. \nThis is only used for\bhttp and artifactory sources. Default is [boot_partition, master]",
+        "source": "Boot file download source. Options are: local_fs, artifactory, remote.\nDefault: local_fs",
+        "source_root": "Location of source boot files. Dependent on source.\nFor artifactory sources this is the domain name",
+        "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "firmware": "No arguments required. If set Pluto firmware is downloaded from GitHub. Branch name is used as release name.\nDesign name must be pluto or m2k",
+        "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), rpi (rpi files), firmware . Default: boot",
+        # "boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
     },
 )
 def download_boot_files(
     c,
     source="local_fs",
     source_root=None,
-    branch="[boot_partition, master]",
+    branch="release",
     yamlfilename="/etc/default/nebula",
     board_name=None,
-    firmware=False,
+    filetype="boot_partition",
 ):
     """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
-    d.download_boot_files(board_name, source, source_root, branch, firmware)
+    try:
+        file = {
+            "firmware": None,
+            "boot_partition": True,
+            "noos": None,
+            "microblaze": None,
+            "rpi": None,
+        }
+        if filetype == "hdl_linux":
+            file["boot_partition"] = False
+        else:
+            file[filetype] = True
+    except Exception:
+        raise Exception("Filetype no supported.")
+
+    d.download_boot_files(
+        board_name,
+        source,
+        source_root,
+        branch,
+        firmware=file["firmware"],
+        boot_partition=file["boot_partition"],
+        noos=file["noos"],
+        microblaze=file["microblaze"],
+        rpi=file["rpi"],
+    )
 
 
 dl = Collection("dl")
@@ -583,6 +610,25 @@ def get_mezzanine(
 
 @task(
     help={
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
+        + " if no yaml file exists and no address provided auto is used",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "period": "Waiting time in seconds",
+    },
+)
+def get_uart_log(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, period=120
+):
+    """Read UART boot message on no-OS builds."""
+    u = nebula.uart(
+        address=address, yamlfilename=yamlfilename, board_name=board_name, period=period
+    )
+    u.get_uart_boot_message()
+
+
+@task(
+    help={
         "nic": "Network interface name to set. Default is eth0",
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
@@ -677,6 +723,7 @@ uart.add_task(set_dhcp)
 uart.add_task(set_static_ip)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
+uart.add_task(get_uart_log)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
 uart.add_task(set_local_nic_ip_from_usbdev)
 
