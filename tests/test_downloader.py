@@ -4,26 +4,36 @@ import shutil
 import pytest
 from nebula import downloader
 
-#Must be connected to analog VPN
+# Must be connected to analog VPN
+
 
 def downloader_test(board_name, branch, filetype):
-    file = {"firmware":None,"boot_partition":None,"noos":None,"microblaze":None,"rpi":None}
+    file = {
+        "firmware": None,
+        "boot_partition": None,
+        "noos": None,
+        "microblaze": None,
+        "rpi": None,
+    }
     if filetype == "not_boot_partition":
         file["boot_partition"] = False
     else:
         file[filetype] = True
     print(file)
-    yamlfilename = os.path.join("nebula_config", "nebula.yaml") 
-    d = downloader(yamlfilename=yamlfilename, board_name =board_name)
-    d.download_boot_files(board_name,
-        source="artifactory", 
-        source_root="artifactory.analog.com", 
+    yamlfilename = os.path.join("nebula_config", "nebula.yaml")
+    d = downloader(yamlfilename=yamlfilename, board_name=board_name)
+    d.download_boot_files(
+        board_name,
+        source="artifactory",
+        source_root="artifactory.analog.com",
         branch=branch,
         firmware=file["firmware"],
         boot_partition=file["boot_partition"],
         noos=file["noos"],
         microblaze=file["microblaze"],
-        rpi=file["rpi"])
+        rpi=file["rpi"],
+    )
+
 
 @pytest.fixture(autouse=True)
 def run_around_tests():
@@ -42,6 +52,7 @@ def run_around_tests():
         if os.path.isfile(file):
             os.remove(file)
 
+
 @pytest.fixture()
 def test_downloader():
     if os.path.isdir("outs"):
@@ -49,6 +60,7 @@ def test_downloader():
     yield downloader_test
     if os.path.isdir("outs"):
         shutil.rmtree("outs")
+
 
 @pytest.mark.parametrize("board_name", ["zynq-zc706-adv7511-fmcomms11"])
 @pytest.mark.parametrize("branch", ["release", "master"])
@@ -59,7 +71,8 @@ def test_boot_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/uImage")
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
     assert os.path.isfile("outs/devicetree.dtb")
-    assert os.path.isfile("outs/properties.yaml")    
+    assert os.path.isfile("outs/properties.yaml")
+
 
 @pytest.mark.parametrize("board_name", ["zynq-zc702-adv7511-ad9361-fmcomms2-3"])
 @pytest.mark.parametrize("branch", ["release", "master"])
@@ -71,6 +84,7 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
     else:
         assert os.path.isfile("outs/system_top.xsa")
     assert os.path.isfile("outs/properties.yaml")
+
 
 @pytest.mark.parametrize("board_name", ["kc705_fmcomms4"])
 @pytest.mark.parametrize("branch", ["release", "master"])
@@ -84,6 +98,7 @@ def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/simpleImage.kc705_fmcomms4.strip")
     assert os.path.isfile("outs/properties.yaml")
 
+
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
 @pytest.mark.parametrize("branch", ["rpi-5.10.y"])
 @pytest.mark.parametrize("filetype", ["rpi"])
@@ -92,6 +107,7 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/kernel7l.img")
     assert os.path.isfile("outs/rpi-adxrs290.dtbo")
     assert os.path.isfile("outs/properties.txt")
+
 
 @pytest.mark.parametrize("board_name", ["pluto"])
 @pytest.mark.parametrize("branch", ["master", "release", "v0.33"])
@@ -102,7 +118,8 @@ def test_firmware_downloader(test_downloader, board_name, branch, filetype):
         assert os.path.isfile("outs/plutosdr-fw-v0.33.zip")
     else:
         assert len(os.listdir("outs")) == 1
-    
+
+
 @pytest.mark.skip(reason="filesize")
 def test_image_downloader():
     d = downloader()
