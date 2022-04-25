@@ -97,7 +97,7 @@ pluto:
   board-config:
   - board-name: pluto
   - carrier:  xxx
-  - daughter: Pluto  
+  - daughter: Pluto
   - reference-boot-folder: plutosdr-fw
   - monitoring-interface: uart
   driver-config:

@@ -1,5 +1,4 @@
-import cmd
-#from msilib.schema import Billboard
+# from msilib.schema import Billboard
 import os
 import shutil
 import time
@@ -8,15 +7,17 @@ import pytest
 from fabric import Connection as con
 from nebula import pdu, uart
 
-#must include -s
+# must include -s
+
 
 @pytest.fixture(autouse=True)
 def test_downloader():
     if os.path.isdir("outs"):
         shutil.rmtree("outs")
-    yield 
+    yield
     if os.path.isdir("outs"):
         shutil.rmtree("outs")
+
 
 @pytest.mark.dependency()
 def test_cli_help():
@@ -25,13 +26,20 @@ def test_cli_help():
     s = "Usage: nebula [--core-opts] <subcommand> [--subcommand-opts] ..."
     assert s in o.stdout
 
+
 def test_update_config():
     config = os.path.join("nebula_config", "nebula.yaml")
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
-    o = c.local("nebula update-config board-config no-os-project --yamlfilename=" +config+" --board-name=" +board)
+    o = c.local(
+        "nebula update-config board-config no-os-project --yamlfilename="
+        + config
+        + " --board-name="
+        + board
+    )
     s = "ad9361"
     assert s in o.stdout
+
 
 def test_dl_bootfiles():
     config = os.path.join("nebula_config", "nebula.yaml")
@@ -41,21 +49,39 @@ def test_dl_bootfiles():
     source_root = "artifactory.analog.com"
     source = "artifactory"
     c = con("localhost")
-    cmd = "nebula dl.bootfiles --board-name=" + board + " --source-root="+source_root+ " --source=" +source+" --yamlfilename=" + config+ " --branch=" +branch+" --filetype=" +file
-    print(cmd)
-    o = c.local(cmd)
+    cmd = (
+        "nebula dl.bootfiles --board-name="
+        + board
+        + " --source-root="
+        + source_root
+        + " --source="
+        + source
+        + " --yamlfilename="
+        + config
+        + " --branch="
+        + branch
+        + " --filetype="
+        + file
+    )
+    c.local(cmd)
     assert os.path.isfile("outs/system_top.hdf")
+
 
 def test_show_log():
     config = os.path.join("nebula_config", "nebula.yaml")
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
-    o = c.local("nebula show-log update-config board-config no-os-project --yamlfilename=" +config+" --board-name=" +board)
-    #print(o)
+    o = c.local(
+        "nebula show-log update-config board-config no-os-project --yamlfilename="
+        + config
+        + " --board-name="
+        + board
+    )
     s = "INFO"
     assert s in o.stderr
 
-#need to update nebulaconfig to whatever is deployed
+
+# need to update nebulaconfig to whatever is deployed
 # @pytest.mark.dependency()
 # def test_cli_get_ip():
 
