@@ -164,7 +164,7 @@ class downloader(utils):
         )
 
     def _download_firmware(self, device, release=None):
-        if release == "master":
+        if release == "master" or release == "release":
             release = None
 
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
@@ -457,7 +457,6 @@ class downloader(utils):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
-        file = os.path.join(dest, "properties.yaml")
         # download properties.txt
         if source == "artifactory":
             url_template = (
@@ -466,26 +465,24 @@ class downloader(utils):
             url = url_template.format(source_root, branch, "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(
-                source_root, branch, build_date + "/properties.txt"
+                source_root, branch, build_date + "/rpi_git_properties.txt"
             )
             file = os.path.join(dest, "properties.txt")
             self.download(url, file)
-            # get_gitsha(self.url, daily=False)
 
-        url_template = url_template.format(source_root, branch, "{}/{}/{}")
-        addl = "adi_" + soc + "_defconfig"
+        url_template = url_template.format(source_root, branch, "{}/{}")
         if "dtbo" not in overlay:
             overlay = overlay + ".dtbo"
         overlay_f = "overlays/" + overlay
         log.info("Getting overlay " + overlay)
-        url = url_template.format(build_date, addl, overlay_f)
+        url = url_template.format(build_date, overlay_f)
         file = os.path.join(dest, overlay)
         self.download(url, file)
 
         if "img" not in kernel:
             kernel = kernel + ".img"
         log.info("Get kernel " + kernel)
-        url = url_template.format(build_date, addl, kernel)
+        url = url_template.format(build_date, kernel)
         file = os.path.join(dest, kernel)
         self.download(url, file)
 
