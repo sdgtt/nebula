@@ -64,7 +64,10 @@ def test_dl_bootfiles():
         + file
     )
     c.local(cmd)
-    assert os.path.isfile("outs/system_top.hdf")
+    try:
+        assert os.path.isfile("outs/system_top.hdf")
+    except Exception:
+        assert os.path.isfile("outs/system_top.xsa")
 
 
 def test_show_log():
