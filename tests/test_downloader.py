@@ -79,9 +79,9 @@ def test_boot_downloader(test_downloader, board_name, branch, filetype):
 @pytest.mark.parametrize("filetype", ["noos"])
 def test_noos_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
-    if branch == "release":
+    try:
         assert os.path.isfile("outs/system_top.hdf")
-    else:
+    except Exception:
         assert os.path.isfile("outs/system_top.xsa")
     assert os.path.isfile("outs/properties.yaml")
 
@@ -91,9 +91,9 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
 @pytest.mark.parametrize("filetype", ["microblaze"])
 def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
-    if branch == "release":
+    try:
         assert os.path.isfile("outs/system_top.hdf")
-    else:
+    except Exception:
         assert os.path.isfile("outs/system_top.xsa")
     assert os.path.isfile("outs/simpleImage.kc705_fmcomms4.strip")
     assert os.path.isfile("outs/properties.yaml")
@@ -110,7 +110,7 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
 
 
 @pytest.mark.parametrize("board_name", ["pluto"])
-@pytest.mark.parametrize("branch", ["master", "release", "v0.33"])
+@pytest.mark.parametrize("branch", ["master", "v0.33"])
 @pytest.mark.parametrize("filetype", ["firmware"])
 def test_firmware_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
