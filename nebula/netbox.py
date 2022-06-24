@@ -7,6 +7,7 @@ import yaml
 import json
 import os
 import pathlib
+from pprint import pprint
 
 log = logging.getLogger(__name__)
 
@@ -312,7 +313,13 @@ class NetboxDevice():
                             template_dict[sctn_name] = dict()
                         template_dict[sctn_name][fld_name] = fld_val
 
-        return template_dict
+        # convert to fields to list
+        template_dict_list = dict()
+        for sctn, flds in template_dict.items():
+            template_dict_list[sctn] = \
+            [ {fld:fld_val} for fld, fld_val in flds.items() ]
+
+        return template_dict_list
 
 class NetboxDevices():
     ''' List of NetboxDevice '''
