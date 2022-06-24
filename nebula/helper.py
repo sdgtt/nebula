@@ -8,9 +8,7 @@ import nebula.errors as ne
 import netifaces
 import yaml
 from nebula.common import multi_device_check
-from nebula.netbox import netbox
-from nebula.netbox import NetboxDevices
-from nebula.netbox import NetboxDevice
+from nebula.netbox import NetboxDevice, NetboxDevices, netbox
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
@@ -284,32 +282,29 @@ class helper:
         netbox_baseurl=None,
         netbox_token=None,
         jenkins_agent=None,
-        board_name=None
+        board_name=None,
     ):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
-        template = os.path.join(path, "resources", "template_gen.yaml")        
+        template = os.path.join(path, "resources", "template_gen.yaml")
         ni = netbox(
-            ip=netbox_ip,
-            port=netbox_port,
-            base_url=netbox_baseurl,
-            token=netbox_token)
+            ip=netbox_ip, port=netbox_port, base_url=netbox_baseurl, token=netbox_token
+        )
         outconfig = dict()
         config = dict()
 
         # load config from file
-        with open(template, 'r') as f:
+        with open(template, "r") as f:
             config = yaml.safe_load(f)
 
         if board_name:
-            nbd = NetboxDevice(ni,device_name=board_name)
+            nbd = NetboxDevice(ni, device_name=board_name)
             outconfig = nbd.to_config(config)
         else:
-            nbds = NetboxDevices(ni,agent=jenkins_agent)
+            nbds = NetboxDevices(ni, agent=jenkins_agent)
             outconfig = nbds.generate_config(config)
 
-        self._write_config_file(filename=outfile,outconfig=outconfig)
-        
+        self._write_config_file(filename=outfile, outconfig=outconfig)
 
     def _write_config_file(self, filename, outconfig):
         with open(filename, "w") as file:

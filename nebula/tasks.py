@@ -304,6 +304,7 @@ def update_config(
         board_name=board_name,
     )
 
+
 @task(
     help={
         "outfile": "Output file name",
@@ -312,7 +313,7 @@ def update_config(
         "netbox_token": "Token for authenticating API requests",
         "netbox_baseurl": "baseurl pointing to netbox instance (if exist)",
         "jenkins_agent": "Target Jenkins agent to generate config to",
-        "board_name": "Target board to generate config to, takes higher priority over jenkins_agent"
+        "board_name": "Target board to generate config to, takes higher priority over jenkins_agent",
     },
 )
 def gen_config_netbox(
@@ -323,7 +324,7 @@ def gen_config_netbox(
     netbox_port=None,
     netbox_baseurl=None,
     jenkins_agent=None,
-    board_name=None
+    board_name=None,
 ):
     """Generate YAML configuration from netbox"""
     h = nebula.helper()
@@ -332,9 +333,9 @@ def gen_config_netbox(
         netbox_ip=netbox_ip,
         netbox_port=netbox_port,
         netbox_baseurl=netbox_baseurl,
-        netbox_token=netbox_token, 
+        netbox_token=netbox_token,
         jenkins_agent=jenkins_agent,
-        board_name=board_name
+        board_name=board_name,
     )
 
 
