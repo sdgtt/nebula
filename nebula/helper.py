@@ -294,14 +294,19 @@ class helper:
             base_url=netbox_baseurl,
             token=netbox_token)
         outconfig = dict()
+        config = dict()
+
+        # load config from file
+        with open(template, 'r') as f:
+            config = yaml.safe_load(f)
+
         if board_name:
-            with open(template, 'r') as f:
-                config = yaml.safe_load(f)
-                nbd = NetboxDevice(ni,device_name=board_name)
-                outconfig = nbd.to_config(config)
+            nbd = NetboxDevice(ni,device_name=board_name)
+            outconfig = nbd.to_config(config)
         else:
-            nbvs = NetboxDevices(ni,agent=jenkins_agent)
-            outconfig = nbvs.generate_config(template)
+            nbds = NetboxDevices(ni,agent=jenkins_agent)
+            outconfig = nbds.generate_config(config)
+
         self._write_config_file(filename='nebula',outconfig=outconfig)
         
 

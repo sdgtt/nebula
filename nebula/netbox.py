@@ -7,7 +7,6 @@ import yaml
 import json
 import os
 import pathlib
-from pprint import pprint
 
 log = logging.getLogger(__name__)
 
@@ -354,17 +353,12 @@ class NetboxDevices():
         self.devices = [ NetboxDevice(ni, dev) for dev in devices_names ]
 
 
-    def generate_config(self, template_file=None):
+    def generate_config(self, template=None):
         template_dict = dict()
         path = pathlib.Path(__file__).parent.absolute()
 
-        if not template_file:
-            template_file = os.path.join(path, "resources", "template_gen.yaml")
-
-        with open(template_file, 'r') as f:
-            template = yaml.safe_load(f)
-            for dev in self.devices:
-                template_dict.update({dev.devices.name: dev.to_config(template)})
+        for dev in self.devices:
+            template_dict.update({dev.devices.name: dev.to_config(template)})
 
         return template_dict
 
