@@ -277,7 +277,8 @@ class helper:
         print("Pew pew... all set")
 
     def create_config_from_netbox(
-        self, 
+        self,
+        outfile="nebula",
         netbox_ip="localhost",
         netbox_port=None,
         netbox_baseurl=None,
@@ -307,7 +308,7 @@ class helper:
             nbds = NetboxDevices(ni,agent=jenkins_agent)
             outconfig = nbds.generate_config(config)
 
-        self._write_config_file(filename='nebula',outconfig=outconfig)
+        self._write_config_file(filename=outfile,outconfig=outconfig)
         
 
     def _write_config_file(self, filename, outconfig):

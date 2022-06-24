@@ -306,6 +306,7 @@ def update_config(
 
 @task(
     help={
+        "outfile": "Output file name",
         "netbox_ip": "IP of netbox server",
         "netbox_port": "Port netbox is running on the netbox server",
         "netbox_token": "Token for authenticating API requests",
@@ -316,6 +317,7 @@ def update_config(
 )
 def gen_config_netbox(
     c,
+    outfile="nebula",
     netbox_ip="localhost",
     netbox_token="0123456789abcdef0123456789abcdef01234567",
     netbox_port=None,
@@ -326,6 +328,7 @@ def gen_config_netbox(
     """Generate YAML configuration from netbox"""
     h = nebula.helper()
     h.create_config_from_netbox(
+        outfile=outfile,
         netbox_ip=netbox_ip,
         netbox_port=netbox_port,
         netbox_baseurl=netbox_baseurl,
