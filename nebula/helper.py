@@ -288,8 +288,12 @@ class helper:
         path = pathlib.Path(__file__).parent.absolute()
         template = os.path.join(path, "resources", "template_gen.yaml")
         ni = netbox(
-            ip=netbox_ip, port=netbox_port, base_url=netbox_baseurl, token=netbox_token
-        )
+            ip=netbox_ip,
+            port=netbox_port,
+            base_url=netbox_baseurl,
+            token=netbox_token,
+            load_config=False
+            )
         outconfig = dict()
         config = dict()
 

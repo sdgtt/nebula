@@ -72,13 +72,19 @@ class netbox(utils):
         base_url="",
         yamlfilename=None,
         board_name=None,
+        load_config=True
     ):
         port = ":" + str(port) if port else ""
         base_url = "/" + str(base_url) if base_url else ""
+        self.netbox_server = ip
+        self.netbox_server_port = port
+        self.netbox_api_token = token
+        self.netbox_base_url = base_url
         self.nb = pynetbox.api(f"http://{ip}{port}{base_url}", token=token)
-        self.update_defaults_from_yaml(
-            yamlfilename, __class__.__name__, board_name=board_name
-        )
+        if load_config:
+            self.update_defaults_from_yaml(
+                yamlfilename, __class__.__name__, board_name=board_name
+            )
 
     def interface(self):
         return self.nb
