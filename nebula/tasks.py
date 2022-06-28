@@ -325,6 +325,9 @@ def gen_config_netbox(
     netbox_baseurl=None,
     jenkins_agent=None,
     board_name=None,
+    devices_status=None,
+    devices_role=None,
+    devices_tag=None
 ):
     """Generate YAML configuration from netbox"""
     h = nebula.helper()
@@ -336,6 +339,9 @@ def gen_config_netbox(
         netbox_token=netbox_token,
         jenkins_agent=jenkins_agent,
         board_name=board_name,
+        devices_status=devices_status,
+        devices_role=devices_role,
+        devices_tag=devices_tag
     )
 
 

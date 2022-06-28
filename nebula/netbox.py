@@ -387,7 +387,8 @@ class NetboxDevices:
 
         kwargs["role_name"] = role
         kwargs["status"] = status
-        kwargs["tag"] = tag
+        if tag:
+            kwargs["tag"] = tag
 
         devices_names = ni.get_devices_name(include_variants=True, **kwargs)
 

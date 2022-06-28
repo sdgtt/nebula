@@ -283,6 +283,9 @@ class helper:
         netbox_token=None,
         jenkins_agent=None,
         board_name=None,
+        devices_status=None,
+        devices_role=None,
+        devices_tag=None
     ):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
@@ -305,7 +308,13 @@ class helper:
             nbd = NetboxDevice(ni, device_name=board_name)
             outconfig = nbd.to_config(config)
         else:
-            nbds = NetboxDevices(ni, agent=jenkins_agent)
+            nbds = NetboxDevices(
+                ni,
+                status=devices_status,
+                role=devices_role,
+                agent=jenkins_agent,
+                tag=devices_tag
+            )
             outconfig = nbds.generate_config(config)
 
         self._write_config_file(filename=outfile, outconfig=outconfig)
