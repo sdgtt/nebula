@@ -119,24 +119,38 @@ class netbox(utils):
         return devices_names
 
     def get_devices(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.devices.all()]
         return [dict(device) for device in self.nb.dcim.devices.filter(**filters)]
 
     def get_console_ports(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.console_ports.all()]
         return [dict(cp) for cp in self.nb.dcim.console_ports.filter(**filters)]
 
     def get_interfaces(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.interfaces.all()]
         return [dict(inf) for inf in self.nb.dcim.interfaces.filter(**filters)]
 
     def get_ip_addresses(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.ipam.ip_addresses.all()]
         return [dict(ip) for ip in self.nb.ipam.ip_addresses.filter(**filters)]
 
     def get_power_ports(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.power_ports.all()]
         return [dict(pow) for pow in self.nb.dcim.power_ports.filter(**filters)]
 
     def get_power_outlets(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.power_outlets.all()]
         return [dict(out) for out in self.nb.dcim.power_outlets.filter(**filters)]
 
     def get_clusters(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.virtualization.clusters.all()]
         return [dict(out) for out in self.nb.virtualization.clusters.filter(**filters)]
 
 
