@@ -363,7 +363,7 @@ class NetboxDevice:
 class NetboxDevices:
     """List of NetboxDevice"""
 
-    def __init__(self, ni, status="active", role="fpga_dut", agent=None):
+    def __init__(self, ni, status="active", role="fpga_dut", agent=None, tag=None):
         # get cluster agent
         dut_bank_id = None
         for cluster in ni.get_clusters():
@@ -387,10 +387,15 @@ class NetboxDevices:
 
         kwargs["role_name"] = role
         kwargs["status"] = status
+        kwargs["tag"] = tag
 
         devices_names = ni.get_devices_name(include_variants=True, **kwargs)
 
+        self.devices_name = devices_names
         self.devices = [NetboxDevice(ni, dev) for dev in devices_names]
+
+    def get_devices_names(self):
+        return self.devices_name
 
     def generate_config(self, template=None):
         template_dict = dict()
