@@ -387,11 +387,12 @@ def recovery_device_manager(
 )
 def check_jtag_manager(
     c,
+    vivado_version= "2021.1",
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
     """Recover JTAG device """
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, extras=vivado_version)
 
 
 @task(
