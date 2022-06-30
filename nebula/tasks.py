@@ -554,6 +554,20 @@ def recovery_device_manager(
     else:
         m.board_reboot_auto_folder(folder, sdcard, design_name=board_name, recover=True)
 
+@task(
+    help={
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def check_jtag_manager(
+    c,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Recover JTAG device """
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+
 
 @task(
     help={
@@ -594,13 +608,14 @@ manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
+manager.add_task(check_jtag_manager, name="check_jtag")
 
 
 #############################################
 @task(
     help={
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
-        + " if no yaml file exists and no address provided auto is used",
+        + " if no yaml file exists and no address provided auto is ugit adsed",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
