@@ -379,6 +379,7 @@ def recovery_device_manager(
     else:
         m.board_reboot_auto_folder(folder, sdcard, design_name=board_name, recover=True)
 
+
 @task(
     help={
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
@@ -387,12 +388,14 @@ def recovery_device_manager(
 )
 def check_jtag_manager(
     c,
-    vivado_version= "2021.1",
+    vivado_version="2021.1",
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """Recover JTAG device """
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, extras=vivado_version)
+    """Recover JTAG device"""
+    nebula.manager(
+        configfilename=yamlfilename, board_name=board_name, extras=vivado_version
+    )
 
 
 @task(
@@ -441,7 +444,7 @@ manager.add_task(check_jtag_manager, name="check_jtag")
 @task(
     help={
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
-        + " if no yaml file exists and no address provided auto is ugit adsed",
+        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },

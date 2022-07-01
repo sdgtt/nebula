@@ -54,7 +54,9 @@ class manager:
                     if self.jtag_use:
                         try:
                             self.jtag = jtag(
-                                yamlfilename=configfilename, board_name=board_name, vivado_version=extras
+                                yamlfilename=configfilename,
+                                board_name=board_name,
+                                vivado_version=extras,
                             )
                         except Exception as e:
                             log.info(str(e))
