@@ -327,7 +327,7 @@ def gen_config_netbox(
     board_name=None,
     devices_status=None,
     devices_role=None,
-    devices_tag=None
+    devices_tag=None,
 ):
     """Generate YAML configuration from netbox"""
     h = nebula.helper()
@@ -341,7 +341,7 @@ def gen_config_netbox(
         board_name=board_name,
         devices_status=devices_status,
         devices_role=devices_role,
-        devices_tag=devices_tag
+        devices_tag=devices_tag,
     )
 
 

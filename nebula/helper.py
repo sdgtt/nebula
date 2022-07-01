@@ -285,7 +285,7 @@ class helper:
         board_name=None,
         devices_status=None,
         devices_role=None,
-        devices_tag=None
+        devices_tag=None,
     ):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
@@ -295,8 +295,8 @@ class helper:
             port=netbox_port,
             base_url=netbox_baseurl,
             token=netbox_token,
-            load_config=False
-            )
+            load_config=False,
+        )
         outconfig = dict()
         config = dict()
 
@@ -313,7 +313,7 @@ class helper:
                 status=devices_status,
                 role=devices_role,
                 agent=jenkins_agent,
-                tag=devices_tag
+                tag=devices_tag,
             )
             outconfig = nbds.generate_config(config)
 
