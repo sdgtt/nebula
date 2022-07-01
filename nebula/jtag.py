@@ -35,7 +35,9 @@ class jtag(utils):
         # Check target device available
         jtag_connected = False
         for c in range(self.jtag_connect_retries):
-            cmd = "connect; after 1000; " + self.target_set_str(self.jtag_cpu_target_name)
+            cmd = "connect; after 1000; " + self.target_set_str(
+                self.jtag_cpu_target_name
+            )
             jtag_connected = self.run_xsdb(cmd)
             if jtag_connected:
                 log.info(
