@@ -66,7 +66,9 @@ class manager:
                             self.power.power_cycle_board()
                             time.sleep(60)
                             self.jtag = jtag(
-                                yamlfilename=configfilename, board_name=board_name
+                                yamlfilename=configfilename,
+                                board_name=board_name,
+                                vivado_version=extras,
                             )
 
         if "netconsole" in monitor_type.lower():
