@@ -314,6 +314,9 @@ def update_config(
         "netbox_baseurl": "baseurl pointing to netbox instance (if exist)",
         "jenkins_agent": "Target Jenkins agent to generate config to",
         "board_name": "Target board to generate config to, takes higher priority over jenkins_agent",
+        "devices_status": "Select only devices with the specified device status defined in netbox",
+        "devices_role": "Select only devices with the specified device role defined in netbox",
+        "devices_tag": "Select only devices with the specified device tag defined in netbox",
     },
 )
 def gen_config_netbox(
