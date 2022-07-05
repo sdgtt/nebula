@@ -19,6 +19,7 @@ from nebula.common import utils
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
+import tarfile
 
 log = logging.getLogger(__name__)
 
@@ -153,14 +154,17 @@ class downloader(utils):
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
+        # rpi fields 
         self.soc = None
+        self.module = None
         self.kernel = None
         self.overlay = None
+        self.devtree = None
         self.update_defaults_from_yaml(
             yamlfilename,
             configname="board",
             board_name=board_name,
-            attr=["soc", "kernel", "overlay"],
+            attr=["soc", "module", "kernel", "devtree", "overlay"],
         )
 
     def _download_firmware(self, device, release=None):
@@ -453,7 +457,7 @@ class downloader(utils):
         if source == "artifactory":
             get_gitsha(self.url, daily=True, linux=True)
 
-    def _get_files_rpi(self, source, source_root, branch, kernel, soc, overlay):
+    def _get_files_rpi(self, source, source_root, branch, kernel, devtree, overlay, module=None):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -471,6 +475,14 @@ class downloader(utils):
             self.download(url, file)
 
         url_template = url_template.format(source_root, branch, "{}/{}")
+
+        if "dtb" not in devtree:
+            devtree = devtree + ".dtb"
+        log.info("Getting device tree " + devtree)
+        url = url_template.format(build_date, devtree)
+        file = os.path.join(dest, devtree)
+        self.download(url, file)
+
         if "dtbo" not in overlay:
             overlay = overlay + ".dtbo"
         overlay_f = "overlays/" + overlay
@@ -486,6 +498,19 @@ class downloader(utils):
         file = os.path.join(dest, kernel)
         self.download(url, file)
 
+        if module:
+            tar_file = 'rpi_modules.tar.gz'
+            log.info("Get module " + module)
+            url = url_template.format(build_date, tar_file)
+            file = os.path.join(dest, tar_file)
+            self.download(url, file)
+            with tarfile.open(file) as tf:
+                module_files = [
+                    tarinfo for tarinfo in tf.getmembers()
+                    if tarinfo.name.startswith(f"./{module}")
+                ]
+                tf.extractall(path=dest, members=module_files)
+
     def _get_files(
         self,
         design_name,
@@ -497,7 +522,8 @@ class downloader(utils):
         source,
         source_root,
         branch,
-        soc,
+        module,
+        devtree,
         overlay,
         rpi_kernel,
         folder=None,
@@ -570,7 +596,7 @@ class downloader(utils):
                 )
 
             if rpi:
-                self._get_files_rpi(source, source_root, branch, kernel, soc, overlay)
+                self._get_files_rpi(source, source_root, branch, kernel, devtree, overlay, module)
 
             if folder:
                 if folder == "boot_partition":
@@ -645,6 +671,8 @@ class downloader(utils):
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
         soc = self.soc
+        module = self.module
+        devtree = self.devtree
         overlay = self.overlay
         rpi_kernel = self.kernel
 
@@ -691,7 +719,8 @@ class downloader(utils):
             source,
             source_root,
             branch,
-            soc,
+            module,
+            devtree,
             overlay,
             rpi_kernel,
             folder,
