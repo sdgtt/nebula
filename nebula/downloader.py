@@ -510,7 +510,7 @@ class downloader(utils):
         kernel_root = False
         dt = False
 
-        if details["carrier"] in ["ZCU102"]:
+        if details["carrier"] in ["ZCU102", "ADRV2CRR-FMC"]:
             kernel = "Image"
             kernel_root = "zynqmp-common"
             dt = "system.dtb"
