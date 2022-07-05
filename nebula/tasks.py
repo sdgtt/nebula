@@ -480,6 +480,49 @@ def update_config(
     )
 
 
+@task(
+    help={
+        "outfile": "Output file name",
+        "netbox_ip": "IP of netbox server",
+        "netbox_port": "Port netbox is running on the netbox server",
+        "netbox_token": "Token for authenticating API requests",
+        "netbox_baseurl": "baseurl pointing to netbox instance (if exist)",
+        "jenkins_agent": "Target Jenkins agent to generate config to",
+        "board_name": "Target board to generate config to, takes higher priority over jenkins_agent",
+        "devices_status": "Select only devices with the specified device status defined in netbox",
+        "devices_role": "Select only devices with the specified device role defined in netbox",
+        "devices_tag": "Select only devices with the specified device tag defined in netbox",
+    },
+)
+def gen_config_netbox(
+    c,
+    outfile="nebula",
+    netbox_ip="localhost",
+    netbox_token="0123456789abcdef0123456789abcdef01234567",
+    netbox_port=None,
+    netbox_baseurl=None,
+    jenkins_agent=None,
+    board_name=None,
+    devices_status=None,
+    devices_role=None,
+    devices_tag=None,
+):
+    """Generate YAML configuration from netbox"""
+    h = nebula.helper()
+    h.create_config_from_netbox(
+        outfile=outfile,
+        netbox_ip=netbox_ip,
+        netbox_port=netbox_port,
+        netbox_baseurl=netbox_baseurl,
+        netbox_token=netbox_token,
+        jenkins_agent=jenkins_agent,
+        board_name=board_name,
+        devices_status=devices_status,
+        devices_role=devices_role,
+        devices_tag=devices_tag,
+    )
+
+
 #############################################
 @task(
     help={
@@ -1024,6 +1067,7 @@ ns = Collection()
 ns.add_task(gen_config)
 ns.add_task(show_log)
 ns.add_task(update_config)
+ns.add_task(gen_config_netbox)
 
 ns.add_collection(builder)
 ns.add_collection(uart)
