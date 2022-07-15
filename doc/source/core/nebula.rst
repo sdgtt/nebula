@@ -26,6 +26,7 @@ Submodules
    nebula.tftpboot
    nebula.uart
    nebula.usbdev
+   nebula.usbmux
 
 Module contents
 ---------------
