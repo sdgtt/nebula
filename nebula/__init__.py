@@ -17,6 +17,7 @@ from nebula.coverage import coverage
 from nebula.jtag import jtag
 from nebula.usbdev import usbdev
 from nebula.netbox import netbox
+from nebula.usbmux import usbmux
 
 __version__ = "0.0.1"
 name = "Nebula: Embedded Development Tools"

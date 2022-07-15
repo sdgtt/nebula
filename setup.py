@@ -45,6 +45,7 @@ setuptools.setup(
         "pytest",
         "pyvesync_v2",
         "pyfiglet",
+        "usbsdmux",
     ],
     entry_points={"console_scripts": ["nebula = nebula.main:program.run"]},
     classifiers=[

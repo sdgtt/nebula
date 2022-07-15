@@ -14,3 +14,4 @@ requests
 pygithub
 pynetbox
 artifactory
+usbsdmux
