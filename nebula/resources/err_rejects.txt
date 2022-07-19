@@ -4,3 +4,9 @@ mtdoops: mtd device (mtddev=name/number) must be supplied
 CPUidle arm: Failed to register cpuidle driver
 OF: graph: no port node found in /amba/zynqmp-display@fd4a0000
 dwc3 fe200000.dwc3: Failed to get clk 'ref': -2
+systemd[1]: Failed to mount RPC Pipe File System.
+systemd[1]: Failed to start Load Kernel Modules.
+spi-nor spi0.0: trying to lock already unlocked area
+mwipcore 43c00000.mwipcore: IRQ index 0 not found
+OF: graph: no port node found in /axi/display@fd4a0000
+OF: graph: no port node found in /axi/phy@fd400000
