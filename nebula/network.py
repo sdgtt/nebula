@@ -133,8 +133,9 @@ class network(utils):
                 if t >= (retries - 1):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
 
-    def run_ssh_command(self, command, ignore_exceptions=False):
-        retries = 3
+    def run_ssh_command(
+        self, command, ignore_exceptions=False, retries=3, show_log=True
+    ):
         result = None
         for t in range(retries):
             log.info(
@@ -147,13 +148,24 @@ class network(utils):
                 ).run(command, hide=True, timeout=self.ssh_timeout)
                 if result.failed:
                     raise Exception("Failed to run command:", command)
+
+                if show_log and result.stdout:
+                    log.info("result stdout begin -------------------------------")
+                    log.info(f"{result.stdout}")
+                    log.info("result stdout end -------------------------------")
+
+                if show_log and result.stderr:
+                    log.info("result stderr begin -------------------------------")
+                    log.info(f"{result.stderr}")
+                    log.info("result stderr end -------------------------------")
+
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
                 if not ignore_exceptions:
                     time.sleep(3)
                     if t >= (retries - 1):
-                        raise Exception("SSH Failed")
+                        raise Exception("SSH Failed: " + str(ex))
 
         return result
 
