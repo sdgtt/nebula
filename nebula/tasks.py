@@ -867,8 +867,8 @@ def run_diagnostics(
         "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
-        "command": "Shell command to run via ssh. Supports linux systems for now."
-        "ignore_exception": "Ignore errors encountered on the remote side."
+        "command": "Shell command to run via ssh. Supports linux systems for now.",
+        "ignore_exception": "Ignore errors encountered on the remote side.",
         "retries": "Number of execution attempts"
     }
 )
