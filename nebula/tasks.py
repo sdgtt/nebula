@@ -862,12 +862,37 @@ def run_diagnostics(
     )
     n.run_diagnostics()
 
+@task(
+    help={
+        "ip": "IP address of board. Default from yaml",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
+        "command": "Shell command to run via ssh. Supports linux systems for now."
+        "ignore_exception": "Ignore errors encountered on the remote side."
+        "retries": "Number of execution attempts"
+    }
+)
+def run_command(
+    c,
+    ip=None,
+    user="root",
+    password="analog",
+    command=None
+    ignore_exception=False,
+    retries=3,
+):
+    """Run command to expand sd card via IP"""
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password
+    )
+    n.run_ssh_command(command, ignore_exception, retries)
 
 net = Collection("net")
 net.add_task(restart_board)
 net.add_task(update_boot_files)
 net.add_task(check_dmesg)
 net.add_task(run_diagnostics)
+net.add_task(run_command)
 
 
 #############################################
