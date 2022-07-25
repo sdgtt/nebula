@@ -867,6 +867,7 @@ def run_diagnostics(
         "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "command": "Shell command to run via ssh. Supports linux systems for now.",
         "ignore_exception": "Ignore errors encountered on the remote side.",
         "retries": "Number of execution attempts"
@@ -877,13 +878,14 @@ def run_command(
     ip=None,
     user="root",
     password="analog",
+    board_name=None,
     command=None,
     ignore_exception=False,
     retries=3,
 ):
     """Run command to expand sd card via IP"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
     n.run_ssh_command(command, ignore_exception, retries)
 
