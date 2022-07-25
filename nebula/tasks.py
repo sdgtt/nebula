@@ -877,7 +877,7 @@ def run_command(
     ip=None,
     user="root",
     password="analog",
-    command=None
+    command=None,
     ignore_exception=False,
     retries=3,
 ):
