@@ -146,13 +146,15 @@ class network(utils):
                 ).run(command, hide=True, timeout=self.ssh_timeout)
                 if result.failed:
                     raise Exception("Failed to run command:", command)
+                log.info(f'result stdout {result.stdout}')
+                log.info(f'result stderr {result.stderr}')
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
                 if not ignore_exceptions:
                     time.sleep(3)
                     if t >= (retries - 1):
-                        raise Exception("SSH Failed")
+                        raise Exception("SSH Failed: " + str(ex))
 
         return result
 
