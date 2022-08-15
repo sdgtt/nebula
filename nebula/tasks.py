@@ -614,6 +614,7 @@ def get_carriername(
             if "@" in addr[-1]:
                 addr = addr[:-1]
             addr = "-".join(addr)
+            print("nebula-tasks-get_carriername")
             print(addr)
         else:
             print("Address not found")
@@ -644,6 +645,7 @@ def get_mezzanine(
         if addr:
             if addr[-1] == "#":
                 addr = addr[:-1]
+            print("nebula-tasks-get_mezzanine")
             print(addr)
         else:
             print("Address not found")
