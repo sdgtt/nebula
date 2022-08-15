@@ -554,6 +554,7 @@ def set_local_nic_ip_from_usbdev(
         addr = addr.replace(":", "")
         addr = addr.replace("\r", "")
         addr = addr.strip()
+        print(addr)
         # Get IP of virtual nic
         cmd = (
             "ip -4 addr l enx"
