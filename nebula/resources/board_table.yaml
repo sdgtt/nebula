@@ -1,7 +1,15 @@
 #BOOT PARTITION
-socfpga_arria10_socdk_ad9172_fmc:
+socfpga_arria10_socdk_ad9081:
   addons:
-  - EVAL-AD9172
+  - AD9081-FMCA-EBZ
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_adrv9002:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
+  carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_adrv9002_rx2tx2:
+  addons:
+  - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
   carrier: DK-SOC-10AS066S-A
 socfpga_arria10_socdk_adrv9009:
   addons:
@@ -11,6 +19,10 @@ socfpga_arria10_socdk_adrv9371:
   addons:
   - EVAL-ADRV9371
   carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_cn0506_mii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: DK-SOC-10AS066S-A
 socfpga_arria10_socdk_daq2:
   addons:
   - AD-FMCDAQ2-EBZ
@@ -19,10 +31,22 @@ socfpga_arria10_socdk_fmclidar1:
   addons:
   - AD-FMCLIDAR1-EBZ
   carrier: DK-SOC-10AS066S-A
+socfpga_arria10_socdk_fmcomms8:
+  addons:
+  - AD-FMCOMMS8-EBZ
+  carrier: DK-SOC-10AS066S-A
+socfpga_cyclone5_de10_nano_cn0540:
+  addons:
+  - EVAL-CN0540-ARDZ
+  carrier: DE10-NANO
 socfpga_cyclone5_sockit_arradio:
   addons:
   - Arradio board
   carrier: Intel Cyclone 5 SoC Kit
+versal-vck190-reva-ad9081:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: VCK190
 zynq-adrv9361-z7035-bob:
   addons:
   - ADRV9361
@@ -51,6 +75,14 @@ zynq-adrv9364-z7020-packrf:
   addons:
   - ADRV9364
   carrier: ADRV1CRR-BOX
+zynq-coraz7s-cn0501:
+  addons:
+  - EVAL-CN0501
+  carrier: CORAZ7S
+zynq-coraz7s-cn0540:
+  addons:
+  - EVAL-CN0540-ARDZ
+  carrier: CORAZ7S
 zynq-zc702-adv7511:
   carrier: ZC702
 zynq-zc702-adv7511-ad9361-fmcomms2-3:
@@ -71,6 +103,14 @@ zynq-zc706-adv7511:
 zynq-zc706-adv7511-ad6676-fmc:
   addons:
   - AD6676-FMC-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9081:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZC706
+zynq-zc706-adv7511-ad9081-np12:
+  addons:
+  - AD9081-FMCA-EBZ
   carrier: ZC706
 zynq-zc706-adv7511-ad9172-fmc-ebz:
   addons:
@@ -141,6 +181,18 @@ zynq-zc706-adv7511-adrv9002-rx2tx2:
   addons:
   - ADRV9002NP/W1/PCBZ ADRV9002NP/W2/PCBZ
   carrier: ZC706
+zynq-zc706-adv7511-cn0506-mii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: ZC706
+zynq-zc706-adv7511-cn0506-rgmii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: ZC706
+zynq-zc706-adv7511-cn0506-rmii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: ZC706
 zynq-zc706-adv7511-fmcdaq2:
   addons:
   - AD-FMCDAQ2-EBZ
@@ -162,6 +214,14 @@ zynq-zc706-adv7511-fmcomms11:
   - AD-FMCOMMS11-EBZ
   carrier: ZC706
 zynq-zed-adv7511:
+  carrier: Zed-Board
+zynq-zed-adv7511-ad4020:
+  addons:
+  - EVAL-AD400X-FMCZ
+  carrier: Zed-Boards
+zynq-zed-adv7511-ad4630-24:
+  addons:
+  - EVAL-AD4630-24FMCZ
   carrier: Zed-Board
 zynq-zed-adv7511-ad7768:
   addons:
@@ -196,6 +256,18 @@ zynq-zed-adv7511-cn0363:
   addons:
   - EVAL-CN0363-PMDZ
   carrier: Zed-Board
+zynq-zed-adv7511-cn0506-mii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: Zed-Board
+zynq-zed-adv7511-cn0506-rgmii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: Zed-Board
+zynq-zed-adv7511-cn0506-rmii:
+  addons:
+  - EVAL-CN0506-FMCZ
+  carrier: Zed-Board
 zynq-zed-imageon:
   addons:
   - FMC-IMAGEON
@@ -204,6 +276,66 @@ zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb:
   addons:
   - ADRV9009-ZU11EG
   carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-multisom-primary:
+  addons:
+  - ADRV9009-ZU11EG
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-multisom-secondary:
+  addons:
+  - ADRV9009-ZU11EG
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8:
+  addons:
+  - ADRV9009-ZU11EG AD-FMCOMMS8-EBZ
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-multisom-primary:
+  addons:
+  - ADRV9009-ZU11EG AD-FMCOMMS8-EBZ
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-multisom-secondary:
+  addons:
+  - ADRV9009-ZU11EG AD-FMCOMMS8-EBZ
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-using-clockdist:
+  addons:
+  - ADRV9009-ZU11EG AD-FMCOMMS8-EBZ
+  carrier: ADRV2CRR-FMC
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-xmicrowave:
+  addons:
+  - XMICROWAVE
+  carrier: ADRV2CRR-FMC
+zynqmp-zcu102-rev10-ad9081:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9081-204b-txmode9-rxmode4:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9081-204c-txmode0-rxmode1:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9081-m8-l4:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9081-m8-l4-vcxo122p88:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9081-m4-l8:
+  addons:
+  - AD9081-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9082-m4-l8:
+  addons:
+  - AD9082-FMCA-EBZ
+  carrier: ZCU102
+zynqmp-zcu102-rev10-ad9083-fmc-ebz:
+  addons:
+  - AD9083-EBZ
+  carrier: ZCU102
 zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4:
   addons:
   - EVAL-AD9172
