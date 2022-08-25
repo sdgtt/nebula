@@ -1,0 +1,71 @@
+# This file is used to generate questions for configuration file generation
+# Here is the structure
+# <section>-config:
+#   field_X:
+#     name: <field name>
+#     default: <default option> (Optional)
+#     help: <question asked user>
+#     options: <list of options> (Optional)
+#     optional: <False,True,depends> (depends is used when its a dependent property)
+#     requires: <answer needed>:<field name of fields depending on this one,second field name> (Optional)
+#     netbox_field: <equivalent netbox object attribute>
+
+board-config:
+  field_1:
+    name: board-name
+    default: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD."
+    optional: False
+    netbox_field: devices.name
+network-config:
+  field_1:
+    name: dutip
+    default: 192.168.10.2
+    help: "IP address of development board"
+    optional: False
+    netbox_field: devices.interfaces.mgmt.ip.address
+  field_2:
+    name: dhcp
+    help: "DHCP network to development board (False assumes static)"
+    optional: False
+    options: ["True", "False"]
+    requires: False:nic,nicip
+    netbox_field: devices.interfaces.mgmt.custom_fields.dhcp
+  field_3:
+    name: nic
+    default: eth0
+    help: "NIC used to talk to development board"
+    optional: depends
+    callback: get_nics
+    netbox_field: devices.interfaces.mgmt.label
+  field_4:
+    name: nicip
+    default: 192.168.10.1
+    help: "NIC connected to development board ip address"
+    optional: depends
+    netbox_field: devices.interfaces.mgmt.custom_fields.nicip
+netbox-config:
+  field_1:
+    name: netbox_server
+    help: "IP address of the netbox server"
+    default: 192.168.10.1
+    optional: True
+    netbox_field: devices.config_context.netbox_server
+  field_2:
+    name: netbox_server_port
+    default: 8000
+    help: "Port used by the netbox service"
+    optional: True
+    netbox_field: devices.config_context.netbox_port
+  field_3:
+    name: netbox_base_url
+    default: netbox
+    help: "String used as netbox base url. i.e server:port\base_url"
+    optional: True
+    netbox_field: devices.config_context.netbox_base_url
+  field_4:
+    name: netbox_api_token
+    default: 0123456789abcdef0123456789abcdef01234567
+    help: "Token for netbox rest api access"
+    optional: True
+    netbox_field: devices.config_context.netbox_api_token

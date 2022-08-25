@@ -317,6 +317,7 @@ def update_config(
         "devices_status": "Select only devices with the specified device status defined in netbox",
         "devices_role": "Select only devices with the specified device role defined in netbox",
         "devices_tag": "Select only devices with the specified device tag defined in netbox",
+        "template": "Template for config generation",
     },
 )
 def gen_config_netbox(
@@ -331,6 +332,7 @@ def gen_config_netbox(
     devices_status=None,
     devices_role=None,
     devices_tag=None,
+    template=None,
 ):
     """Generate YAML configuration from netbox"""
     h = nebula.helper()
@@ -345,6 +347,7 @@ def gen_config_netbox(
         devices_status=devices_status,
         devices_role=devices_role,
         devices_tag=devices_tag,
+        template=template,
     )
 
 

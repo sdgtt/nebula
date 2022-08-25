@@ -286,10 +286,13 @@ class helper:
         devices_status=None,
         devices_role=None,
         devices_tag=None,
+        template=None,
     ):
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
-        template = os.path.join(path, "resources", "template_gen.yaml")
+        template = os.path.join(
+            path, "resources", template if template else "template_gen.yaml"
+        )
         ni = netbox(
             ip=netbox_ip,
             port=netbox_port,
