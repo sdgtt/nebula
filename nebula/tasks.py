@@ -557,6 +557,7 @@ def recovery_device_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
@@ -569,7 +570,9 @@ def check_jtag_manager(
 ):
     """Recover JTAG device"""
     nebula.manager(
-        configfilename=yamlfilename, board_name=board_name, extras=vivado_version
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
     )
 
 

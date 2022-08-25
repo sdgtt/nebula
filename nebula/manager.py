@@ -25,7 +25,12 @@ class manager:
     """Board Manager"""
 
     def __init__(
-        self, monitor_type="uart", configfilename=None, board_name=None, extras=None
+        self,
+        monitor_type="uart",
+        configfilename=None,
+        board_name=None,
+        vivado_version=None,
+        extras=None,
     ):
         # Check if config info exists in yaml
         self.configfilename = configfilename
@@ -56,7 +61,7 @@ class manager:
                             self.jtag = jtag(
                                 yamlfilename=configfilename,
                                 board_name=board_name,
-                                vivado_version=extras,
+                                vivado_version=vivado_version,
                             )
                         except Exception as e:
                             log.info(str(e))
@@ -68,7 +73,7 @@ class manager:
                             self.jtag = jtag(
                                 yamlfilename=configfilename,
                                 board_name=board_name,
-                                vivado_version=extras,
+                                vivado_version=vivado_version,
                             )
 
         if "netconsole" in monitor_type.lower():
