@@ -425,6 +425,27 @@ def recovery_device_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def check_jtag_manager(
+    c,
+    vivado_version="2021.1",
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Recover JTAG device"""
+    nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
+
+
+@task(
+    help={
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -462,6 +483,7 @@ manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
+manager.add_task(check_jtag_manager, name="check_jtag")
 
 
 #############################################
