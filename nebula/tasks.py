@@ -909,7 +909,7 @@ def run_command(
     ignore_exception=False,
     retries=3,
 ):
-    """Run command to expand sd card via IP"""
+    """Run command on remote via ip"""
     n = nebula.network(
         dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
     )
