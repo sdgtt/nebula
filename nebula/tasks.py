@@ -55,12 +55,14 @@ def usbmux_write_sdcard_image(
 
 @task(
     help={
-        "img_filename": "The image file (full path) to write to the SD card",
-        "target_mux": "SD card mux to use (default: use first mux found)",
-        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
+        "kernel_filename": "The kernel image file (full path) to write to the SD card",
+        "devicetree_filename": "The devicetree file (full path) to write to the SD card",
         "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
         "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
         "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
@@ -93,12 +95,14 @@ def usbmux_update_bootfiles_on_sdcard(
 
 @task(
     help={
-        "img_filename": "The image file (full path) to write to the SD card",
-        "target_mux": "SD card mux to use (default: use first mux found)",
-        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
+        "kernel_filename": "The kernel image file (full path) to write to the SD card",
+        "devicetree_filename": "The devicetree file (full path) to write to the SD card",
         "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
         "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
         "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
@@ -146,7 +150,7 @@ def usbmux_change_mux_mode(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Update boot files on SD card connected to MUX co-located on card
+    """ Change mux mode of USB SD Card mux. Switch between host, dut, off
     """
     mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
     mux.set_mux_mode(mode)
