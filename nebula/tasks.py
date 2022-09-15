@@ -515,6 +515,7 @@ def gen_config_netbox(
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "sdcard": "Will use bootfiles from sd card if set to true",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
@@ -526,6 +527,7 @@ def update_boot_files_jtag_manager(
     uimagepath="uImage",
     devtreepath="devicetree.dtb",
     folder=None,
+    sdcard=False,
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
@@ -610,6 +612,7 @@ def check_jtag_manager(
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "sdcard": "Get boot files from the sdcard",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
@@ -621,6 +624,7 @@ def update_boot_files_manager(
     uimagepath="uImage",
     devtreepath="devicetree.dtb",
     folder=None,
+    sdcard=False,
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
@@ -635,7 +639,7 @@ def update_boot_files_manager(
             devtreepath=devtreepath,
         )
     else:
-        m.board_reboot_auto_folder(folder, design_name=board_name)
+        m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
 
 
 manager = Collection("manager")

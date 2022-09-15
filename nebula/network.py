@@ -9,6 +9,7 @@ import time
 
 import fabric
 import nebula.errors as ne
+import nebula.helper as helper
 from fabric import Connection
 from nebula.common import utils
 
@@ -226,20 +227,41 @@ class network(utils):
         log.info("Updating boot files over SSH from SD card itself")
         if not subfolder:
             raise Exception("Must provide a subfolder")
-        self.run_ssh_command("mkdir /tmp/sdcard")
-        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
-        self.run_ssh_command("cp /tmp/sdcard/" + subfolder + "/BOOT.BIN /tmp/sdcard/")
-        if "zynqmp" in subfolder:
-            self.run_ssh_command("cp /tmp/sdcard/zynqmp-common/Image /tmp/sdcard/")
-            self.run_ssh_command(
-                "cp /tmp/sdcard/" + subfolder + "/system.dtb /tmp/sdcard/"
-            )
+        log.info("Updating boot files over SSH")
+        try:
+            self.run_ssh_command("ls /tmp/sdcard", retries=1)
+            dir_exists = True
+        except Exception:
+            log.info("Existing /tmp/sdcard directory not found. Will need to create it")
+            dir_exists = False
+        if dir_exists:
+            try:
+                log.info("Trying to unmounting directory")
+                self.run_ssh_command("umount /tmp/sdcard", retries=1)
+            except Exception:
+                log.info("Unmount failed... Likely not mounted")
+                pass
         else:
-            self.run_ssh_command("cp /tmp/sdcard/zynq-common/uImage /tmp/sdcard/")
-            self.run_ssh_command(
-                "cp /tmp/sdcard/" + subfolder + "/devicetree.dtb /tmp/sdcard/"
-            )
-        self.run_ssh_command("sudo reboot")
+            self.run_ssh_command("mkdir /tmp/sdcard", retries=1)
+
+        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
+
+        # extract needed boot files from the kuiper descriptor file
+        h = helper.helper()
+        descriptor_path = "nebula/resources/kuiper.json"
+        try:
+            self._dl_file("/tmp/sdcard/kuiper.json")
+            os.replace("kuiper.json", descriptor_path)
+        except Exception:
+            log.warning("Cannot find project descriptor on target")
+
+        boot_files_path = h.get_boot_files_from_descriptor(descriptor_path, subfolder)
+
+        for boot_file in boot_files_path:
+            log.info(f"Copying {boot_file[1]}")
+            self.run_ssh_command(f"cp {boot_file[1]} /tmp/sdcard/")
+
+        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def _dl_file(self, filename):
         fabric.Connection(
