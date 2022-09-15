@@ -431,6 +431,7 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
+        sdcard=False
     ):
         """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
@@ -475,14 +476,17 @@ class manager:
 
             # Update board over SSH and reboot
             log.info("Update board over SSH and reboot")
-            self.net.update_boot_partition(
-                bootbinpath=bootbinpath,
-                uimagepath=uimagepath,
-                devtreepath=devtreepath,
-                extlinux_path=extlinux_path,
-                scr_path=scr_path,
-                preloader_path=preloader_path,
-            )
+            if sdcard:
+                self.net.update_boot_partition_existing_files(self.board_name)
+            else:
+                self.net.update_boot_partition(
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path,
+                )
             log.info("Waiting for reboot to complete")
 
             # Verify uboot anad linux are reached
@@ -822,6 +826,7 @@ class manager:
                     system_top_bit_path=bit,
                     uimagepath=kernel,
                     devtreepath=dt,
+                    sdcard=sdcard,
                 )
             else:
                 self.board_reboot_auto(
