@@ -33,6 +33,137 @@ def load_yaml(filename):
 #############################################
 @task(
     help={
+        "img_filename": "The image file (full path) to write to the SD card",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_write_sdcard_image(
+    c,
+    img_filename,
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """ Write SD Card image to SD card connected to MUX
+    """
+    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name)
+    mux.write_img_file_to_sdcard(img_filename)
+
+@task(
+    help={
+        "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
+        "kernel_filename": "The kernel image file (full path) to write to the SD card",
+        "devicetree_filename": "The devicetree file (full path) to write to the SD card",
+        "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
+        "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_update_bootfiles_on_sdcard(
+    c,
+    bootbin_filename=None,
+    kernel_filename=None,
+    devicetree_filename=None,
+    update_dt=True,
+    dt_name=None,
+    mux_mode='dut',
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """ Update boot files on SD card connected to MUX co-located on card
+    """
+    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+        raise Exception("Must specify at least one file to update")
+    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
+    mux.update_boot_files_from_sdcard_itself(bootbin_loc=bootbin_filename, kernel_loc=kernel_filename, devicetree_loc=devicetree_filename)
+    if update_dt:
+        if not dt_name:
+            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+        mux.update_devicetree_for_mux(dt_name)
+    if mux_mode:
+        mux.set_mux_mode(mux_mode)
+
+@task(
+    help={
+        "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
+        "kernel_filename": "The kernel image file (full path) to write to the SD card",
+        "devicetree_filename": "The devicetree file (full path) to write to the SD card",
+        "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
+        "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_update_bootfiles(
+    c,
+    bootbin_filename=None,
+    kernel_filename=None,
+    devicetree_filename=None,
+    update_dt=True,
+    dt_name=None,
+    mux_mode='dut',
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """ Update boot files on SD card connected to MUX from external source
+    """
+    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+        raise Exception("Must specify at least one file to update")
+    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
+    mux.update_boot_files_from_external(bootbin_loc=bootbin_filename, kernel_loc=kernel_filename, devicetree_loc=devicetree_filename)
+    if update_dt:
+        if not dt_name:
+            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+        mux.update_devicetree_for_mux(dt_name)
+    if mux_mode:
+        mux.set_mux_mode(mux_mode)
+
+@task(
+    help={
+        "mode": "Mode to set mux. Valid are: 'host', 'dut' or 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_change_mux_mode(
+    c,
+    mode,
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """ Change mux mode of USB SD Card mux. Switch between host, dut, off
+    """
+    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
+    mux.set_mux_mode(mode)
+
+usbsdmux = Collection("usbsdmux")
+usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
+usbsdmux.add_task(usbmux_update_bootfiles_on_sdcard, "update_bootfiles_on_sdcard")
+usbsdmux.add_task(usbmux_update_bootfiles, "update_bootfiles")
+usbsdmux.add_task(usbmux_change_mux_mode, "change_mux_mode")
+
+#############################################
+@task(
+    help={
         "vivado_version": "Set vivado version. Defauts to 2019.1",
         "custom_vivado_path": "Full path to vivado settings64 file. When set ignores vivado version",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
@@ -789,3 +920,4 @@ ns.add_collection(cov)
 ns.add_collection(driver)
 ns.add_collection(info)
 ns.add_collection(jtag)
+ns.add_collection(usbsdmux)

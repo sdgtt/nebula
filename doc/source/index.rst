@@ -23,9 +23,10 @@ There are two main interfaces for nebula:
    cli
    pytest
    yml
+   hw_devs
    tests/index
    examples
-   core/index
+   core/nebula
 
 
 
