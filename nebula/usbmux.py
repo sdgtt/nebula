@@ -1,12 +1,13 @@
 """USB SD Card MUX controller class to manage the mux and connected cards."""
-from usbsdmux import usbsdmux
-from nebula.common import utils
-import os
 import logging
-import time
-import re
+import os
 import random
+import re
 import string
+import time
+
+from nebula.common import utils
+from usbsdmux import usbsdmux
 
 log = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ class usbmux(utils):
             # Pick the first one
             self._mux_in_use = os.path.join(self.search_path, devs[0])
 
-    def get_mux_mode(self) -> str:
+    def get_mux_mode(self):
         """Get the current mux mode."""
         return self._mux.get_mode()
 
@@ -129,16 +130,16 @@ class usbmux(utils):
             raise Exception(f"Target BOOT partition not found {boot_p}")
         boot_p = os.path.join("/dev", boot_p)
         folder = "".join(random.choices(string.ascii_lowercase, k=5))
-        e = os.system(f"mkdir /tmp/{folder}")
+        os.system(f"mkdir /tmp/{folder}")
         time.sleep(1)
-        e = os.system(f"mount {boot_p} /tmp/{folder}")
+        os.system(f"mount {boot_p} /tmp/{folder}")
         return folder, boot_p
 
     def update_boot_files_from_external(
         self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None
     ):
         """Update the boot files from outside SD card itself.
-        
+
         Args:
             bootbin_loc (str): The path to the boot.bin file
             kernel_loc (str): The path to the kernel file
@@ -150,29 +151,23 @@ class usbmux(utils):
             if not os.path.isfile(bootbin_loc):
                 os.system(f"umount /tmp/{folder}")
                 os.system(f"rm -rf /tmp/{folder}")
-                raise Exception(
-                    "File not found: "
-                    + bootbin_loc
-                )
-            e = os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
+                raise Exception("File not found: " + bootbin_loc)
+            os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
         if kernel_loc:
             if not os.path.isfile(kernel_loc):
                 os.system(f"umount /tmp/{folder}")
                 os.system(f"rm -rf /tmp/{folder}")
                 raise Exception("File not found: " + kernel_loc)
             image = os.path.basename(kernel_loc)
-            e = os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
+            os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
         if devicetree_loc:
             devicetree_loc = os.path.join("/tmp/", folder, devicetree_loc)
             if not os.path.isfile(devicetree_loc):
                 os.system(f"umount /tmp/{folder}")
                 os.system(f"rm -rf /tmp/{folder}")
-                raise Exception(
-                    "File not found: "
-                    + devicetree_loc
-                )
+                raise Exception("File not found: " + devicetree_loc)
             dt = os.path.basename(devicetree_loc)
-            e = os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
+            os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
 
         print("Updated boot files successfully... unmounting")
         os.system(f"umount /tmp/{folder}")
@@ -182,7 +177,7 @@ class usbmux(utils):
         self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None
     ):
         """Update the boot files from the SD card itself.
-        
+
         Args:
             bootbin_loc (str): The path to the boot.bin file on the SD card.
             kernel_loc (str): The path to the kernel file on the SD card.
@@ -205,7 +200,7 @@ class usbmux(utils):
                     + "\nOptions are: "
                     + "\n".join(options)
                 )
-            e = os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
+            os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
         if kernel_loc:
             kernel_loc = os.path.join("/tmp/", folder, kernel_loc)
             if not os.path.isfile(kernel_loc):
@@ -213,7 +208,7 @@ class usbmux(utils):
                 os.system(f"rm -rf /tmp/{folder}")
                 raise Exception("File not found: " + kernel_loc)
             image = os.path.basename(kernel_loc)
-            e = os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
+            os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
         if devicetree_loc:
             devicetree_loc = os.path.join("/tmp/", folder, devicetree_loc)
             if not os.path.isfile(devicetree_loc):
@@ -230,7 +225,7 @@ class usbmux(utils):
                     + "\n".join(options)
                 )
             dt = os.path.basename(devicetree_loc)
-            e = os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
+            os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
 
         print("Updated boot files successfully... unmounting")
         os.system(f"umount /tmp/{folder}")
@@ -250,39 +245,40 @@ class usbmux(utils):
         dts = devicetree_filename.replace(".dtb", ".dts")
         dts_loc = os.path.join("/tmp/", folder, dts)
         # Decompile the devicetree
-        e = os.system(f"dtc -I dtb /tmp/{folder}/{devicetree_filename} "+f" -O dts -o {dts_loc}")
+        os.system(
+            f"dtc -I dtb /tmp/{folder}/{devicetree_filename} " + f" -O dts -o {dts_loc}"
+        )
 
         with open(dts_loc, "r") as f:
             dt = f.read()
 
-        s =  "mmc@ff160000"
+        s = "mmc@ff160000"
         sn = "sdc16:mmc@ff160000"
         if s not in dt:
             print(f"{s.strip()} not found")
         if sn not in dt:
-            dt = dt.replace(s,sn)
+            dt = dt.replace(s, sn)
             dt = dt + "\n&sdc16 { no-1-8-v ;};"
         else:
             print(f"{sn.strip()} already exists")
-        s =  "mmc@ff170000"
+        s = "mmc@ff170000"
         sn = "sdc17:mmc@ff170000"
         if s not in dt:
             print(f"{s.strip()} not found")
         if sn not in dt:
-            dt = dt.replace(s,sn)
+            dt = dt.replace(s, sn)
             dt = dt + "\n&sdc17 { no-1-8-v ;};"
         else:
             print(f"{sn.strip()} already exists")
 
-
         with open(dts_loc, "w") as f:
             f.write(dt)
-        
+
         # Compile the devicetree
-        e = os.system(f"dtc -I dts {dts_loc} "+f" -O dtb -o /tmp/{folder}/{devicetree_filename}")
+        os.system(
+            f"dtc -I dts {dts_loc} " + f" -O dtb -o /tmp/{folder}/{devicetree_filename}"
+        )
 
         print("Updated devicetree successfully... unmounting")
         os.system(f"umount /tmp/{folder}")
         os.system(f"rm -rf /tmp/{folder}")
-
-
