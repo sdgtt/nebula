@@ -260,7 +260,7 @@ class network(utils):
             self.run_ssh_command(
                 f"dd if=/tmp/sdcard/{preloader_file} of=/dev/mmcblk0p3 bs=512 && sync"
             )
-        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1, ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """update_boot_partition_existing_files:
@@ -307,7 +307,7 @@ class network(utils):
             log.info(f"Copying {boot_file[1]}")
             self.run_ssh_command(f"cp {boot_file[1]} /tmp/sdcard/")
 
-        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1 , ignore_exceptions=True)
 
     def _dl_file(self, filename):
         fabric.Connection(
