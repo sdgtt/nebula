@@ -214,7 +214,7 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
-        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1, ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """update_boot_partition_existing_files:
@@ -261,7 +261,7 @@ class network(utils):
             log.info(f"Copying {boot_file[1]}")
             self.run_ssh_command(f"cp {boot_file[1]} /tmp/sdcard/")
 
-        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1 , ignore_exceptions=True)
 
     def _dl_file(self, filename):
         fabric.Connection(
