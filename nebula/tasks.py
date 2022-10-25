@@ -82,10 +82,10 @@ def usbmux_update_bootfiles_on_sdcard(
 ):
     """ Update boot files on SD card connected to MUX co-located on card
     """
-    if not bootbin_filename and not kernel_filename and not devicetree_filename:
-        raise Exception("Must specify at least one file to update")
     mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
     mux.update_boot_files_from_sdcard_itself(bootbin_loc=bootbin_filename, kernel_loc=kernel_filename, devicetree_loc=devicetree_filename)
+    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+        return
     if update_dt:
         if not dt_name:
             raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
@@ -122,10 +122,10 @@ def usbmux_update_bootfiles(
 ):
     """ Update boot files on SD card connected to MUX from external source
     """
-    if not bootbin_filename and not kernel_filename and not devicetree_filename:
-        raise Exception("Must specify at least one file to update")
     mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name,target_mux=target_mux, search_path=search_path)
     mux.update_boot_files_from_external(bootbin_loc=bootbin_filename, kernel_loc=kernel_filename, devicetree_loc=devicetree_filename)
+    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+        return
     if update_dt:
         if not dt_name:
             raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")

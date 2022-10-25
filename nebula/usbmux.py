@@ -134,6 +134,18 @@ class usbmux(utils):
         e = os.system(f"mount {boot_p} /tmp/{folder}")
         return folder, boot_p
 
+    def _list_files_on_sdcard_and_cleanup(self,folder):
+        options = os.listdir(f"/tmp/{folder}")
+        options = [
+            o for o in options if os.path.isdir(f"/tmp/{folder}/{o}")
+        ]
+        os.system(f"umount /tmp/{folder}")
+        os.system(f"rm -rf /tmp/{folder}")
+        print("Not boot files to update.")
+        print("Available options:")
+        for o in options:
+            print(f" - {o}")
+
     def update_boot_files_from_external(
         self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None
     ):
@@ -145,6 +157,9 @@ class usbmux(utils):
             devicetree_loc (str): The path to the devicetree file
         """
         folder, boot_p = self._mount_sd_card()
+        if not bootbin_loc and not kernel_loc and not devicetree_loc:
+            self._list_files_on_sdcard_and_cleanup(folder)
+            return
 
         if bootbin_loc:
             if not os.path.isfile(bootbin_loc):
@@ -189,6 +204,9 @@ class usbmux(utils):
             devicetree_loc (str): The path to the devicetree file on the SD card.
         """
         folder, boot_p = self._mount_sd_card()
+        if not bootbin_loc and not kernel_loc and not devicetree_loc:
+            self._list_files_on_sdcard_and_cleanup(folder)
+            return
 
         if bootbin_loc:
             bootbin_loc = os.path.join("/tmp/", folder, bootbin_loc)
