@@ -6,7 +6,7 @@ pytest
 pyvesync_v2
 pysnmp
 xmodem
-click>=7.0
+click>=8.0
 netifaces
 tqdm
 beautifulsoup4
