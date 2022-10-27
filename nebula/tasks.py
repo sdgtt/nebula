@@ -352,9 +352,52 @@ def power_cycle(
 
     p.power_cycle_board()
 
+#############################################
+@task(
+    help={
+        "pdutype": "Type of PDU used. Current options: cyberpower, vesync",
+        "outlet": "Outlet index of which dev board is connected",
+        "onoff": "Turn on or off the outlet. Options: on, off",
+        "pduip": "IP address of PDU (optional)",
+        "username": "Username of PDU service (optional)",
+        "password": "Password of PDU service (optional)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def power_onoff(
+    c,
+    pdutype,
+    outlet,
+    onoff,
+    pduip=None,
+    username=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """ Power board on or off with PDU """
+    p = nebula.pdu(
+        pdu_type=pdutype,
+        pduip=pduip,
+        outlet=outlet,
+        username=username,
+        password=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+    )
+    if onoff not in ["on", "off"]:
+        print("Invalid option for onoff. Options: on, off")
+        return
+    if onoff == "on":
+        p.power_up_board()
+    else:
+        p.power_down_board()
+
 
 pdu = Collection("pdu")
 pdu.add_task(power_cycle)
+pdu.add_task(power_onoff)
 
 #############################################
 @task()
