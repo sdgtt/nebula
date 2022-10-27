@@ -46,6 +46,11 @@ setuptools.setup(
         "pyvesync_v2",
         "pyfiglet",
         "usbsdmux",
+        "tqdm",
+        "artifactory",
+        "bs4",
+        "pygithub",
+        "pynetbox",
     ],
     entry_points={"console_scripts": ["nebula = nebula.main:program.run"]},
     classifiers=[
