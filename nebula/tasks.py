@@ -50,7 +50,11 @@ def usbmux_write_sdcard_image(
     board_name=None,
 ):
     """Write SD Card image to SD card connected to MUX"""
-    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name)
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+    )
     mux.write_img_file_to_sdcard(img_filename)
 
 
