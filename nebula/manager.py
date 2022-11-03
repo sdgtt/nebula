@@ -514,8 +514,9 @@ class manager:
         log.info("Waiting for reboot to complete")
 
         # Verify uboot anad linux are reached
-        results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
-
+        #results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+        results = self.monitor[0]._read_until_done_multi(done_strings=["root@analog"], max_time=100)
+        return
         if len(results)==1:
             raise Exception("u-boot not reached")
         elif not results[1]:
