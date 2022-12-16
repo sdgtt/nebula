@@ -13,3 +13,4 @@ mwipcore 43c00000.mwipcore: IRQ index 0 not found
 OF: graph: no port node found in /axi/display@fd4a0000
 OF: graph: no port node found in /axi/phy@fd400000
 platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
+xilinx-dp-snd-codec fd4a0000.display:zynqmp_dp_snd_codec0: Failed to get required clock freq
