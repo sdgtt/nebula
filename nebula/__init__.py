@@ -1,6 +1,7 @@
 # from pyfiglet import Figlet
 # f = Figlet(font="slant")
 # print(f.renderText("Nebula"))
+import os
 
 from nebula.netconsole import netconsole
 from nebula.uart import uart
@@ -17,7 +18,10 @@ from nebula.coverage import coverage
 from nebula.jtag import jtag
 from nebula.usbdev import usbdev
 from nebula.netbox import netbox
-from nebula.usbmux import usbmux
+
+from nebula.common import LINUX_DEFAULT_PATH
+if os.name in ["nt", "posix"] and os.path.exists(LINUX_DEFAULT_PATH):
+    from nebula.usbmux import usbmux
 
 __version__ = "0.0.1"
 name = "Nebula: Embedded Development Tools"
