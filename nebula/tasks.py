@@ -421,6 +421,7 @@ def power_cycle(
 
     p.power_cycle_board()
 
+
 #############################################
 @task(
     help={
@@ -445,7 +446,7 @@ def power_onoff(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """ Power board on or off with PDU """
+    """Power board on or off with PDU"""
     p = nebula.pdu(
         pdu_type=pdutype,
         pduip=pduip,
