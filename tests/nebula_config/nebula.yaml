@@ -1,0 +1,70 @@
+zynq-zc702-adv7511-ad9361-fmcomms2-3:
+  board-config:
+    - board-name: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    - monitoring_interface: uart
+    - allow_jtag: True
+    - no-os-project: ad9361
+  downloader-config:
+    - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
+    - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    - hdl_folder: fmcomms2_zc702
+  driver-config:
+    - iio_device_names:
+      - ad7291
+      - ad9361-phy
+      - adf4351-udc-tx-pmod
+      - adf4351-udc-rx-pmod
+      - cf-ad9361-dds-core-lpc
+      - cf-ad9361-lpc
+zynq-zc706-adv7511-fmcomms11:
+  board-config:
+  - board-name: zynq-zc706-adv7511-fmcomms11
+  - monitoring-interface: uart
+  - allow-jtag: True
+  downloader-config:
+  - reference_boot_folder: zynq-zc706-adv7511-fmcomms11
+  - hdl_folder: fmcomms11_zc706
+  driver-config:
+  - iio_device_names:
+    - ad7291
+    - adl5240
+    - hmc1119
+    - adf4355
+    - axi-ad9625-hpc
+    - axi-ad9162-hpc
+rpi-4-b-11a43152-eval-adxrs290-pmdz:
+  board-config:
+  - board-name: eval-adxrs290-pmdz
+  - monitoring-interface: uart
+  - serial-id: 11a43152
+  - soc: bcm2711
+  - overlay:  rpi-adxrs290
+  - kernel: kernel7l
+  driver-config:
+  - iio_device_names:
+    - adxrs290
+pluto:
+  board-config:
+  - board-name: pluto
+  - carrier:  xxx
+  - daughter: Pluto
+  - reference-boot-folder: plutosdr-fw
+  - monitoring-interface: uart
+  driver-config:
+  - iio_device_names:
+    - adm1177-iio
+    - ad9361-phy
+    - cf-ad9361-dds-core-lpc
+    - cf-ad9361-lpc
+kc705_fmcomms4:
+  board-config:
+  - board-name: kc705_fmcomms4
+  - monitoring-interface: uart
+  downloader-config:
+    - hdl_folder: fmcomms2_kc705
+  driver-config:
+  - iio_device_names:
+    - adm1177-iio
+    - ad9361-phy
+    - cf-ad9361-dds-core-lpc
+    - cf-ad9361-lpc

@@ -1,9 +1,10 @@
 import os
 import shutil
+import time
 
 import pytest
 from nebula import manager
-import time
+
 
 # @pytest.mark.skip(reason="Not fully implemented")
 # @pytest.mark.dependency()
@@ -31,4 +32,4 @@ def test_board_reboot_uart_net_pdu():
 
 
 if __name__ == "__main__":
-    board_reboot_uart_net_pdu()
+    test_board_reboot_uart_net_pdu()

@@ -1,17 +1,51 @@
-import yaml
-import os
-import pathlib
-import netifaces
 import glob
 import logging
+import os
+import pathlib
+
 import click
-from nebula.common import multi_device_check
 import nebula.errors as ne
+import netifaces
+import yaml
+from nebula.common import multi_device_check
+from nebula.netbox import NetboxDevice, NetboxDevices, netbox
 
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
 log = logging.getLogger(__name__)
+
+
+def convert_by_id_to_tty(by_id):
+    """Translate frandom:
+    /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+    to
+    /dev/ttyUSB1
+    """
+    import pyudev
+
+    context = pyudev.Context()
+    for device in context.list_devices(subsystem="tty", ID_BUS="usb"):
+        if by_id in device.device_links:
+            return device.device_node
+    return False
+
+
+def convert_address_to_tty(address):
+    """Translate frandom:
+    /dev/serial/by-id/usb-Silicon_Labs_CP2103_USB_to_UART_Bridge_Controller_0001-if00-port0
+    to
+    /dev/ttyUSB1
+    Will also work with by_path. Works in docker container.
+    """
+    import pyudev
+
+    context = pyudev.Context()
+    tty = pyudev.Devices.from_device_file(context, address)
+    if tty:
+        return tty.get("DEVNAME")
+    else:
+        return False
 
 
 def get_uarts():
@@ -55,11 +89,13 @@ class helper:
             if filter in config or not filter:
                 print(config)
 
-    def update_yaml(self, configfilename, section, field, new_value, board_name=None):
-        """ Update single field of exist config file """
+    def update_yaml(  # noqa: C901
+        self, configfilename, section, field, new_value, board_name=None
+    ):
+        """Update single field of exist config file"""
 
         if not os.path.isfile(configfilename):
-            raise Exception("Specificied yaml file does not exist")
+            raise Exception("Specified yaml file does not exist")
         with open(configfilename, "r") as stream:
             configs = yaml.safe_load(stream)
         board_name_request = field == "board-name" and section == "board-config"
@@ -102,16 +138,20 @@ class helper:
                             new_value,
                         )
                     else:
-                        print(value)
+                        # Handle serial translation
+                        if section == "uart-config" and field == "address":
+                            value = convert_address_to_tty(value)
+                        print(str(value))
+                    log.info(field + ": " + str(value))
                     break
             if not updated:
                 raise Exception("")
-        except:
+        except Exception:
             raise Exception("Field or section does not exist")
         if new_value:
             self._write_config_file(configfilename, configs)
 
-    def create_config_interactive(self):
+    def create_config_interactive(self):  # noqa: C901
         # Read in template
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "template_gen.yaml")
@@ -234,9 +274,57 @@ class helper:
         # out = os.path.join(head_tail[0], "resources", "out.yaml")
         print("Pew pew... all set")
 
+    def create_config_from_netbox(
+        self,
+        outfile="nebula",
+        netbox_ip="localhost",
+        netbox_port=None,
+        netbox_baseurl=None,
+        netbox_token=None,
+        jenkins_agent=None,
+        board_name=None,
+        devices_status=None,
+        devices_role=None,
+        devices_tag=None,
+        template=None,
+    ):
+        # Read in template
+        path = pathlib.Path(__file__).parent.absolute()
+        template = os.path.join(
+            path, "resources", template if template else "template_gen.yaml"
+        )
+        ni = netbox(
+            ip=netbox_ip,
+            port=netbox_port,
+            base_url=netbox_baseurl,
+            token=netbox_token,
+            load_config=False,
+        )
+        outconfig = dict()
+        config = dict()
+
+        # load config from file
+        with open(template, "r") as f:
+            config = yaml.safe_load(f)
+
+        if board_name:
+            nbd = NetboxDevice(ni, device_name=board_name)
+            outconfig = nbd.to_config(config)
+        else:
+            nbds = NetboxDevices(
+                ni,
+                status=devices_status,
+                role=devices_role,
+                agent=jenkins_agent,
+                tag=devices_tag,
+            )
+            outconfig = nbds.generate_config(config)
+
+        self._write_config_file(filename=outfile, outconfig=outconfig)
+
     def _write_config_file(self, filename, outconfig):
         with open(filename, "w") as file:
-            documents = yaml.dump(outconfig, file, default_flow_style=False)
+            yaml.dump(outconfig, file, default_flow_style=False)
 
         # Post process to fix yaml.dump bug where boolean are all lowercase
         file1 = open(filename, "r")

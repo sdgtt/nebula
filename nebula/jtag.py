@@ -1,5 +1,5 @@
-import os
 import logging
+import os
 import shutil
 import subprocess
 import time
@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 class jtag(utils):
-    """ JTAG Module """
+    """JTAG Module"""
 
     def __init__(
         self,
@@ -20,7 +20,7 @@ class jtag(utils):
         board_name=None,
         jtag_cable_id=None,
         jtag_cpu_target_name=None,
-        jtag_connect_retries = 3
+        jtag_connect_retries=3,
     ):
         self.vivado_version = vivado_version
         self.custom_vivado_path = custom_vivado_path
@@ -35,16 +35,26 @@ class jtag(utils):
         # Check target device available
         jtag_connected = False
         for c in range(self.jtag_connect_retries):
-            cmd = "connect; after 1000; "+self.target_set_str("APU*")
+            cmd = "connect; after 1000; " + self.target_set_str(
+                self.jtag_cpu_target_name
+            )
             jtag_connected = self.run_xsdb(cmd)
             if jtag_connected:
-                log.info("JTAG {} connection attempt succesful".format(self.jtag_cable_id))
+                log.info(
+                    "JTAG {} connection attempt successful".format(self.jtag_cable_id)
+                )
                 break
-            log.warning("JTAG {} connection attempt failed.  Attempt {}".format(self.jtag_cable_id, c+1))
+            log.warning(
+                "JTAG {} connection attempt failed.  Attempt {}".format(
+                    self.jtag_cable_id, c + 1
+                )
+            )
             time.sleep(1)
 
         if not jtag_connected:
-            raise Exception("JTAG connection cannot find target HW: {}".format(self.jtag_cable_id))
+            raise Exception(
+                "JTAG connection cannot find target HW: {}".format(self.jtag_cable_id)
+            )
 
     def _shell_out2(self, script):
         log.info("Running command: " + script)
@@ -52,23 +62,29 @@ class jtag(utils):
         # p = subprocess.Popen([script], executable="/bin/bash",stdout=subprocess.PIPE)
         # output, err = p.communicate()
         try:
-            output = subprocess.check_output(script, shell=True, executable="/bin/bash",stderr=subprocess.STDOUT)
+            output = subprocess.check_output(
+                script, shell=True, executable="/bin/bash", stderr=subprocess.STDOUT
+            )
             log.info(output)
             return True
         except Exception as ex:
-            log.error("XSDB failed on command: "+script)
-            log.error("msg: "+str(ex))
+            log.error("XSDB failed on command: " + script)
+            log.error("msg: " + str(ex))
         return False
         # logging.info(output.decode("utf-8"))
         # return output.decode("utf-8")
 
     def run_xsdb(self, cmd):
         if not self.custom_vivado_path:
-            vivado = ". /opt/Xilinx/Vivado/" + str(self.vivado_version) + "/settings64.sh"
+            vivado = (
+                ". /opt/Xilinx/Vivado/" + str(self.vivado_version) + "/settings64.sh"
+            )
         else:
             vivado = os.path.join(self.custom_vivado_path, "settings64.sh")
         if not os.path.isfile(vivado[2:]):
-            raise Exception("Vivado not found at: "+vivado[:-(len("settings64.sh")+1)])
+            raise Exception(
+                "Vivado not found at: " + vivado[: -(len("settings64.sh") + 1)]
+            )
 
         cmd = vivado + '; xsdb -eval "{}"'.format(cmd)
         # cmd = [vivado + '; xsdb',' -eval "{}"'.format(cmd)]
@@ -90,11 +106,17 @@ class jtag(utils):
         # DAP (Cannot open JTAG port: AP transaction error, DAP status 0x30000021)
         pass
 
-    def target_set_str(self,target_name):
-        return 'targets -set -filter {jtag_cable_name =~ {*'+self.jtag_cable_id+'} && name =~ {'+target_name+'}} ; '
+    def target_set_str(self, target_name):
+        return (
+            "targets -set -filter {jtag_cable_name =~ {*"
+            + self.jtag_cable_id
+            + "} && name =~ {"
+            + target_name
+            + "}} ; "
+        )
 
     def boot_to_uboot(self):
-        """ From JTAG reset board and load up FSBL and uboot
+        """From JTAG reset board and load up FSBL and uboot
         This should be followed by uboot interaction to stop it"""
         assert os.path.isfile("fsbl.elf")
         assert os.path.isfile("u-boot.elf")
@@ -114,7 +136,7 @@ class jtag(utils):
         # cmd += "con; "
         # cmd += "stop; "
         cmd += "after 1000; "
-        
+
         cmd += "puts {Loading FSBL}; "
         cmd += "dow fsbl.elf; "
         cmd += "con; "
@@ -157,7 +179,6 @@ class jtag(utils):
         # Must not overwrite memory locations
 
         self.run_xsdb(cmd)
-
 
     def full_boot(self):
         assert os.path.isfile("system_top.bit")

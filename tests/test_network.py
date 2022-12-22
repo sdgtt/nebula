@@ -1,11 +1,9 @@
 import os
 import shutil
+import time
 
 import pytest
-from nebula import uart
-from nebula import pdu
-from nebula import network
-import time
+from nebula import network, pdu, uart
 
 
 def remove_file(files):
@@ -91,4 +89,4 @@ def test_dmesg_read():
 
 
 if __name__ == "__main__":
-    test_adrv9361_fmc_uboot_boot()
+    test_adrv9361_fmc_network_update()

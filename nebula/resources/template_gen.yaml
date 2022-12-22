@@ -8,6 +8,7 @@
 #     options: <list of options> (Optional)
 #     optional: <False,True,depends> (depends is used when its a dependent property)
 #     requires: <answer needed>:<field name of fields depending on this one,second field name> (Optional)
+#     netbox_field: <equivalent netbox object attribute>
 
 board-config:
   field_1:
@@ -15,70 +16,94 @@ board-config:
     default: zynq-zc702-adv7511-ad9361-fmcomms2-3
     help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD."
     optional: False
+    netbox_field: devices.name
   field_2:
+    name: carrier
+    default: ZC702
+    help: "Carrier board name"
+    optional: False
+    netbox_field: devices.custom_fields.device_carrier
+  field_3:
+    name: daughter
+    default: FMCOMMS2-3
+    help: "Daugther board name"
+    optional: False
+    netbox_field: devices.custom_fields.device_daughter
+  field_4:
     name: monitoring-interface
     default: uart
     help: "Select monitoring interface"
     options: [uart, netconsole]
     optional: False
-  field_3:
+    netbox_field: devices.custom_fields.monitoring_interface
+  field_5:
     name: allow-jtag
     default: False
     help: "Allow use of JTAG"
     options: ["True", "False"]
     optional: False
+    netbox_field: devices.custom_fields.allow_jtag
 network-config:
   field_1:
     name: dutip
     default: 192.168.10.2
     help: "IP address of development board"
     optional: False
+    netbox_field: devices.interfaces.mgmt.ip.address
   field_2:
     name: dhcp
     help: "DHCP network to development board (False assumes static)"
     optional: False
     options: ["True", "False"]
     requires: False:nic,nicip
+    netbox_field: devices.interfaces.mgmt.custom_fields.dhcp
   field_3:
     name: nic
     default: eth0
     help: "NIC used to talk to development board"
     optional: depends
     callback: get_nics
+    netbox_field: devices.interfaces.mgmt.label
   field_4:
     name: nicip
     default: 192.168.10.1
     help: "NIC connected to development board ip address"
     optional: depends
+    netbox_field: devices.interfaces.mgmt.custom_fields.nicip
 pdu-config:
   field_1:
     name: pdu_type
     default: cyberpower
     help: "PDU type"
     options: [cyberpower, vesync]
-    optional: False
+    optional: True
     requires: vesync:username,password
+    netbox_field: devices.power_ports.input.pdus[0].device_type.manufacturer.slug
   field_2:
     name: pduip
     default: 192.168.30.2
     help: "IP address of PDU"
-    optional: False
+    optional: True
+    netbox_field: devices.power_ports.input.pdus[0].primary_ip.address
   field_3:
     name: outlet
     default: 1
     help: "Outlet number on PDU for dev board"
-    optional: False
+    optional: True
     type: int
+    netbox_field: devices.power_ports.input.connected_endpoint.outlet
   field_4:
     name: username
     default: "username"
     help: "Username needed for login (only need for vesync so far)"
     optional: depends
+    netbox_field: devices.power_ports.input.pdus[0].custom_fields.username
   field_5:
     name: password
     default: "password"
     help: "Password needed for login (only need for vesync so far)"
     optional: depends
+    netbox_field: devices.power_ports.input.pdus[0].custom_fields.password
 uart-config:
   field_1:
     name: address
@@ -86,82 +111,123 @@ uart-config:
     help: "UART Address"
     optional: False
     callback: get_uarts
+    netbox_field: devices.console_ports.UART.label
   field_2:
     name: baudrate
     default: 115200
     help: "UART baudrate"
     optional: False
+    netbox_field: devices.console_ports.UART.custom_fields.baudrate
   field_3:
     name: logfilename
     default: my.log
     help: "Output UART logfilename"
     optional: False
+    netbox_field: devices.custom_fields.logfilename
   field_4:
     name: uboot_done_string
     default: zynq-uboot>
     help: "Uboot menu prompt"
     optional: True
+    netbox_field: devices.custom_fields.uboot_done_string
 system-config:
   field_1:
     name: tftpserverip
     default: 192.168.30.1
     help: "TFTP server address"
-    optional: False
+    optional: True
+    netbox_field: devices.config_context.tftpserverip
   field_2:
     name: tftpserverroot
     default: /var/lib/tftpboot
     help: "TFTP folder location"
-    optional: False
+    optional: True
+    netbox_field: devices.config_context.tftpserverroot
 driver-config:
   field_1:
     name: iio_device_names
     default: ["axi-ad9144-hpc", "axi-ad9680-hpc"]
     help: "List of IIO devices on board"
     optional: False
+    netbox_field: devices.custom_fields.iio_device_names
 downloader-config:
   field_1:
     name: http_server_ip
     default: 192.168.2.1
     help: "IP address of build server with boot files"
     optional: True
+    netbox_field: devices.custom_fields.http_server_ip
   field_2:
     name: reference_boot_folder
     default: zynq-zc702-adv7511-ad9361-fmcomms2-3-4
     help: "Folder name where reference boot files exist for specific board. \nThis is the same as the boot folder name of the AD-FMC-SDCARD."
     optional: False
+    netbox_field: devices.custom_fields.reference_boot_folder
   field_3:
     name: devicetree_subfolder
     default: zynq-zc702-adv7511-ad9361-fmcomms2-3
     help: "Subfolder name under reference boot folder\nwhere devicetree files exists for specific boards."
-    optional: False
+    optional: True
+    netbox_field: devices.custom_fields.devicetree_subfolder
   field_4:
     name: boot_subfolder
     default: null
     help: "Subfolder name under reference boot folder\nwhere boot files exist for specific boards."
-    optional: False
+    optional: True
+    netbox_field: devices.custom_fields.boot_subfolder
   field_5:
     name: hdl_folder
     default: fmcomms2_zc702
     help: "Folder name where hdl files exist for specific boards."
-    optional: False
+    optional: True
+    netbox_field: devices.custom_fields.hdl_folder
 jtag-config:
   field_1:
     name: vivado_version
     default: 2019.1
     help: "Version of vivado to use"
     optional: True
+    netbox_field: devices.config_context.vivado_version
   field_2:
     name: custom_vivado_path
     default: None
     help: "Custom path to vivado including version.\nEx: /opt/Xilinx/Vivado/2019.1\nOverrides vivado_version if set"
     optional: True
+    netbox_field: devices.config_context.custom_vivado_path
   field_3:
     name: jtag_cable_id
     default: 210299A567FE
     help: "Substring of JTAG cable ID. Run 'jtag target' through xsdb to get it.\n Just really need code not full name."
     optional: True
+    netbox_field: devices.console_ports.JTAG.label
   field_4:
     name: jtag_cpu_target_name
     default: ARM*#0
     help: "Name use to identify jtag target\n. This will be used for filtering jtag target.\n Can use wildcards e.x *"
     optional: True
+    netbox_field: devices.custom_fields.jtag_cpu_target_name
+netbox-config:
+  field_1:
+    name: netbox_server
+    help: "IP address of the netbox server"
+    default: 192.168.10.1
+    optional: True
+    netbox_field: devices.config_context.netbox_server
+  field_2:
+    name: netbox_server_port
+    default: 8000
+    help: "Port used by the netbox service"
+    optional: True
+    netbox_field: devices.config_context.netbox_port
+  field_3:
+    name: netbox_base_url
+    default: netbox
+    help: "String used as netbox base url. i.e server:port\base_url"
+    optional: True
+    netbox_field: devices.config_context.netbox_base_url
+  field_4:
+    name: netbox_api_token
+    default: 0123456789abcdef0123456789abcdef01234567
+    help: "Token for netbox rest api access"
+    optional: True
+    netbox_field: devices.config_context.netbox_api_token

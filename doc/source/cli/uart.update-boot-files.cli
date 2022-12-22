@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] uart.update-boot-files [--options] [other tasks here ...]
 
 Docstring:
-  Update boot files through u-boot menu (Assuming board is running) 
+  Update boot files through u-boot menu (Assuming board is running)
 
 Options:
   -a STRING, --address=STRING                   UART device address
@@ -12,10 +12,9 @@ Options:
   -b STRING, --board-name=STRING
   -d STRING, --devtreepath=STRING               Path to devicetree.
   -r, --reboot                                  Reboot board from linux console
-                                                to get to u-boot menu. Defaut
+                                                to get to u-boot menu. Default
                                                 False
   -s STRING, --system-top-bit-filename=STRING
   -u STRING, --uimagepath=STRING                Path to kernel image.
   -y STRING, --yamlfilename=STRING              Path to yaml config file.
                                                 Default: /etc/default/nebula
-

@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] manager.update-boot-files [--options] [other tasks here ...]
 
 Docstring:
-  Update boot files through u-boot menu (Assuming board is running) 
+  Update boot files through u-boot menu (Assuming board is running)
 
 Options:
   -b STRING, --bootbinpath=STRING           Path to BOOT.BIN.
@@ -15,4 +15,3 @@ Options:
   -u STRING, --uimagepath=STRING            Path to kernel image.
   -y STRING, --yamlfilename=STRING          Path to yaml config file. Default:
                                             /etc/default/nebula
-

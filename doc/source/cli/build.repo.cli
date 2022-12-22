@@ -1,7 +1,7 @@
 Usage: nebula [--core-opts] build.repo [--options] [other tasks here ...]
 
 Docstring:
-  Clone and build git project 
+  Clone and build git project
 
 Options:
   -b STRING, --branch=STRING           Git branch name. Default is master
@@ -11,6 +11,5 @@ Options:
   -o STRING, --board=STRING            Name of development board
   -p STRING, --project=STRING          Name of HDL project
   -r STRING, --repo=STRING             Name of repo
-  -v STRING, --vivado-version=STRING   Vivado version (ex: 2018.2). 
+  -v STRING, --vivado-version=STRING   Vivado version (ex: 2018.2).
                                        Defaults to determine from source/release
-

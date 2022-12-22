@@ -75,9 +75,15 @@ def test_bootbin_build():
     path = "BOOTBIN/BOOT.BIN"
     assert os.path.isfile(path)
 
+
 def test_bootbin_build_arm64():
     b = builder()
-    b.analog_build_bootbin(hdl_branch="master", uboot_branch="xilinx-v2019.1", board="zcu102", project="adrv9009")
+    b.analog_build_bootbin(
+        hdl_branch="master",
+        uboot_branch="xilinx-v2019.1",
+        board="zcu102",
+        project="adrv9009",
+    )
     path = "BOOTBIN/BOOT.BIN"
     assert os.path.isfile(path)
 

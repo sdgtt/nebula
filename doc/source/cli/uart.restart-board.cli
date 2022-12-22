@@ -11,4 +11,3 @@ Options:
   -b STRING, --board-name=STRING
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
-

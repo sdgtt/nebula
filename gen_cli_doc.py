@@ -9,7 +9,6 @@
 import nebula.tasks as nt
 from nebula import builder
 
-
 cmd = "nebula --list > doc/source/cli/top.cli"
 print(cmd)
 b = builder()
@@ -17,6 +16,6 @@ b.shell_out2(cmd)
 
 for tn in nt.ns.task_names:
     print(tn)
-    cmd = "nebula --help {} > doc/source/cli/{}.cli".format(tn,tn)
+    cmd = "nebula --help {} > doc/source/cli/{}.cli".format(tn, tn)
     b.shell_out2(cmd)
     print(cmd)

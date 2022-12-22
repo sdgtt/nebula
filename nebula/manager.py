@@ -1,30 +1,36 @@
+import glob
 import logging
 import os
-import time
-import glob
 import tarfile
+import time
 
+import nebula.common as common
+import nebula.errors as ne
+import nebula.helper as helper
 import yaml
 from nebula.driver import driver
+from nebula.jtag import jtag
 from nebula.netconsole import netconsole
 from nebula.network import network
 from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
-import nebula.errors as ne
-import nebula.helper as helper
-import nebula.common as common
-from nebula.jtag import jtag
 from nebula.usbdev import usbdev
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
+
 class manager:
-    """ Board Manager """
+    """Board Manager"""
 
     def __init__(
-        self, monitor_type="uart", configfilename=None, board_name=None, extras=None
+        self,
+        monitor_type="uart",
+        configfilename=None,
+        board_name=None,
+        vivado_version=None,
+        extras=None,
     ):
         # Check if config info exists in yaml
         self.configfilename = configfilename
@@ -52,13 +58,23 @@ class manager:
                     self.jtag_use = config["allow-jtag"]
                     if self.jtag_use:
                         try:
-                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                            self.jtag = jtag(
+                                yamlfilename=configfilename,
+                                board_name=board_name,
+                                vivado_version=vivado_version,
+                            )
                         except Exception as e:
                             log.info(str(e))
-                            log.info('Power cycling board and will attemp jtag connection again.')
+                            log.info(
+                                "Power cycling board and will attempt jtag connection again."
+                            )
                             self.power.power_cycle_board()
                             time.sleep(60)
-                            self.jtag = jtag(yamlfilename=configfilename, board_name=board_name)
+                            self.jtag = jtag(
+                                yamlfilename=configfilename,
+                                board_name=board_name,
+                                vivado_version=vivado_version,
+                            )
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
@@ -91,7 +107,7 @@ class manager:
                     self.devicetree_subfolder = config["devicetree_subfolder"]
                 if "boot_subfolder" in config:
                     self.boot_subfolder = config["boot_subfolder"]
-        
+
         # self.boot_src = tftpboot()
 
         self.tftp = False
@@ -101,7 +117,7 @@ class manager:
         self.board_name = board_name
 
     def _release_thread_lock(func):
-        """ A decorator to force a method to close thread resource """
+        """A decorator to force a method to close thread resource"""
 
         def inner(self, *args, **kwargs):
             try:
@@ -130,21 +146,21 @@ class manager:
         else:
             ref = "zynqmp-common/" + str(target)
         self.monitor[0].copy_reference(ref, target)
-        
+
         if self.boot_subfolder is not None:
-            ref = self.reference_boot_folder+ '/' +str(self.boot_subfolder)
+            ref = self.reference_boot_folder + "/" + str(self.boot_subfolder)
         else:
             ref = self.reference_boot_folder
         target = bootbinpath.split("/")[1].rstrip()
-        ref = ref + '/' + str(target)
+        ref = ref + "/" + str(target)
         self.monitor[0].copy_reference(ref, target)
-        
+
         if self.devicetree_subfolder is not None:
-            ref = self.reference_boot_folder+ '/' +str(self.devicetree_subfolder)
+            ref = self.reference_boot_folder + "/" + str(self.devicetree_subfolder)
         else:
             ref = self.reference_boot_folder
         target = devtreepath.split("/")[1].rstrip()
-        ref = ref + '/' + str(target)
+        ref = ref + "/" + str(target)
         self.monitor[0].copy_reference(ref, target)
 
     def network_check(self):
@@ -174,15 +190,17 @@ class manager:
                         ip,
                         self.board_name,
                     )
-        
+
         # Check SSH
         if self.net.check_ssh():
             self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
     @_release_thread_lock
-    def recover_board(self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False):
-        """ Recover boards with UART, PDU, JTAG, and Network are available """
+    def recover_board(
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False
+    ):
+        """Recover boards with UART, PDU, JTAG, and Network are available"""
         self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
         )
@@ -227,17 +245,16 @@ class manager:
                 log.info("SSH reboot failed again after power cycling")
                 log.info("Forcing UART override on reset")
                 if self.jtag_use:
-                    log.info("Reseting with JTAG")
+                    log.info("Resetting with JTAG")
                     self.jtag.restart_board()
                 else:
-                    #TODO: consider zed boards which uart closes after a powercycle
+                    # TODO: consider zed boards which uart closes after a powercycle
                     log.info("Power cycling")
                     self.power.power_cycle_board()
 
                 # Enter u-boot menu
                 if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
                     raise ne.LinuxNotReached
-
 
                 if self.tftp:
                     # Move files to correct position for TFTP
@@ -250,9 +267,11 @@ class manager:
                     try:
                         if sdcard:
                             log.info("Copying reference from sdcard")
-                            self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
-                            self.monitor[0]._write_data('\r\n')
-                            self.monitor[0]._write_data('boot')
+                            self.copy_reference_from_sdcard(
+                                bootbinpath, uimagepath, devtreepath
+                            )
+                            self.monitor[0]._write_data("\r\n")
+                            self.monitor[0]._write_data("boot")
                         else:
                             # Load boot files via uart
                             log.info("Sending reference via uart")
@@ -268,7 +287,9 @@ class manager:
                 log.info("Waiting for boot to complete")
 
                 # Verify linux is reached
-                result = self.monitor[0]._read_until_done(done_string="root@analog", max_time=100)
+                result = self.monitor[0]._read_until_done(
+                    done_string="root@analog", max_time=100
+                )
 
                 if not result:
                     # raise Exception("Linux not fully booting")
@@ -282,23 +303,27 @@ class manager:
                 print("Home sweet home")
                 self.monitor[0].stop_log()
 
-            #JTAG RECOVERY
-            except:
-                self.board_reboot_jtag_uart(bootbinpath, uimagepath, devtreepath, sdcard)
+            # JTAG RECOVERY
+            except Exception:
+                self.board_reboot_jtag_uart(
+                    bootbinpath, uimagepath, devtreepath, sdcard
+                )
 
     @_release_thread_lock
-    def board_reboot_jtag_uart(self, bootbinpath, uimagepath, devtreepath, sdcard=False):
+    def board_reboot_jtag_uart(
+        self, bootbinpath, uimagepath, devtreepath, sdcard=False
+    ):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
         # self.monitor[0].start_log()
-        log.info("Reseting and looking DDR with boot files")
+        log.info("Resetting and looking DDR with boot files")
         # self.jtag.full_boot()
         # Check if u-boot loads first
-        # log.info("Reseting with JTAG and checking if u-boot is reachable")
+        # log.info("Resetting with JTAG and checking if u-boot is reachable")
         # self.jtag.restart_board()
-        #do a power cylcle rather than jtag reboot to make sure jtag devices are working
-        log.info("Reseting with JTAG and checking if u-boot is reachable")
+        # do a power cylcle rather than jtag reboot to make sure jtag devices are working
+        log.info("Resetting with JTAG and checking if u-boot is reachable")
         self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
@@ -310,12 +335,14 @@ class manager:
             self.jtag.boot_to_uboot()
             log.info("Taking over UART control")
             self.monitor[0]._enter_uboot_menu_from_power_cycle()
-            
-        #Get SD card file directory
+
+        # Get SD card file directory
         if not sdcard:
             # Copy over and write to disk
             log.info("Copying boot files over UART to SD card")
-            self.monitor[0].load_system_uart_copy_to_sdcard(bootbinpath, devtreepath, uimagepath)
+            self.monitor[0].load_system_uart_copy_to_sdcard(
+                bootbinpath, devtreepath, uimagepath
+            )
         else:
             self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
 
@@ -339,7 +366,7 @@ class manager:
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
-        """ Manager when UART, PDU, and Network are available """
+        """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
         )
@@ -382,9 +409,11 @@ class manager:
             log.info("Waiting for reboot to complete")
 
             # Verify uboot anad linux are reached
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+            results = self.monitor[0]._read_until_done_multi(
+                done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
+            )
 
-            if len(results)==1:
+            if len(results) == 1:
                 # try power cycling again first
                 self.power_cycle_to_boot()
             elif not results[1]:
@@ -394,13 +423,12 @@ class manager:
 
             log.info("Linux fully booted")
 
-
         except (ne.LinuxNotReached, ne.SSHError, TimeoutError):
             # Power cycle
             log.info("SSH reboot failed again after power cycling")
             log.info("Forcing UART override on reset")
             if self.jtag_use:
-                log.info("Reseting with JTAG")
+                log.info("Resetting with JTAG")
                 self.jtag.restart_board()
             else:
                 log.info("Power cycling")
@@ -486,14 +514,16 @@ class manager:
         # self.monitor[0].stop_log()
         # return
         # CANNOT USE JTAG TO POWERCYCLE IT DOES NOT WORK
-        #stop uart logging first
+        # stop uart logging first
         try:
             self.monitor[0].stop_log()
             self.power.power_cycle_board()
             log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+            results = self.monitor[0]._read_until_done_multi(
+                done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
+            )
         except Exception as ex:
-            # Try to reinitialize uart and manually boot via u-boot 
+            # Try to reinitialize uart and manually boot via u-boot
             log.warning("UART is unavailable.")
             log.warning(str(ex))
             # wait longer and restart board using jtag
@@ -502,9 +532,11 @@ class manager:
             self.monitor[0].start_log(logappend=True)
             self.jtag.restart_board()
             log.info("Waiting for boot to complete")
-            results = self.monitor[0]._read_until_done_multi(done_strings=["U-Boot","Starting kernel","root@analog"], max_time=100)
+            results = self.monitor[0]._read_until_done_multi(
+                done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
+            )
 
-        if len(results)==1:
+        if len(results) == 1:
             raise Exception("u-boot not reached")
         elif not results[1]:
             raise Exception("u-boot menu cannot boot kernel")
@@ -533,7 +565,6 @@ class manager:
     def _find_boot_files(self, folder):
         if not os.path.isdir(folder):
             raise Exception("Boot files folder not found")
-        src = os.path.join(folder, "*")
         files = os.listdir(folder)
         res = []
         for file in files:
@@ -542,7 +573,7 @@ class manager:
             if filesize <= 80:
                 res.append(file)
         if len(res) != 0:
-            raise Exception("Empty files:" +str(res))
+            raise Exception("Empty files:" + str(res))
 
         if "BOOT.BIN" not in files:
             raise Exception("BOOT.BIN not found")
@@ -578,7 +609,9 @@ class manager:
         bit = os.path.join(folder, "system_top.bit")
         return (bootbin, kernel, dt, bit)
 
-    def board_reboot_auto_folder(self, folder, sdcard=False, design_name=None,recover=False, jtag_mode=False):
+    def board_reboot_auto_folder(
+        self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
+    ):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
         files from target folder"""
@@ -624,9 +657,9 @@ class manager:
                     devtreepath=dt,
                     sdcard=sdcard,
                 )
-                
+
     def board_reboot_auto(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath,recover=False
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, recover=False
     ):
         """Automatically select loading mechanism
         based on current class setup"""
@@ -634,25 +667,27 @@ class manager:
             system_top_bit_path=system_top_bit_path,
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
-            devtreepath=devtreepath
+            devtreepath=devtreepath,
         )
-
 
     def shutdown_powerdown_board(self):
         self.monitor[0].print_to_console = False
-        ret = self.monitor[0].get_uart_command_for_linux('\r\n', "root@analog")
+        ret = self.monitor[0].get_uart_command_for_linux("\r\n", "root@analog")
         try:
             if ret:
                 self.monitor[0]._write_data("shutdown now")
                 # wait for shutdown to complete
                 time.sleep(10)
             else:
-                log.error("Cannot continue command since linux is not running or not root")
+                log.error(
+                    "Cannot continue command since linux is not running or not root"
+                )
         except Exception as ex:
             log.error(ex)
         finally:
             # force shutdown boards via pdu
             self.power.power_down_board()
+
 
 if __name__ == "__main__":
     # import pathlib

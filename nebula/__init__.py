@@ -20,6 +20,7 @@ from nebula.usbdev import usbdev
 from nebula.netbox import netbox
 
 from nebula.common import LINUX_DEFAULT_PATH
+
 if os.name in ["nt", "posix"] and os.path.exists(LINUX_DEFAULT_PATH):
     from nebula.usbmux import usbmux
 

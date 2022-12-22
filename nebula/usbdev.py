@@ -1,13 +1,13 @@
+import logging
 import os
 import shutil
 import subprocess
+import tempfile
+import time
 
 # import psutil
 import fabric
 from fabric import Connection
-import logging
-import time
-import tempfile
 
 log = logging.getLogger(__name__)
 
@@ -42,24 +42,26 @@ class usbdev:
     def _check_disk_mounted(
         self, name="PlutoSDR", skip_exception=False, do_mount=False
     ):
-        for l in range(3):
+        for i in range(3):
             cmd = "sudo blkid -L " + name
             out = self.shell_out2(cmd)
             if len(out) == 0:
                 return False, False
             cmd = "sudo mount -l | grep `sudo blkid -L " + name + "` | grep dev"
             out = self.shell_out2(cmd)
-            log.info("Partition query result: "+out)
+            log.info("Partition query result: " + out)
             out = out.split(" ")
             if len(out) > 1:
                 partition = out[0]
                 mountpoint = out[2]
                 break
-            elif l == 0:
+            elif i == 0:
                 log.info("Waiting for automount first")
                 time.sleep(15)
             else:
-                log.info("Partition from USB does not appear to be mounted. Trying to mount...")
+                log.info(
+                    "Partition from USB does not appear to be mounted. Trying to mount..."
+                )
                 if do_mount:
                     self._mount_dev(name)
                 partition = False
