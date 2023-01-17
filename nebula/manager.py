@@ -16,6 +16,7 @@ from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 from nebula.usbdev import usbdev
+from nebula.builder import builder
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -75,7 +76,7 @@ class manager:
                                 board_name=board_name,
                                 vivado_version=vivado_version,
                             )
-
+                
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
             monitor_kernel = netconsole(port=6669, logfilename="kernel.log")
@@ -114,6 +115,7 @@ class manager:
 
         self.help = helper.helper()
         self.usbdev = usbdev()
+        self.builder = builder()
         self.board_name = board_name
 
     def _release_thread_lock(func):
@@ -688,6 +690,13 @@ class manager:
             # force shutdown boards via pdu
             self.power.power_down_board()
 
+    def no_os_routine(self, hdlfile, flags, jtag_cableid, period): 
+        try:
+            log.info("Building No-OS project; Loading to hardware")
+            self.monitor[0].get_uart_boot_message(period=period)
+            self.builder.no_os_build(hdlfile, flags, jtag_cableid)
+        except Exception as ex:
+            log.error(ex)
 
 if __name__ == "__main__":
     # import pathlib

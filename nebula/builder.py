@@ -12,8 +12,10 @@ log = logging.getLogger(__name__)
 class builder:
     vivado_override = None
 
-    def __init__(self):
-        pass
+    def __init__(self, hdlfile= "system_top.xsa", flags=None, jtag_cableid=None):
+        self.hdlfile = hdlfile
+        self.flags = flags
+        self.jtag_cableid = jtag_cableid
 
     def shell_out(self, cmd):
         cmd = cmd.split(" ")
@@ -21,10 +23,15 @@ class builder:
         subprocess.run(cmd)
 
     def shell_out2(self, script):
-        logging.info("Running command: " + script)
+        log.info("Running command: " + script)
         p = subprocess.Popen(script, shell=True, executable="/bin/bash")
         (output, err) = p.communicate()
         # return output.decode("utf-8")
+    
+    def no_os_build(self, hdlfile= "system_top.xsa", flags=None, jtag_cableid=None):
+        "Build and load routine for no-OS"
+        cmd = "make HARDWARE = "+hdlfile+" "+flags ;"make run JTAG_CABLE_ID=" +jtag_cableid
+        self.shell_out2(cmd)
 
     def cmake_build(self, dir):
         os.chdir(dir)

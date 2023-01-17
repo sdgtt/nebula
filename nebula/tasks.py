@@ -681,13 +681,33 @@ def update_boot_files_manager(
     else:
         m.board_reboot_auto_folder(folder, design_name=board_name)
 
+@task(
+    help={
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
+        + " if no yaml file exists and no address provided auto is used",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "hdlfile":"system_top.xsa",
+        "flags":"from", 
+        "jtag_cableid":"None",
+        "period": "Waiting time in seconds",
+    },
+)
+def no_os_manager(
+    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, hdlfile="system_top.xsa", flags=None, jtag_cableid=None, period=120
+):
+    """Read UART boot message during no-OS builds."""
+    m = nebula.manager(
+        address=address, yamlfilename=yamlfilename, board_name=board_name)
+    m.no_os_routine(hdlfile, flags, jtag_cableid, period)
+
 
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 manager.add_task(check_jtag_manager, name="check_jtag")
-
+manager.add_task(no_os_manager, name="no_os_build")
 
 #############################################
 @task(
@@ -878,25 +898,6 @@ def get_mezzanine(
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
-        + " if no yaml file exists and no address provided auto is used",
-        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-        "period": "Waiting time in seconds",
-    },
-)
-def get_uart_log(
-    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, period=120
-):
-    """Read UART boot message on no-OS builds."""
-    u = nebula.uart(
-        address=address, yamlfilename=yamlfilename, board_name=board_name, period=period
-    )
-    u.get_uart_boot_message()
-
-
-@task(
-    help={
         "nic": "Network interface name to set. Default is eth0",
         "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
         + " if no yaml file exists and no address provided auto is used",
@@ -991,7 +992,6 @@ uart.add_task(set_dhcp)
 uart.add_task(set_static_ip)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
-uart.add_task(get_uart_log)
 uart.add_task(update_boot_files_uart, name="update_boot_files")
 uart.add_task(set_local_nic_ip_from_usbdev)
 
