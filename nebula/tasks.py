@@ -694,11 +694,11 @@ def update_boot_files_manager(
     },
 )
 def no_os_manager(
-    c, address="auto", yamlfilename="/etc/default/nebula", board_name=None, hdlfile="system_top.xsa", flags=None, jtag_cableid=None, period=120
+    c, yamlfilename="/etc/default/nebula", board_name=None, hdlfile="system_top.xsa", flags=None, jtag_cableid=None, period=120
 ):
     """Read UART boot message during no-OS builds."""
     m = nebula.manager(
-        address=address, yamlfilename=yamlfilename, board_name=board_name)
+        yamlfilename=yamlfilename, board_name=board_name)
     m.no_os_routine(hdlfile, flags, jtag_cableid, period)
 
 
