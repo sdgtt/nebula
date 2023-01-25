@@ -683,8 +683,6 @@ def update_boot_files_manager(
 
 @task(
     help={
-        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
-        + " if no yaml file exists and no address provided auto is used",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "hdlfile":"system_top.xsa",
