@@ -141,6 +141,125 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
         return url_template.format(ip, release_folder, folder, filename)
 
 
+def list_files_in_remote_folder(url):
+    """List files in remote artifactory folder"""
+    path = ArtifactoryPath(url)
+    return path.listdir()
+
+
+def get_artifact_paths(toolbox, branch, build, ext, root="dev"):
+    log.info(f"Getting {ext} files from {branch} build {build} in {toolbox}")
+    path = ArtifactoryPath(
+        f"https://artifactory.analog.com/artifactory/sdg-generic-development/{toolbox}/{root}/{branch}/{build}"
+    )
+    filename_urls = []
+    for path in path.iterdir():
+        if path.is_file():
+            if path.name.endswith(ext):
+                filename_urls.append(path)
+    filenames = [path.name for path in filename_urls]
+    log.info(f"Found {len(filenames)} {ext} files: {filenames}")
+    return filename_urls
+
+
+def filter_boards(paths, fmc, fpga):
+    filtered_paths = []
+    rd_names = []
+    for path in paths:
+        fmc_e, fpga_e, variant_e = interpret_bootbin(path)
+        rd_name = translate_to_reference_design_name(fmc_e, fpga_e)
+        if fmc is None:
+            filtered_paths.append(path)
+            rd_names.append(rd_name)
+            continue
+        if fmc.lower() == fmc_e.lower() and fpga.lower() == fpga_e.lower():
+            filtered_paths.append(path)
+            rd_names.append(rd_name)
+    log.info(f"Filtered to {len(filtered_paths)}  Based on: {fmc} | {fpga} requirement")
+    return filtered_paths, rd_names
+
+
+def download_artifact(path, output_folder):
+    if not os.path.isdir(output_folder):
+        os.mkdir(output_folder)
+    out_filename = os.path.join(output_folder, path.name)
+    log.info(f"Downloading {out_filename} from {str(path)}")
+    with path.open() as fd, open(out_filename, "wb") as out:
+        out.write(fd.read())
+
+
+def translate_to_reference_design_name(fmc, fpga):
+    path = pathlib.Path(__file__).parent.absolute()
+    res = os.path.join(path, "resources", "board_table.yaml")
+    with open(res) as f:
+        board_configs = yaml.load(f, Loader=yaml.FullLoader)
+
+    if fpga.lower().strip() == "CCBOB_CMOS".lower():
+        fpga = "ADRV1CRR-BOB"
+    if fpga.lower().strip() == "CCBOB_LVDS".lower():
+        fpga = "ADRV1CRR-BOB"
+    if fpga.lower().strip() == "CCPACKRF_LVDS".lower():
+        fpga = "ADRV-PACKRF"
+    if fpga.lower().strip() == "CCFMC_LVDS".lower():
+        fpga = "ADRV1CRR-FMC"
+
+    for board in board_configs:
+        if board_configs[board]["carrier"].lower().strip() == fpga.lower().strip() and (
+            "addons" in board_configs[board] or fmc.lower().strip() in board.lower()
+        ):
+            if fmc.lower().strip() in board.lower():
+                return board
+            for addon in board_configs[board]["addons"]:
+                if fmc.lower() in addon.lower():
+                    return board
+    return None
+
+
+def interpret_bootbin(filename):
+    parts = filename.split("(")
+    if len(parts) != 2:
+        raise ValueError(f"Unexpected filename format: {filename}")
+    fmc = parts[0].split(" ")[0]
+    fpga = parts[0].split(" ")[1]
+    variant = parts[1].split(")")[0]
+    log.info(f"Interpreted {filename} as {fmc} | {fpga} | {variant}")
+    return fmc, fpga, variant
+
+
+def generate_bootbin_map_file(bootbin_dir):
+    if not os.path.isdir(bootbin_dir):
+        raise ValueError(f"Bootbin directory does not exist: {bootbin_dir}")
+    bootbin_files = [f for f in os.listdir(bootbin_dir) if f.endswith(".BIN")]
+    if len(bootbin_files) == 0:
+        raise ValueError(f"No bootbin files found in {bootbin_dir}")
+    paths, rd_names = filter_boards(bootbin_files, None, None)
+    if len(paths) == 0:
+        raise ValueError("No artifacts found that meet criteria")
+    return bootbin_files, rd_names
+
+
+def download_matlab_generate_bootbin(
+    root,
+    toolbox,
+    branch,
+    build,
+    target_fmc,
+    target_fpga,
+    download_folder,
+    skip_download=False,
+):
+    paths = get_artifact_paths(toolbox, branch, build, ".BIN", root)
+    # paths = [path.name for path in paths]
+    # paths, rd_names = filter_boards(paths, target_fmc, target_fpga)
+    rd_names = []
+    if len(paths) == 0:
+        raise ValueError("No artifacts found that meet criteria")
+    if not skip_download:
+        for path in paths:
+            download_artifact(path, download_folder)
+    return paths, rd_names
+
+
 class downloader(utils):
     def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None):
         self.reference_boot_folder = None
