@@ -685,6 +685,7 @@ def update_boot_files_manager(
     help={
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "vivado_version": "Set vivado version. Defaults to 2021.1"
         "hdlfile":"system_top.xsa",
         "flags":"from", 
         "jtag_cableid":"None",
@@ -692,11 +693,11 @@ def update_boot_files_manager(
     },
 )
 def no_os_manager(
-    c, yamlfilename="/etc/default/nebula", board_name=None, hdlfile="system_top.xsa", flags=None, jtag_cableid=None, period=120
+    c, yamlfilename="/etc/default/nebula", board_name=None, vivado_version="2021.1", hdlfile="system_top.xsa", flags=None, jtag_cableid=None, period=120
 ):
     """Read UART boot message during no-OS builds."""
     m = nebula.manager(
-        configfilename=yamlfilename, board_name=board_name)
+        configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version)
     m.no_os_routine(hdlfile, flags, jtag_cableid, period)
 
 
