@@ -696,7 +696,7 @@ def no_os_manager(
 ):
     """Read UART boot message during no-OS builds."""
     m = nebula.manager(
-        yamlfilename=yamlfilename, board_name=board_name)
+        configfilename=yamlfilename, board_name=board_name)
     m.no_os_routine(hdlfile, flags, jtag_cableid, period)
 
 
