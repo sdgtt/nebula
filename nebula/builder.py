@@ -30,7 +30,7 @@ class builder:
     
     def no_os_build(self, hdlfile= "system_top.xsa", flags=None, jtag_cableid=None):
         "Build and load routine for no-OS"
-        cmd = "make HARDWARE = "+hdlfile+" "+flags ;"make run JTAG_CABLE_ID=" +jtag_cableid
+        cmd = "make HARDWARE="+hdlfile+" "+flags ;"make run JTAG_CABLE_ID=" +jtag_cableid
         self.shell_out2(cmd)
 
     def cmake_build(self, dir):
