@@ -685,7 +685,7 @@ def update_boot_files_manager(
     help={
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-        "vivado_version": "Set vivado version. Defaults to 2021.1"
+        "vivado_version": "Set vivado version. Defaults to 2021.1",
         "hdlfile":"system_top.xsa",
         "flags":"from", 
         "jtag_cableid":"None",
