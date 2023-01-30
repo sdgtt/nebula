@@ -495,10 +495,10 @@ class uart(utils):
                     continue
         return None
 
-    def get_uart_boot_message(self):
+    def get_uart_boot_message(self, period):
         """Read UART boot message on no-OS builds."""
         self.start_log(logappend=True)
-        time.sleep(self.max_read_time)
+        time.sleep(period)
         self.stop_log()
 
     def _read_for_time(self, period):
