@@ -14,5 +14,5 @@ OF: graph: no port node found in /axi/display@fd4a0000
 OF: graph: no port node found in /axi/phy@fd400000
 platform regulatory.0: Direct firmware load for regulatory.db failed with error -2
 xilinx-dp-snd-codec fd4a0000.display:zynqmp_dp_snd_codec0: Failed to get required clock freq
-spi1.0: Probe failed (muxout)
-spi1.1: Probe failed (muxout)
+adf4350 spi1.0: Probe failed (muxout)
+adf4350 spi1.1: Probe failed (muxout)
