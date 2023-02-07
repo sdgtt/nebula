@@ -447,7 +447,7 @@ adis16480bmlz:
   carrier: RPI
 eval-cn0508-rpiz:
   carrier: RPI
-cn0511:
+eval-cn0511-rpiz:
   carrier: RPI
 eval-cn0531-pmdz:
   carrier: RPI
