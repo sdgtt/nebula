@@ -7,6 +7,7 @@ import os
 import pathlib
 import re
 import shutil
+import tarfile
 from datetime import datetime
 from pathlib import Path
 
@@ -19,7 +20,6 @@ from nebula.common import utils
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
-import tarfile
 
 log = logging.getLogger(__name__)
 
@@ -150,21 +150,12 @@ class downloader(utils):
         self.hdl_folder = None
         self.http_server_ip = http_server_ip
         self.url = None
+        # rpi fields
+        self.devicetree = None
+        self.devicetree_overlay = None
+        # update from config
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
-        )
-
-        # rpi fields 
-        self.soc = None
-        self.module = None
-        self.kernel = None
-        self.overlay = None
-        self.devtree = None
-        self.update_defaults_from_yaml(
-            yamlfilename,
-            configname="board",
-            board_name=board_name,
-            attr=["soc", "module", "kernel", "devtree", "overlay"],
         )
 
     def _download_firmware(self, device, release=None):
@@ -457,7 +448,16 @@ class downloader(utils):
         if source == "artifactory":
             get_gitsha(self.url, daily=True, linux=True)
 
-    def _get_files_rpi(self, source, source_root, branch, kernel, devtree, overlay, module=None):
+    def _get_files_rpi(
+        self,
+        source,
+        source_root,
+        branch,
+        kernel,
+        devicetree,
+        devicetree_overlay,
+        module,
+    ):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -476,40 +476,56 @@ class downloader(utils):
 
         url_template = url_template.format(source_root, branch, "{}/{}")
 
-        if "dtb" not in devtree:
-            devtree = devtree + ".dtb"
-        log.info("Getting device tree " + devtree)
-        url = url_template.format(build_date, devtree)
-        file = os.path.join(dest, devtree)
+        if "dtb" not in devicetree:
+            devicetree = devicetree + ".dtb"
+        log.info("Getting device tree " + devicetree)
+        url = url_template.format(build_date, devicetree)
+        file = os.path.join(dest, devicetree)
         self.download(url, file)
 
-        if "dtbo" not in overlay:
-            overlay = overlay + ".dtbo"
-        overlay_f = "overlays/" + overlay
-        log.info("Getting overlay " + overlay)
+        if "dtbo" not in devicetree_overlay:
+            devicetree_overlay = devicetree_overlay + ".dtbo"
+        overlay_f = "overlays/" + devicetree_overlay
+        log.info("Getting overlay " + devicetree_overlay)
         url = url_template.format(build_date, overlay_f)
-        file = os.path.join(dest, overlay)
+        file = os.path.join(dest, devicetree_overlay)
         self.download(url, file)
 
-        if "img" not in kernel:
-            kernel = kernel + ".img"
-        log.info("Get kernel " + kernel)
-        url = url_template.format(build_date, kernel)
-        file = os.path.join(dest, kernel)
-        self.download(url, file)
+        # TODO: must specify what kernel to download, download all kernel for now
+        if not kernel:
+            kernel = ["kernel.img", "kernel7.img", "kernel7l.img"]
 
-        if module:
-            tar_file = 'rpi_modules.tar.gz'
-            log.info("Get module " + module)
-            url = url_template.format(build_date, tar_file)
-            file = os.path.join(dest, tar_file)
+        if not isinstance(kernel, list):
+            kernel = [kernel]
+
+        for k in kernel:
+            if "img" not in k:
+                k = k + ".img"
+            log.info("Get kernel " + k)
+            url = url_template.format(build_date, k)
+            file = os.path.join(dest, k)
             self.download(url, file)
-            with tarfile.open(file) as tf:
+
+        # TODO: must specify what module to download, download all modules for now
+        tar_file = "rpi_modules.tar.gz"
+        log.info("Get modules " + tar_file)
+        url = url_template.format(build_date, tar_file)
+        file = os.path.join(dest, tar_file)
+        self.download(url, file)
+
+        with tarfile.open(file) as tf:
+            if module:
+                log.info("Extracting module " + module)
                 module_files = [
-                    tarinfo for tarinfo in tf.getmembers()
+                    tarinfo
+                    for tarinfo in tf.getmembers()
                     if tarinfo.name.startswith(f"./{module}")
                 ]
-                tf.extractall(path=dest, members=module_files)
+            else:
+                # extract all
+                log.info("Extracting all modules")
+                module_files = [tarinfo for tarinfo in tf.getmembers()]
+            tf.extractall(path=dest, members=module_files)
 
     def _get_files(
         self,
@@ -522,10 +538,8 @@ class downloader(utils):
         source,
         source_root,
         branch,
-        module,
-        devtree,
-        overlay,
-        rpi_kernel,
+        devicetree,
+        devicetree_overlay,
         folder=None,
         firmware=False,
         noos=False,
@@ -554,7 +568,8 @@ class downloader(utils):
         elif details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]:
             arch = "microblaze"
         elif "RPI" in details["carrier"]:
-            kernel = rpi_kernel
+            kernel = None
+            module = None
         else:
             raise Exception("Carrier not supported")
 
@@ -596,7 +611,15 @@ class downloader(utils):
                 )
 
             if rpi:
-                self._get_files_rpi(source, source_root, branch, kernel, devtree, overlay, module)
+                self._get_files_rpi(
+                    source,
+                    source_root,
+                    branch,
+                    kernel,
+                    devicetree,
+                    devicetree_overlay,
+                    module,
+                )
 
             if folder:
                 if folder == "boot_partition":
@@ -670,11 +693,8 @@ class downloader(utils):
         devicetree_subfolder = self.devicetree_subfolder
         boot_subfolder = self.boot_subfolder
         hdl_folder = self.hdl_folder
-        soc = self.soc
-        module = self.module
-        devtree = self.devtree
-        overlay = self.overlay
-        rpi_kernel = self.kernel
+        devicetree = self.devicetree
+        devicetree_overlay = self.devicetree_overlay
 
         if noos:
             res = os.path.join(path, "resources", "noOS_projects.yaml")
@@ -719,10 +739,8 @@ class downloader(utils):
             source,
             source_root,
             branch,
-            module,
-            devtree,
-            overlay,
-            rpi_kernel,
+            devicetree,
+            devicetree_overlay,
             folder,
             firmware,
             noos,
