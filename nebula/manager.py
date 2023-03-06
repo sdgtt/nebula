@@ -622,13 +622,15 @@ class manager:
                 raise Exception("jtag_mode not supported for firmware device")
             try:
                 files = glob.glob(os.path.join(folder, "*.zip"))
-            except:
+                print(files[0])
+            except IndexError:
                 files = glob.glob(os.path.join(folder, "*.frm"))
             if not files:
                 raise Exception("No files found in folder: " + folder)
             if len(files) > 1:
-                raise Exception("Too many files found in folder: " + folder)
+                raise Exception("Too manyfiles found in folder: " + folder)
 
+            log.info(files[0])
             self.usbdev.update_firmware(files[0], device=design_name)
             time.sleep(3)
             if not self.usbdev.wait_for_usb_mount(device=design_name):
