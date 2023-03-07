@@ -160,17 +160,17 @@ class downloader(utils):
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
-    def _download_firmware(self, device, source= 'github', release=None):
+    def _download_firmware(self, device, source="github", release=None):
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
-                dev = "m2k"
-                file = "m2k"
+            dev = "m2k"
+            file = "m2k"
         elif "pluto" in device.lower():
-                dev = "plutosdr"
-                file = "pluto"
+            dev = "plutosdr"
+            file = "pluto"
         else:
             raise Exception("Unknown device " + device)
-        
-        if source == 'github':
+
+        if source == "github":
             if release == "master" or release == "release":
                 release = None
             if not release:
@@ -195,16 +195,16 @@ class downloader(utils):
             if not os.path.isdir(dest):
                 os.mkdir(dest)
             filename = os.path.join(dest, dev + "-fw-" + release + ".zip")
-        elif source == 'artifactory':
+        elif source == "artifactory":
             url_template = "https://artifactory.analog.com/artifactory/sdg-generic-development/m2k_and_pluto/{}-fw/{}/"
             url = url_template.format(dev, "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(dev, build_date)
-            url = url + str(file)+".frm"
+            url = url + str(file) + ".frm"
             dest = "outs"
             if not os.path.isdir(dest):
                 os.mkdir(dest)
-            filename = os.path.join(dest, str(file)+".frm")
+            filename = os.path.join(dest, str(file) + ".frm")
         self.download(url, filename)
 
     def _get_file(
