@@ -37,6 +37,15 @@ def convert_to_datetime(date):
         return datetime.strptime(date[:10], "%Y_%m_%d")
 
 
+def get_firmware_verson(links):
+    version = None
+    for link in links:
+        file = link.split("/")[-1]
+        if "zip" in file:
+            version=file
+    return version
+
+
 def get_latest_release(links):
     latest = "0000_r1"
     for link in links:
@@ -196,15 +205,19 @@ class downloader(utils):
                 os.mkdir(dest)
             filename = os.path.join(dest, dev + "-fw-" + release + ".zip")
         elif source == "artifactory":
-            url_template = "https://artifactory.analog.com/artifactory/sdg-generic-development/m2k_and_pluto/{}-fw/{}/"
+            url_template = "https://artifactory.analog.com/artifactory/sdg-generic-development/m2k_and_pluto/{}-fw/{}/{}"
             url = url_template.format(dev, "")
             build_date = get_newest_folder(listFD(url))
-            url = url_template.format(dev, build_date)
-            url = url + str(file) + ".frm"
+            url = url_template.format(dev, build_date, "")
+            #url = url + str(file) + ".frm"
+            #get version
+            ver = get_firmware_verson(listFD(url))
+            #file ="{dev}-fw-{rel}.zip".format(dev=dev, rel=ver)
+            url = url_template.format(dev, build_date, ver)
             dest = "outs"
             if not os.path.isdir(dest):
                 os.mkdir(dest)
-            filename = os.path.join(dest, str(file) + ".frm")
+            filename = os.path.join(dest, ver)
         self.download(url, filename)
 
     def _get_file(
