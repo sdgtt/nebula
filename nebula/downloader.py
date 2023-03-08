@@ -206,7 +206,7 @@ class downloader(utils):
             filename = os.path.join(dest, dev + "-fw-" + release + ".zip")
         elif source == "artifactory":
             url_template = "https://artifactory.analog.com/artifactory/sdg-generic-development/m2k_and_pluto/{}-fw/{}/{}"
-            url = url_template.format(dev, "")
+            url = url_template.format(dev, "", "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(dev, build_date, "")
             #url = url + str(file) + ".frm"
