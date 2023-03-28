@@ -331,10 +331,12 @@ class NetboxDevice:
             _iio_devices = dev_child_raw['custom_fields']['iio_device_names'].split(",")
             _log_file_name = dev_child_raw['name'] + '.log'
             _overlay = dev_child_raw['custom_fields']['devicetree_overlay']
+            _dtoverlay_config = dev_child_raw['custom_fields']['dtoverlay_config']
             self.data["devices"]["variant_data"] = json.dumps(
                             {
                                 "board-config":{
-                                    "daughter": _device_daughter
+                                    "daughter": _device_daughter,
+                                    "dtoverlay-config": _dtoverlay_config
                                 },
                                 "downloader-config":{
                                     "devicetree_overlay": _overlay

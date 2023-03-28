@@ -41,6 +41,12 @@ board-config:
     help: "Sets the serial number of the device"
     optional: True
     netbox_field: devices.serial
+  field_6:
+    name: dtoverlay-config
+    default: dtoverlay=xxx,param1=val1,param2=val2
+    help: "Configuration to load device tree overlay"
+    optional: True
+    netbox_field: devices.custom_fields.dtoverlay_config
 network-config:
   field_1:
     name: dutip
@@ -151,6 +157,16 @@ downloader-config:
     help: "Filename of the devicetree overlay blob"
     optional: True
     netbox_field: devices.custom_fields.devicetree_overlay
+  field_4:
+    name: kernel
+    help: "Filename of the kernel image file"
+    optional: True
+    netbox_field: devices.custom_fields.kernel
+  field_5:
+    name: modules
+    help: "Folder name of the kernel library modules"
+    optional: True
+    netbox_field: devices.custom_fields.modules
 netbox-config:
   field_1:
     name: netbox_server
