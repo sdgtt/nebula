@@ -332,23 +332,24 @@ class NetboxDevice:
             _log_file_name = dev_child_raw['name'] + '.log'
             _overlay = dev_child_raw['custom_fields']['devicetree_overlay']
             _dtoverlay_config = dev_child_raw['custom_fields']['dtoverlay_config']
-            self.data["devices"]["variant_data"] = json.dumps(
-                            {
-                                "board-config":{
-                                    "daughter": _device_daughter,
-                                    "dtoverlay-config": _dtoverlay_config
-                                },
-                                "downloader-config":{
-                                    "devicetree_overlay": _overlay
-                                },
-                                "driver-config": {
-                                    "iio_device_names": _iio_devices
-                                },
-                                "uart-config": {
-                                    "logfilename": _log_file_name
-                                }
-                            }
-                        )
+            _data_dict = {
+                "board-config": {},
+                "downloader-config": {},
+                "driver-config": {},
+                "uart-config": {}
+            }
+            if _device_daughter:
+                _data_dict["board-config"].update({"daughter": _device_daughter})
+            if _dtoverlay_config:
+                _data_dict["board-config"].update({"dtoverlay-config": _dtoverlay_config})
+            if _overlay:
+                _data_dict["downloader-config"].update({"devicetree_overlay": _overlay})
+            if _iio_devices:
+                _data_dict["driver-config"].update({"iio_device_names": _iio_devices})
+            if _log_file_name:
+                _data_dict["uart-config"].update({"logfilename": _log_file_name})
+
+            self.data["devices"]["variant_data"] = json.dumps(_data_dict)
 
         self.name = device_name
         self.data["devices"]["name"] = device_name
