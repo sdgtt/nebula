@@ -17,6 +17,7 @@ from nebula.downloader import downloader
 from nebula.coverage import coverage
 from nebula.jtag import jtag
 from nebula.usbdev import usbdev
+from nebula.usbmux import usbmux
 from nebula.netbox import netbox
 
 from nebula.common import LINUX_DEFAULT_PATH

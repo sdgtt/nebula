@@ -5,9 +5,11 @@ import random
 import re
 import string
 import time
+import glob
 
 from nebula.common import utils
 from usbsdmux import usbsdmux
+from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -118,7 +120,7 @@ class usbmux(utils):
         if e != 0:
             raise Exception("Error writing image file to SD card")
 
-    def _mount_sd_card(self):
+    def _mount_sd_card(self, include_root_partition=False):
         if not self._target_sdcard:
             self.find_muxed_sdcard()
         self.set_mux_mode("host")
@@ -133,10 +135,70 @@ class usbmux(utils):
         os.system(f"mkdir /tmp/{folder}")
         time.sleep(1)
         os.system(f"mount {boot_p} /tmp/{folder}")
+
+        if include_root_partition:
+            root_p = f"{self._target_sdcard}2"
+            if root_p not in devs:
+                raise Exception(f"Target Root FS partition not found {root_p}")
+            root_p = os.path.join("/dev", root_p)
+            rootfs_folder = "".join(random.choices(string.ascii_lowercase, k=5))
+            os.system(f"mkdir /tmp/{rootfs_folder}")
+            time.sleep(1)
+            os.system(f"mount {root_p} /tmp/{rootfs_folder}")
+            return folder, boot_p, rootfs_folder, root_p
+
         return folder, boot_p
 
+    def backup_files_to_external(
+        self,
+        partition = "boot",
+        target = [],
+        destination="backup",
+    ):
+        """Backup specified files to an external location
+
+        Args:
+            partition (str): Source partition. Either boot or root
+            target (list): Filenames that will be backup'd
+            destination (str): Directory name at host to place the backup'd files
+        """
+        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(include_root_partition=True)
+
+        target_folder = folder
+        target_partition = boot_p
+        if partition == "root":
+            target_folder = rootfs_folder
+            target_partition = root_p
+
+        back_up_path = Path(os.path.join(destination,target_folder))
+        back_up_path.mkdir(parents=True, exist_ok=True)
+
+        try:
+            for f in target:
+                files = glob.glob(os.path.join(f"/tmp/{target_folder}",f))
+                for file_path in files:
+
+                    log.info(f"Backing up {file_path} to {str(back_up_path)}")
+                    if os.path.exists(file_path):
+                        os.system(f"cp -r {file_path} {str(back_up_path)}")
+                    else:
+                        raise Exception("File not found " + file_name)
+        except Exception as ex:
+            log.error(str(ex))
+        finally:
+            # unmount sd card
+            os.system(f"umount /tmp/{folder}")
+            os.system(f"umount /tmp/{rootfs_folder}")
+
+        return target_folder
+
     def update_boot_files_from_external(
-        self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None
+        self,
+        bootbin_loc=None,
+        kernel_loc=None,
+        devicetree_loc=None,
+        devicetree_overlay_loc=None,
+        devicetree_overlay_config_loc=None,
     ):
         """Update the boot files from outside SD card itself.
 
@@ -144,34 +206,62 @@ class usbmux(utils):
             bootbin_loc (str): The path to the boot.bin file
             kernel_loc (str): The path to the kernel file
             devicetree_loc (str): The path to the devicetree file
+            devicetree_overlay_loc (str): The path to the devicetree overlay file
+            devicetree_overlay_config (str): The devicetree overlay configuration to be written on /boot/config.txt
         """
+        args = locals()
         folder, boot_p = self._mount_sd_card()
 
-        if bootbin_loc:
-            if not os.path.isfile(bootbin_loc):
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception("File not found: " + bootbin_loc)
-            os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
-        if kernel_loc:
-            if not os.path.isfile(kernel_loc):
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception("File not found: " + kernel_loc)
-            image = os.path.basename(kernel_loc)
-            os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
-        if devicetree_loc:
-            devicetree_loc = os.path.join("/tmp/", folder, devicetree_loc)
-            if not os.path.isfile(devicetree_loc):
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception("File not found: " + devicetree_loc)
-            dt = os.path.basename(devicetree_loc)
-            os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
+        try:
+            for btfiletype, loc in args.items():
+                if loc:
+                    if not isinstance(loc, (str, bytes, os.PathLike)):
+                        if isinstance(loc, type(self)):
+                            continue
+                        raise Exception(f"Invalid type {type(loc)}")
+                    if btfiletype == "bootbin_loc":
+                        outfile = os.path.join("/tmp",folder,"BOOT.BIN")
+                    elif btfiletype == "devicetree_overlay_loc":
+                        outfile = os.path.join("/tmp",folder,"overlays",os.path.basename(loc))
+                    else:
+                        outfile = os.path.join("/tmp",folder,os.path.basename(loc))
+                    if not os.path.isfile(loc):
+                        raise Exception("File not found: " + loc)
+                    log.info(f"Copying {loc} to {outfile} ")
+                    os.system(f"cp -r {loc} {outfile}")
 
-        print("Updated boot files successfully... unmounting")
-        os.system(f"umount /tmp/{folder}")
-        os.system(f"rm -rf /tmp/{folder}")
+            log.info("Updated boot files successfully... unmounting")
+        except Exception as ex:
+            log.error(str(ex))
+        finally:
+            os.system(f"umount /tmp/{folder}")
+            os.system(f"rm -rf /tmp/{folder}")
+
+    def update_rootfs_files_from_external(
+        self,
+        target,
+        destination
+    ):
+        """Update the root file system from outside SD card itself.
+
+        Args:
+            target (str): The path to the external target file/folder.
+            destination (str): The path to the destination file/folder.
+        """
+        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(include_root_partition=True)
+
+        try:
+            outfile = os.path.join("/tmp",rootfs_folder,destination)
+            if not os.path.exists(target):
+                raise Exception("File/Folder not found: " + target)
+
+            os.system(f"cp -r {target} {outfile}")
+            log.info("Updated rootfs successfully... unmounting")
+        finally:
+            os.system(f"umount /tmp/{folder}")
+            os.system(f"rm -rf /tmp/{folder}")
+            os.system(f"umount /tmp/{rootfs_folder}")
+            os.system(f"rm -rf /tmp/{rootfs_folder}")
 
     def update_boot_files_from_sdcard_itself(
         self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None

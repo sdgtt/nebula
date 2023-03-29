@@ -112,6 +112,8 @@ def usbmux_update_bootfiles_on_sdcard(
         "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
         "kernel_filename": "The kernel image file (full path) to write to the SD card",
         "devicetree_filename": "The devicetree file (full path) to write to the SD card",
+        "devicetree_overlay_filename": "The devicetree overlay file (full path) to write to the SD card",
+        "devicetree_overlay_config": "The devicetree overlay configuration to be written on /boot/config.txt",
         "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
         "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
         "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
@@ -126,6 +128,8 @@ def usbmux_update_bootfiles(
     bootbin_filename=None,
     kernel_filename=None,
     devicetree_filename=None,
+    devicetree_overlay_filename=None,
+    devicetree_overlay_config=None,
     update_dt=True,
     dt_name=None,
     mux_mode="dut",
@@ -135,8 +139,10 @@ def usbmux_update_bootfiles(
     board_name=None,
 ):
     """Update boot files on SD card connected to MUX from external source"""
-    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+    if not bootbin_filename and not kernel_filename and not devicetree_filename \
+        and not devicetree_overlay_filename:
         raise Exception("Must specify at least one file to update")
+
     mux = nebula.usbmux(
         yamlfilename=yamlfilename,
         board_name=board_name,
@@ -147,6 +153,8 @@ def usbmux_update_bootfiles(
         bootbin_loc=bootbin_filename,
         kernel_loc=kernel_filename,
         devicetree_loc=devicetree_filename,
+        devicetree_overlay_loc=devicetree_overlay_filename,
+        devicetree_overlay_config=devicetree_overlay_config,
     )
     if update_dt:
         if not dt_name:
@@ -182,12 +190,41 @@ def usbmux_change_mux_mode(
     )
     mux.set_mux_mode(mode)
 
+# @task(
+#     help={
+#         "target_files": "List of target to backup",
+#         "backup_loc": "Path where to backup target files", 
+#         "target_mux": "SD card mux to use (default: use first mux found)",
+#         "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+#         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+#         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+#     },
+#     iterable=["target_files"],
+# )
+# def usbmux_backup_bootfiles(
+#     c,
+#     target_files=["*.img", "*.dtb", "overlays/*.dtbo"],
+#     backup_loc="backup",
+#     target_mux="SD card mux to use (default: use first mux found)",
+#     search_path="Path to search for muxes (default: /dev/usb-sd-mux)",
+#     yamlfilename="/etc/default/nebula",
+#     board_name=None,
+# ):
+#     """Change mux mode of USB SD Card mux. Switch between host, dut, off"""
+#     mux = nebula.usbmux(
+#         yamlfilename=yamlfilename,
+#         board_name=board_name,
+#         target_mux=target_mux,
+#         search_path=search_path,
+#     )
+#     mux.backup_boot_files_to_external(target_files,backup_loc)
 
 usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
 usbsdmux.add_task(usbmux_update_bootfiles_on_sdcard, "update_bootfiles_on_sdcard")
 usbsdmux.add_task(usbmux_update_bootfiles, "update_bootfiles")
 usbsdmux.add_task(usbmux_change_mux_mode, "change_mux_mode")
+# usbsdmux.add_task(usbmux_backup_bootfiles, "usbmux_backup")
 
 #############################################
 
@@ -603,7 +640,7 @@ def update_boot_files_jtag_manager(
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "sdcard": "No arguments required. If set, reference files is obtained from SD card.",
         "force_recover": "Run device recovery even if device is still up and running. (Applies for Rpi for now)",
-        "enable_uart": "Writes enable_uart=1 to /boot/config.txt to enable uart. (Applies for Rpi for now)"
+        "enable_uart": "Writes enable_uart=1 to /boot/config.txt to enable uart. (Applies for Rpi for now)",
     },
 )
 def recovery_device_manager(
@@ -617,7 +654,7 @@ def recovery_device_manager(
     board_name=None,
     sdcard=False,
     force_recover=False,
-    enable_uart=False
+    enable_uart=False,
 ):
     """Recover device through many methods (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -637,7 +674,7 @@ def recovery_device_manager(
             design_name=board_name,
             recover=True,
             force_recover=force_recover,
-            enable_uart=enable_uart
+            enable_uart=enable_uart,
         )
 
 
@@ -696,45 +733,11 @@ def update_boot_files_manager(
     else:
         m.board_reboot_auto_folder(folder, design_name=board_name)
 
-
-@task(
-    help={
-        "kernelpath": "Path to kernel image.",
-        "devtreepath": "Path to devicetree.",
-        "dtparam": "String representing dt param.\n Format: \"param1=value1,param2=value2\"",
-        "unload": "Set to true to unload device tree overlay/kernel instead.",
-        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "board_name": "Name of RPI board defined in nebula config file. (Ex: rpi-r1s1-2fde4180). Required for multi-device config files",
-    },
-)
-def load_overlay_manager(
-    c,
-    kernelpath=None,
-    devtreepath=None,
-    dtparam=None,
-    unload=False,
-    yamlfilename="/etc/default/nebula",
-    board_name=None,
-):
-    """  Load/unload a given device tree overlay. Kernel can be loaded as well if given. """
-    if not devtreepath and not kernelpath:
-        raise Exception("No file given. Nothing to be done")
-
-    m = nebula.manager(monitor_type="", configfilename=yamlfilename, board_name=board_name)
-    # verify if board is running
-    m.net.check_board_booted()
-    # TODO: verify that the target board is an rpi
-    # update kernel/devtree path if given
-    m.net.update_kernel_overlay(kernelpath, devtreepath, dtparam, unload)
-
-
-
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 manager.add_task(check_jtag_manager, name="check_jtag")
-manager.add_task(load_overlay_manager, name="load_overlay_manager")
 
 #############################################
 @task(
