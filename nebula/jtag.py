@@ -181,39 +181,53 @@ class jtag(utils):
         self.run_xsdb(cmd)
 
     def full_boot(self):
-        assert os.path.isfile("system_top.bit")
-        assert os.path.isfile("fsbl.elf")
-        assert os.path.isfile("u-boot.elf")
-        assert os.path.isfile("uImage")
-        assert os.path.isfile("devicetree.dtb")
+        assert os.path.isfile("outs/system_top.bit")
+        # assert os.path.isfile("fsbl.elf")
+        # assert os.path.isfile("u-boot.elf")
+        # assert os.path.isfile("uImage")
+        # assert os.path.isfile("devicetree.dtb")
+        assert os.path.isfile("outs/simpleImage.kc705_ad9467_fmc.strip")
 
-        cmd = "connect; "
-        cmd += "after 3000; "
-        cmd += "targets 1; "
-        cmd += "rst -system; "
-        cmd += "con; "
-        cmd += "after 3000; "
+        # cmd = "connect; "
+        # cmd += "after 3000; "
+        # cmd += "targets 1; "
+        # cmd += "rst -system; "
+        # cmd += "con; "
+        # cmd += "after 3000; "
 
-        cmd += "target 2; "
-        cmd += "dow fsbl.elf; "
-        cmd += "con; "
-        cmd += "after 3000; "
+        # cmd += "target 2; "
+        # cmd += "dow fsbl.elf; "
+        # cmd += "con; "
+        # cmd += "after 3000; "
 
-        cmd += "dow u-boot.elf; "
-        cmd += "con; "
-        cmd += "after 3000; "
+        # cmd += "dow u-boot.elf; "
+        # cmd += "con; "
+        # cmd += "after 3000; "
 
-        cmd += "target 1; "
-        cmd += "stop; "
-        cmd += "after 3000; "
+        # cmd += "target 1; "
+        # cmd += "stop; "
+        # cmd += "after 3000; "
 
-        cmd += "fpga -file system_top.bit; "
-        cmd += "dow -data devicetree.dtb 0x2A00000; "
-        cmd += "dow -data uImage 0x3000000; "
-        cmd += "con; "
-        cmd += "after 3000"
+        # cmd += "fpga -file system_top.bit; "
+        # cmd += "dow -data devicetree.dtb 0x2A00000; "
+        # cmd += "dow -data uImage 0x3000000; "
+        # cmd += "con; "
+        # cmd += "after 3000"
 
         # u-boot takes over from here
         # Must not overwrite memory locations
+        
+        cmd = "connect; "
+        cmd += "after 3000; "
+        
+        cmd += "target 8; "
+        cmd += "fpga -f /var/lib/jenkins/workspace/Microblaze_support/outs/system_top.bit; "
+        cmd += "after 30000; "
+
+        cmd += "target 10"
+        cmd += "dow /var/lib/jenkins/workspace/Microblaze_support/outs/simpleImage.kc705_ad9467_fmc.strip; "
+        cmd += "after 60000; "
+        cmd += "con; "
+        cmd += "after 3000; "
 
         self.run_xsdb(cmd)
