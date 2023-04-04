@@ -190,41 +190,51 @@ def usbmux_change_mux_mode(
     )
     mux.set_mux_mode(mode)
 
-# @task(
-#     help={
-#         "target_files": "List of target to backup",
-#         "backup_loc": "Path where to backup target files", 
-#         "target_mux": "SD card mux to use (default: use first mux found)",
-#         "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
-#         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-#         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
-#     },
-#     iterable=["target_files"],
-# )
-# def usbmux_backup_bootfiles(
-#     c,
-#     target_files=["*.img", "*.dtb", "overlays/*.dtbo"],
-#     backup_loc="backup",
-#     target_mux="SD card mux to use (default: use first mux found)",
-#     search_path="Path to search for muxes (default: /dev/usb-sd-mux)",
-#     yamlfilename="/etc/default/nebula",
-#     board_name=None,
-# ):
-#     """Change mux mode of USB SD Card mux. Switch between host, dut, off"""
-#     mux = nebula.usbmux(
-#         yamlfilename=yamlfilename,
-#         board_name=board_name,
-#         target_mux=target_mux,
-#         search_path=search_path,
-#     )
-#     mux.backup_boot_files_to_external(target_files,backup_loc)
+@task(
+    help={
+        "partition": "To mount and backup target partition. Options: 'boot' (default), 'root'",
+        "target_file": "List of target to backup. Can be be iterable i.e --target_file 1 ... --target_file n",
+        "backup_loc": "Path in hosts where to backup target files",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+    iterable=["target_file"],
+)
+def usbmux_backup_bootfiles(
+    c,
+    partition="boot",
+    target_file=None,
+    backup_loc="backup",
+    mux_mode="dut",
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Change mux mode of USB SD Card mux. Switch between host, dut, off"""
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+        search_path=search_path,
+    )
+    mux.backup_files_to_external(
+        partition,
+        target_file,
+        backup_loc
+    )
+    if mux_mode:
+        mux.set_mux_mode(mux_mode)
 
 usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
 usbsdmux.add_task(usbmux_update_bootfiles_on_sdcard, "update_bootfiles_on_sdcard")
 usbsdmux.add_task(usbmux_update_bootfiles, "update_bootfiles")
 usbsdmux.add_task(usbmux_change_mux_mode, "change_mux_mode")
-# usbsdmux.add_task(usbmux_backup_bootfiles, "usbmux_backup")
+usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 
 #############################################
 
