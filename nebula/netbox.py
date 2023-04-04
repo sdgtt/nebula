@@ -462,7 +462,16 @@ class NetboxDevice:
 class NetboxDevices:
     """List of NetboxDevice"""
 
-    def __init__(self, ni, status="active", role="fpga-dut", agent=None, tag=None):
+    def __init__(
+        self,
+        ni,
+        variants=False,
+        children=False,
+        status="active",
+        role="fpga-dut",
+        agent=None,
+        tag=None,
+    ):
         # get cluster agent
         dut_bank_id = None
         for cluster in ni.get_clusters():
@@ -489,7 +498,11 @@ class NetboxDevices:
         if tag:
             kwargs["tag"] = tag
 
-        devices_names = ni.get_devices_name(include_variants=True, include_children=True, **kwargs)
+        devices_names = ni.get_devices_name(
+            include_variants=variants,
+            include_children=children,
+            **kwargs
+        )
 
         self.devices_name = devices_names
         self.devices = [NetboxDevice(ni, dev) for dev in devices_names]
