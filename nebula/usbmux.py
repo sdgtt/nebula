@@ -185,6 +185,7 @@ class usbmux(utils):
                         raise Exception("File not found " + file_name)
         except Exception as ex:
             log.error(str(ex))
+            raise ex
         finally:
             # unmount sd card
             os.system(f"umount /tmp/{folder}")
