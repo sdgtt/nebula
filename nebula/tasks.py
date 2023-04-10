@@ -154,7 +154,7 @@ def usbmux_update_bootfiles(
         kernel_loc=kernel_filename,
         devicetree_loc=devicetree_filename,
         devicetree_overlay_loc=devicetree_overlay_filename,
-        devicetree_overlay_config=devicetree_overlay_config,
+        devicetree_overlay_config_loc=devicetree_overlay_config,
     )
     if update_dt:
         if not dt_name:
