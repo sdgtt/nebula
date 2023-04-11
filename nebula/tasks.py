@@ -163,6 +163,45 @@ def usbmux_update_bootfiles(
     if mux_mode:
         mux.set_mux_mode(mux_mode)
 
+@task(
+    help={
+        "module_loc": "Location (folder) of module to be copied.",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_update_modules(
+    c,
+    module_loc=None,
+    mux_mode="dut",
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Update module at rootfs on SD card connected to MUX from external source"""
+    if not module_loc:
+        raise Exception("Must specify module folder path")
+
+    # get base path
+    module = os.path.basename(module_loc)
+    destination = os.path.join("/","lib","modules",module)
+
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+        search_path=search_path,
+    )
+    mux.update_rootfs_files_from_external(
+        target=module_loc,
+        destination=destination
+    )
+    if mux_mode:
+        mux.set_mux_mode(mux_mode)
 
 @task(
     help={
@@ -233,6 +272,7 @@ usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
 usbsdmux.add_task(usbmux_update_bootfiles_on_sdcard, "update_bootfiles_on_sdcard")
 usbsdmux.add_task(usbmux_update_bootfiles, "update_bootfiles")
+usbsdmux.add_task(usbmux_update_modules, "update_modules")
 usbsdmux.add_task(usbmux_change_mux_mode, "change_mux_mode")
 usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 
