@@ -153,6 +153,8 @@ class downloader(utils):
         # rpi fields
         self.devicetree = None
         self.devicetree_overlay = None
+        self.kernel = None
+        self.modules = None
         # update from config
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -456,7 +458,7 @@ class downloader(utils):
         kernel,
         devicetree,
         devicetree_overlay,
-        module,
+        modules,
     ):
         dest = "outs"
         if not os.path.isdir(dest):
@@ -491,9 +493,10 @@ class downloader(utils):
         file = os.path.join(dest, devicetree_overlay)
         self.download(url, file)
 
-        # TODO: must specify what kernel to download, download all kernel for now
         if not kernel:
             kernel = ["kernel.img", "kernel7.img", "kernel7l.img"]
+        else:
+            kernel = [kernel]
 
         if not isinstance(kernel, list):
             kernel = [kernel]
@@ -506,7 +509,6 @@ class downloader(utils):
             file = os.path.join(dest, k)
             self.download(url, file)
 
-        # TODO: must specify what module to download, download all modules for now
         tar_file = "rpi_modules.tar.gz"
         log.info("Get modules " + tar_file)
         url = url_template.format(build_date, tar_file)
@@ -514,12 +516,12 @@ class downloader(utils):
         self.download(url, file)
 
         with tarfile.open(file) as tf:
-            if module:
-                log.info("Extracting module " + module)
+            if modules:
+                log.info("Extracting module " + modules)
                 module_files = [
                     tarinfo
                     for tarinfo in tf.getmembers()
-                    if tarinfo.name.startswith(f"./{module}")
+                    if tarinfo.name.startswith(f"./{modules}")
                 ]
             else:
                 # extract all
@@ -540,14 +542,18 @@ class downloader(utils):
         branch,
         devicetree,
         devicetree_overlay,
+        kernel,
+        modules,
         folder=None,
         firmware=False,
         noos=False,
         microblaze=False,
         rpi=False,
     ):
-        kernel = False
-        kernel_root = False
+        if not kernel:
+            kernel = False
+            kernel_root = False
+
         dt = False
 
         if details["carrier"] in ["ZCU102", "ADRV2CRR-FMC"]:
@@ -568,8 +574,8 @@ class downloader(utils):
         elif details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]:
             arch = "microblaze"
         elif "RPI" in details["carrier"]:
-            kernel = None
-            module = None
+            kernel = kernel
+            modules = modules
         else:
             raise Exception("Carrier not supported")
 
@@ -618,7 +624,7 @@ class downloader(utils):
                     kernel,
                     devicetree,
                     devicetree_overlay,
-                    module,
+                    modules,
                 )
 
             if folder:
@@ -695,6 +701,8 @@ class downloader(utils):
         hdl_folder = self.hdl_folder
         devicetree = self.devicetree
         devicetree_overlay = self.devicetree_overlay
+        kernel = self.kernel
+        modules = self.modules
 
         if noos:
             res = os.path.join(path, "resources", "noOS_projects.yaml")
@@ -741,6 +749,8 @@ class downloader(utils):
             branch,
             devicetree,
             devicetree_overlay,
+            kernel,
+            modules,
             folder,
             firmware,
             noos,
