@@ -92,6 +92,7 @@ def test_usbmux_backup_bootfiles():
     o = c.local(
         "nebula show-log usbsdmux.backup-bootfiles"
         + " --backup-loc test-backup"
+        + " --backup-subfolder random"
         + " --target-file config.txt"
         + " --target-file bcm2710-rpi-3-b-plus.dtb"
         + " --target-file overlays/rpi-cn0508.dtbo"
@@ -101,7 +102,7 @@ def test_usbmux_backup_bootfiles():
     )
         # returns output as byte string
     # folder = subprocess.check_output(["ls","test-backup"]).decode("utf-8").strip()
-    os.system("mkdir -p outs;cp test-backup/*/* outs/.")
+    os.system("mkdir -p outs;cp test-backup/random/* outs/.")
     assert os.path.isfile(os.path.join("outs", "config.txt"))
     assert os.path.isfile(os.path.join("outs", "bcm2710-rpi-3-b-plus.dtb"))
     assert os.path.isfile(os.path.join("outs", "rpi-cn0508.dtbo"))
@@ -138,12 +139,13 @@ def test_usbmux_backup_modules():
         "nebula show-log usbsdmux.backup-bootfiles"
         + " --partition root"
         + " --backup-loc test-backup"
+        + " --backup-subfolder random"
         + f" --target-file {modules_path}"
         + " --yamlfilename=" + config
         + " --board-name=" + board
     )
         # returns output as byte string
-    os.system("mkdir -p outs;cp -r test-backup/*/5.10.63-v7+ outs/5.10.63-v7+")
+    os.system("mkdir -p outs;cp -r test-backup/random/5.10.63-v7+ outs/5.10.63-v7+")
     assert os.path.isdir(os.path.join("outs", "5.10.63-v7+"))
 
 def test_usbmux_update_modules():
@@ -161,10 +163,10 @@ def test_usbmux_update_modules():
     assert o.return_code == 0
 
 if __name__ == "__main__":
-    # test_usbmux_backup_bootfiles()
+    test_usbmux_backup_bootfiles()
     test_usbmux_update_bootfiles()
-    # test_usbmux_backup_modules()
-    # test_usbmux_update_modules()
+    test_usbmux_backup_modules()
+    test_usbmux_update_modules()
 
 
 # need to update nebulaconfig to whatever is deployed

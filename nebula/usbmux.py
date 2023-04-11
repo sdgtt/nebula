@@ -154,6 +154,7 @@ class usbmux(utils):
         partition = "boot",
         target = [],
         destination="backup",
+        subfolder=None,
     ):
         """Backup specified files to an external location
 
@@ -161,6 +162,7 @@ class usbmux(utils):
             partition (str): Source partition. Either boot or root
             target (list): Filenames that will be backup'd
             destination (str): Directory name at host to place the backup'd files
+            subfolder (str): Directory name under destination to place the backup'd files, random by default
         """
         folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(include_root_partition=True)
 
@@ -171,6 +173,8 @@ class usbmux(utils):
             target_partition = root_p
 
         back_up_path = Path(os.path.join(destination,target_folder))
+        if subfolder:
+            back_up_path = Path(os.path.join(destination,subfolder))
         back_up_path.mkdir(parents=True, exist_ok=True)
 
         try:
@@ -191,7 +195,7 @@ class usbmux(utils):
             os.system(f"umount /tmp/{folder}")
             os.system(f"umount /tmp/{rootfs_folder}")
 
-        return target_folder
+        return subfolder if subfolder else target_folder
 
     def update_boot_files_from_external(
         self,

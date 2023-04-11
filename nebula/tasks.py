@@ -234,6 +234,7 @@ def usbmux_change_mux_mode(
         "partition": "To mount and backup target partition. Options: 'boot' (default), 'root'",
         "target_file": "List of target to backup. Can be be iterable i.e --target_file 1 ... --target_file n",
         "backup_loc": "Path in hosts where to backup target files",
+        "backup_subfolder": "Path inside backup_loc where to backup target files, will default to random str if set to None",
         "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
         "target_mux": "SD card mux to use (default: use first mux found)",
         "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
@@ -247,6 +248,7 @@ def usbmux_backup_bootfiles(
     partition="boot",
     target_file=None,
     backup_loc="backup",
+    backup_subfolder=None,
     mux_mode="dut",
     target_mux=None,
     search_path=None,
@@ -263,7 +265,8 @@ def usbmux_backup_bootfiles(
     mux.backup_files_to_external(
         partition,
         target_file,
-        backup_loc
+        backup_loc,
+        backup_subfolder
     )
     if mux_mode:
         mux.set_mux_mode(mux_mode)
