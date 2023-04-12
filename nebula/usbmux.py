@@ -180,8 +180,9 @@ class usbmux(utils):
         try:
             for f in target:
                 files = glob.glob(os.path.join(f"/tmp/{target_folder}",f))
+                if not files:
+                    raise Exception(f"Cannot enumerate target {f}")
                 for file_path in files:
-
                     log.info(f"Backing up {file_path} to {str(back_up_path)}")
                     if os.path.exists(file_path):
                         os.system(f"cp -r {file_path} {str(back_up_path)}")
@@ -238,6 +239,7 @@ class usbmux(utils):
             log.info("Updated boot files successfully... unmounting")
         except Exception as ex:
             log.error(str(ex))
+            raise ex
         finally:
             os.system(f"umount /tmp/{folder}")
             os.system(f"rm -rf /tmp/{folder}")
@@ -259,8 +261,8 @@ class usbmux(utils):
             outfile = os.path.join("/tmp",rootfs_folder,destination)
             if not os.path.exists(target):
                 raise Exception("File/Folder not found: " + target)
-
-            os.system(f"cp -r {target} {outfile}")
+            if os.system(f"cp -r {target} {outfile}") != 0:
+                raise Exception("command failed")
             log.info("Updated rootfs successfully... unmounting")
         finally:
             os.system(f"umount /tmp/{folder}")
