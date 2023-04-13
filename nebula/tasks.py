@@ -94,17 +94,19 @@ def usbmux_update_bootfiles_on_sdcard(
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.update_boot_files_from_sdcard_itself(
-        bootbin_loc=bootbin_filename,
-        kernel_loc=kernel_filename,
-        devicetree_loc=devicetree_filename,
-    )
-    if update_dt:
-        if not dt_name:
-            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
-        mux.update_devicetree_for_mux(dt_name)
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.update_boot_files_from_sdcard_itself(
+            bootbin_loc=bootbin_filename,
+            kernel_loc=kernel_filename,
+            devicetree_loc=devicetree_filename,
+        )
+        if update_dt:
+            if not dt_name:
+                raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+            mux.update_devicetree_for_mux(dt_name)
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 
 @task(
@@ -149,19 +151,21 @@ def usbmux_update_bootfiles(
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.update_boot_files_from_external(
-        bootbin_loc=bootbin_filename,
-        kernel_loc=kernel_filename,
-        devicetree_loc=devicetree_filename,
-        devicetree_overlay_loc=devicetree_overlay_filename,
-        devicetree_overlay_config_loc=devicetree_overlay_config,
-    )
-    if update_dt:
-        if not dt_name:
-            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
-        mux.update_devicetree_for_mux(dt_name)
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.update_boot_files_from_external(
+            bootbin_loc=bootbin_filename,
+            kernel_loc=kernel_filename,
+            devicetree_loc=devicetree_filename,
+            devicetree_overlay_loc=devicetree_overlay_filename,
+            devicetree_overlay_config_loc=devicetree_overlay_config,
+        )
+        if update_dt:
+            if not dt_name:
+                raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+            mux.update_devicetree_for_mux(dt_name)
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 @task(
     help={
@@ -196,12 +200,14 @@ def usbmux_update_modules(
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.update_rootfs_files_from_external(
-        target=module_loc,
-        destination=destination
-    )
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.update_rootfs_files_from_external(
+            target=module_loc,
+            destination=destination
+        )
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 @task(
     help={
@@ -262,14 +268,16 @@ def usbmux_backup_bootfiles(
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.backup_files_to_external(
-        partition,
-        target_file,
-        backup_loc,
-        backup_subfolder
-    )
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.backup_files_to_external(
+            partition,
+            target_file,
+            backup_loc,
+            backup_subfolder
+        )
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
