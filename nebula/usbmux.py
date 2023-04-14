@@ -261,8 +261,9 @@ class usbmux(utils):
             outfile = os.path.join("/tmp",rootfs_folder,destination)
             if not os.path.exists(target):
                 raise Exception("File/Folder not found: " + target)
-            if os.system(f"cp -r {target} {outfile}") != 0:
-                raise Exception("command failed")
+            command = f"cp -r {target} {outfile}"
+            if os.system(command) != 0:
+                raise Exception(f"{command} failed")
             log.info("Updated rootfs successfully... unmounting")
         finally:
             os.system(f"umount /tmp/{folder}")
