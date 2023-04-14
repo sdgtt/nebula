@@ -192,7 +192,7 @@ def usbmux_update_modules(
 
     # get base path
     module = os.path.basename(module_loc)
-    destination = os.path.join("/","lib","modules",module)
+    destination = os.path.join("lib","modules",module)
 
     mux = nebula.usbmux(
         yamlfilename=yamlfilename,
