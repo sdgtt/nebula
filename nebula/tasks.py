@@ -1232,6 +1232,33 @@ def run_command(
     )
     n.run_ssh_command(command, ignore_exception, retries)
 
+@task(
+    help={
+        "ip": "IP address of board. Default from yaml",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def check_board_booted(
+    c,
+    ip=None,
+    user="root",
+    password="analog",
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Check if board has booted through network ping and ssh """
+    n = nebula.network(
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name
+    )
+    n.check_board_booted()
+
 
 net = Collection("net")
 net.add_task(restart_board)
@@ -1239,6 +1266,7 @@ net.add_task(update_boot_files)
 net.add_task(check_dmesg)
 net.add_task(run_diagnostics)
 net.add_task(run_command)
+net.add_task(check_board_booted)
 
 
 #############################################
