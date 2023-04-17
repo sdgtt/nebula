@@ -47,7 +47,6 @@ class network(utils):
         self.ssh_timeout = 30
         self.board_name = board_name
         self.rpi_bkup_directory = "rpi_bkup"
-        self.board_type = board_type
 
     def ping_board(self, tries=10):
         """Ping board and check if any received
