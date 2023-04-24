@@ -3,10 +3,35 @@ import shutil
 
 import pytest
 from nebula import usbmux
+from nebula import pdu
 
-def test_backup_update_boot_files_external():
-    config = os.path.join("nebula_config", "nebula-rpi.yaml")
-    board = "eval-cn0508-rpiz"
+@pytest.mark.hardware
+@pytest.mark.parametrize("target_mux", ["id-000000001204"])
+@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+def test_find_mux_device(config, board, target_mux):
+    sd = usbmux(
+        target_mux=target_mux,
+        yamlfilename=config,
+        board_name=board,
+    )
+    assert sd._mux_in_use == os.path.join(sd.search_path, target_mux)
+
+@pytest.mark.hardware
+@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+def test_find_muxed_sdcard(power_off_dut, config, board):
+    sd = usbmux(
+        yamlfilename=config,
+        board_name=board,
+    )
+    sd.find_muxed_sdcard()
+    assert sd._target_sdcard
+
+@pytest.mark.hardware
+@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+def test_backup_update_boot_files_external(power_off_dut, config, board):
     sd = usbmux(
         yamlfilename=config,
         board_name=board,
@@ -71,5 +96,3 @@ def test_backup_update_boot_files_external():
     finally:
         sd.set_mux_mode("off")
 
-if __name__ == "__main__":
-    test_backup_update_boot_files_external()

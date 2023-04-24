@@ -84,14 +84,17 @@ def test_show_log():
     s = "INFO"
     assert s in o.stderr
 
-def test_usbmux_backup_bootfiles():
-    config = os.path.join("nebula_config", "nebula-rpi.yaml")
-    os.system(f"rm -rf test-backup; rm -rf outs")
-    board = "eval-cn0508-rpiz"
+@pytest.mark.hardware
+@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+def test_usbmux_backup_update_bootfiles(config, board):
+    test_dir = os.path.dirname(__file__)
+    test_bk_dir = os.path.join(test_dir, "test-backup")
+
     c = con("localhost")
     o = c.local(
         "nebula show-log usbsdmux.backup-bootfiles"
-        + " --backup-loc test-backup"
+        + f" --backup-loc {test_bk_dir}"
         + " --backup-subfolder random"
         + " --target-file config.txt"
         + " --target-file bcm2710-rpi-3-b-plus.dtb"
@@ -100,28 +103,19 @@ def test_usbmux_backup_bootfiles():
         + " --yamlfilename=" + config
         + " --board-name=" + board
     )
-        # returns output as byte string
-    # folder = subprocess.check_output(["ls","test-backup"]).decode("utf-8").strip()
-    os.system("mkdir -p outs;cp test-backup/random/* outs/.")
-    assert os.path.isfile(os.path.join("outs", "config.txt"))
-    assert os.path.isfile(os.path.join("outs", "bcm2710-rpi-3-b-plus.dtb"))
-    assert os.path.isfile(os.path.join("outs", "rpi-cn0508.dtbo"))
-    assert os.path.isfile(os.path.join("outs", "kernel7.img"))
 
-def test_usbmux_update_bootfiles():
-    assert os.path.isfile(os.path.join("outs", "config.txt"))
-    assert os.path.isfile(os.path.join("outs", "bcm2710-rpi-3-b-plus.dtb"))
-    assert os.path.isfile(os.path.join("outs", "rpi-cn0508.dtbo"))
-    assert os.path.isfile(os.path.join("outs", "kernel7.img"))
-    config = os.path.join("nebula_config", "nebula-rpi.yaml")
-    board = "eval-cn0508-rpiz"
-    c = con("localhost")
+    assert o.return_code == 0
+    assert os.path.isfile(os.path.join(test_bk_dir, "random", "config.txt"))
+    assert os.path.isfile(os.path.join(test_bk_dir, "random", "bcm2710-rpi-3-b-plus.dtb"))
+    assert os.path.isfile(os.path.join(test_bk_dir, "random", "rpi-cn0508.dtbo"))
+    assert os.path.isfile(os.path.join(test_bk_dir, "random", "kernel7.img"))
+
     o = c.local(
         "nebula show-log usbsdmux.update-bootfiles"
-        + " --devicetree-overlay-config outs/config.txt"
-        + " --devicetree-filename outs/bcm2710-rpi-3-b-plus.dtb"
-        + " --devicetree-overlay-filename outs/rpi-cn0508.dtbo"
-        + " --kernel-filename outs/kernel7.img"
+        + " --devicetree-overlay-config " + os.path.join(test_bk_dir, "random", "config.txt")
+        + " --devicetree-filename " + os.path.join(test_bk_dir, "random", "bcm2710-rpi-3-b-plus.dtb")
+        + " --devicetree-overlay-filename " + os.path.join(test_bk_dir, "random", "rpi-cn0508.dtbo")
+        + " --kernel-filename " + os.path.join(test_bk_dir, "random", "kernel7.img")
         + " --no-update-dt"
         + " --mux-mode dut"
         + " --yamlfilename=" + config
@@ -129,45 +123,49 @@ def test_usbmux_update_bootfiles():
     )
     assert o.return_code == 0
 
-def test_usbmux_backup_modules():
-    config = os.path.join("nebula_config", "nebula-rpi.yaml")
+@pytest.mark.hardware
+@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+def test_usbmux_backup_update_modules(config, board):
+    test_dir = os.path.dirname(__file__)
+    test_bk_dir = os.path.join(test_dir, "test-backup")
     modules_path = os.path.join("lib","modules","5.10.63-v7+")
-    os.system(f"rm -rf test-backup; rm -rf out")
-    board = "eval-cn0508-rpiz"
+
     c = con("localhost")
     o = c.local(
         "nebula show-log usbsdmux.backup-bootfiles"
         + " --partition root"
-        + " --backup-loc test-backup"
+        + f" --backup-loc {test_bk_dir}"
         + " --backup-subfolder random"
         + f" --target-file {modules_path}"
         + " --yamlfilename=" + config
         + " --board-name=" + board
     )
-        # returns output as byte string
-    os.system("mkdir -p outs;cp -r test-backup/random/5.10.63-v7+ outs/5.10.63-v7+")
-    assert os.path.isdir(os.path.join("outs", "5.10.63-v7+"))
-
-def test_usbmux_update_modules():
-    assert os.path.isdir(os.path.join("outs", "5.10.63-v7+"))
-    config = os.path.join("nebula_config", "nebula-rpi.yaml")
-    board = "eval-cn0508-rpiz"
-    c = con("localhost")
+    assert o.return_code == 0
+    assert os.path.isdir(os.path.join(test_bk_dir,"random","5.10.63-v7+"))
     o = c.local(
         "nebula show-log usbsdmux.update-modules"
-        + " --module-loc outs/5.10.63-v7+"
+        + " --module-loc " + os.path.join(test_bk_dir,"random","5.10.63-v7+")
         + " --mux-mode off"
         + " --yamlfilename=" + config
         + " --board-name=" + board
     )
     assert o.return_code == 0
 
-if __name__ == "__main__":
-    test_usbmux_backup_bootfiles()
-    test_usbmux_update_bootfiles()
-    test_usbmux_backup_modules()
-    test_usbmux_update_modules()
-
+# @pytest.mark.hardware
+# @pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+# @pytest.mark.parametrize("config",[os.path.join(os.path.dirname(__file__),"nebula_config", "nebula-rpi.yaml")])
+# def test_usbmux_update_modules():
+#     assert os.path.isdir(os.path.join("outs", "5.10.63-v7+"))
+#     c = con("localhost")
+#     o = c.local(
+#         "nebula show-log usbsdmux.update-modules"
+#         + " --module-loc outs/5.10.63-v7+"
+#         + " --mux-mode off"
+#         + " --yamlfilename=" + config
+#         + " --board-name=" + board
+#     )
+#     assert o.return_code == 0
 
 # need to update nebulaconfig to whatever is deployed
 # @pytest.mark.dependency()
