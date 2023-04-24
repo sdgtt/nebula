@@ -4,7 +4,8 @@ pyyaml>=5.1
 pyserial
 pytest
 pyvesync_v2
-pysnmp
+pysnmp==4.4.12
+pyasn1==0.4.8
 xmodem
 click>=7.0
 netifaces
