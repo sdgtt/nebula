@@ -102,7 +102,7 @@ class usbmux(utils):
         devs = os.listdir("/dev")
         if self._target_sdcard not in devs:
             raise Exception("Target SD card not found")
-        print(
+        log.warn(
             f"WARNING: Writing image file to SD card. Will destroy all data on {self._target_sdcard}"
         )
         time.sleep(5)
@@ -317,7 +317,7 @@ class usbmux(utils):
             dt = os.path.basename(devicetree_loc)
             os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
 
-        print("Updated boot files successfully... unmounting")
+        log.info("Updated boot files successfully... unmounting")
         os.system(f"umount /tmp/{folder}")
         os.system(f"rm -rf /tmp/{folder}")
 
@@ -345,21 +345,21 @@ class usbmux(utils):
         s = "mmc@ff160000"
         sn = "sdc16:mmc@ff160000"
         if s not in dt:
-            print(f"{s.strip()} not found")
+            log.warn(f"{s.strip()} not found")
         if sn not in dt:
             dt = dt.replace(s, sn)
             dt = dt + "\n&sdc16 { no-1-8-v ;};"
         else:
-            print(f"{sn.strip()} already exists")
+            log.warn(f"{sn.strip()} already exists")
         s = "mmc@ff170000"
         sn = "sdc17:mmc@ff170000"
         if s not in dt:
-            print(f"{s.strip()} not found")
+            log.warn(f"{s.strip()} not found")
         if sn not in dt:
             dt = dt.replace(s, sn)
             dt = dt + "\n&sdc17 { no-1-8-v ;};"
         else:
-            print(f"{sn.strip()} already exists")
+            log.warn(f"{sn.strip()} already exists")
 
         with open(dts_loc, "w") as f:
             f.write(dt)
@@ -369,6 +369,6 @@ class usbmux(utils):
             f"dtc -I dts {dts_loc} " + f" -O dtb -o /tmp/{folder}/{devicetree_filename}"
         )
 
-        print("Updated devicetree successfully... unmounting")
+        log.info("Updated devicetree successfully... unmounting")
         os.system(f"umount /tmp/{folder}")
         os.system(f"rm -rf /tmp/{folder}")
