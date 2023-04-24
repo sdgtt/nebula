@@ -6,6 +6,7 @@ import re
 import string
 import time
 import glob
+import pyudev
 
 from nebula.common import utils
 from usbsdmux import usbsdmux
@@ -74,25 +75,16 @@ class usbmux(utils):
 
         Before calling this method PLEASE POWER DOWN THE DUT.
         """
-        self.set_mux_mode("dut")
-        time.sleep(1)
-        files_pre = os.listdir("/dev")
         self.set_mux_mode("host")
-        for _ in range(10):
-            time.sleep(2)
-            files_post = os.listdir("/dev")
-            # Find the difference
-            files_diff = list(set(files_post) - set(files_pre))
-            if files_diff:
+        time.sleep(5)
+        context = pyudev.Context()
+        for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
+            if device.get('ID_SERIAL_SHORT') == os.path.basename(self._mux_in_use).strip("id-"):
+                self._target_sdcard = re.sub(r"[0-9]+", "", os.path.basename(device.get("DEVNAME")))
                 break
-        if not files_diff:
+
+        if not self._target_sdcard:
             raise Exception("No muxed SD card found")
-        pfiles = [re.sub(r"[0-9]+", "", f) for f in files_diff]
-        # remove duplicates from list
-        pfiles = list(set(pfiles))
-        if len(pfiles) > 1:
-            raise Exception("Multiple muxed SD cards found")
-        self._target_sdcard = pfiles[0]
 
     def write_img_file_to_sdcard(self, img_filename):
         """Write an image file to the SD card.
