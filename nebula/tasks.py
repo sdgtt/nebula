@@ -706,8 +706,6 @@ def update_boot_files_jtag_manager(
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "sdcard": "No arguments required. If set, reference files is obtained from SD card.",
-        "force_recover": "Run device recovery even if device is still up and running. (Applies for Rpi for now)",
-        "enable_uart": "Writes enable_uart=1 to /boot/config.txt to enable uart. (Applies for Rpi for now)",
     },
 )
 def recovery_device_manager(
@@ -719,9 +717,7 @@ def recovery_device_manager(
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
-    sdcard=False,
-    force_recover=False,
-    enable_uart=False,
+    sdcard=False
 ):
     """Recover device through many methods (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -732,16 +728,14 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
-            recover=True,
+            recover=True
         )
     else:
         m.board_reboot_auto_folder(
             folder,
             sdcard,
             design_name=board_name,
-            recover=True,
-            force_recover=force_recover,
-            enable_uart=enable_uart,
+            recover=True
         )
 
 

@@ -309,92 +309,6 @@ class manager:
                     bootbinpath, uimagepath, devtreepath, sdcard
                 )
 
-    @_release_thread_lock
-    def recover_rpi(self, force_recover=False, enable_uart=False):
-        """ Recover RPI via network boot and reflash SD card with working image """
-        # this procedure assumes network boot is already configured
-        # check if linux is runninng
-        try:
-            self.net.check_board_booted()
-            log.info("Linux accessible over Ethernet. System is good as is")
-            if force_recover:
-                raise Exception("Recovering board forcefully...")
-        except Exception as ex:
-            log.info(ex)
-            log.info("Booting via network")
-            # power cycle to force boot to network
-            log.info("Power cycling board")
-            self.power.power_cycle_board()
-
-            # wait for boot to completes
-            max_retries = 2
-            self.net.dutusername = 'pi'
-            self.net.dutpassword = 'raspberry'
-            self.net.ssh_timeout=10
-            for _r in range(max_retries):
-                try:
-                    self.net.check_board_booted()
-                    break
-                except:
-                    if _r == max_retries-1:
-                        raise Exception("Network Boot Failed: failed to reach Linux prompt")
-                    log.info('Waiting for boot to complete...')
-                    time.sleep(1)
-
-            # if not self.monitor[0]._enter_linux_prompt_from_power_cycle(prompt='raspberrypi login', max_retry=60):
-            #     raise Exception("Network Boot Failed: failed to reach Linux prompt!")
-
-            # write image to SD card
-            log.info('Writing reference image to SD card')
-            try:
-                self.net.run_ssh_command(
-                    'echo raspberry | sudo -S python3 /home/pi/write_sd_remote.py',
-                    ignore_exceptions=False,
-                    retries=1,
-                    ssh_timeout=1000)
-            except Exception as ex:
-                log.error(ex)
-                log.error("Failed writing to SD Card")
-                raise ex
-            
-            if enable_uart:
-                log.info('Enabling UART')
-                try:
-                    cmd = 'mkdir -p ~/mnt'
-                    cmd = cmd +  ' && sudo mount /dev/mmcblk0p1 ~/mnt'
-                    cmd = cmd +  ' && sudo sed -i "$ a enable_uart=1" ~/mnt/config.txt'
-                    cmd = cmd + ' && sudo umount ~/mnt'
-                    self.net.run_ssh_command(
-                        cmd,
-                        ignore_exceptions=False,
-                        retries=1,
-                        ssh_timeout=10)
-                except Exception as ex:
-                    log.error(ex)
-                    log.error("Failed on enabling uart")
-                    raise ex
-            
-            log.info('Succesfully recoverd board')
-
-            # # power cycle to force boot to SD card
-            # log.info("Power cycling board")
-            # self.power.power_cycle_board()
-
-            # # verify if successfuly booted to SD Card
-            # # wait for boot to completes
-            # max_retries = 2
-            # self.net.dutusername = 'root'
-            # self.net.dutpassword = 'analog'
-            # self.net.ssh_timeout=10
-            # for _r in range(max_retries):
-            #     try:
-            #         self.net.check_board_booted()
-            #         break
-            #     except:
-            #         if _r == max_retries:
-            #             raise Exception("Network Boot Failed: Failed booting back to SD Card")
-            #         log.info('Waiting for boot to complete...')
-            #         time.sleep(1)
 
     @_release_thread_lock
     def board_reboot_jtag_uart(
@@ -702,9 +616,7 @@ class manager:
         sdcard=False,
         design_name=None,
         recover=False,
-        jtag_mode=False,
-        force_recover=False,
-        enable_uart=False
+        jtag_mode=False
     ):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
@@ -725,10 +637,6 @@ class manager:
             if not self.usbdev.wait_for_usb_mount(device=design_name):
                 raise Exception("Firmware update failed for: " + design_name)
 
-        elif 'rpi' in design_name:
-            log.info("RPi based device selected")
-            if recover:
-                self.recover_rpi(force_recover, enable_uart)
         else:
             log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
