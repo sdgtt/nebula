@@ -141,8 +141,12 @@ def usbmux_update_bootfiles(
     board_name=None,
 ):
     """Update boot files on SD card connected to MUX from external source"""
-    if not bootbin_filename and not kernel_filename and not devicetree_filename \
-        and not devicetree_overlay_filename:
+    if (
+        not bootbin_filename
+        and not kernel_filename
+        and not devicetree_filename
+        and not devicetree_overlay_filename
+    ):
         raise Exception("Must specify at least one file to update")
 
     mux = nebula.usbmux(
@@ -166,6 +170,7 @@ def usbmux_update_bootfiles(
     finally:
         if mux_mode:
             mux.set_mux_mode(mux_mode)
+
 
 @task(
     help={
@@ -192,7 +197,7 @@ def usbmux_update_modules(
 
     # get base path
     module = os.path.basename(module_loc)
-    destination = os.path.join("lib","modules",module)
+    destination = os.path.join("lib", "modules", module)
 
     mux = nebula.usbmux(
         yamlfilename=yamlfilename,
@@ -202,12 +207,12 @@ def usbmux_update_modules(
     )
     try:
         mux.update_rootfs_files_from_external(
-            target=module_loc,
-            destination=destination
+            target=module_loc, destination=destination
         )
     finally:
         if mux_mode:
             mux.set_mux_mode(mux_mode)
+
 
 @task(
     help={
@@ -234,6 +239,7 @@ def usbmux_change_mux_mode(
         search_path=search_path,
     )
     mux.set_mux_mode(mode)
+
 
 @task(
     help={
@@ -270,14 +276,12 @@ def usbmux_backup_bootfiles(
     )
     try:
         mux.backup_files_to_external(
-            partition,
-            target_file,
-            backup_loc,
-            backup_subfolder
+            partition, target_file, backup_loc, backup_subfolder
         )
     finally:
         if mux_mode:
             mux.set_mux_mode(mux_mode)
+
 
 usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
@@ -717,7 +721,7 @@ def recovery_device_manager(
     folder=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
-    sdcard=False
+    sdcard=False,
 ):
     """Recover device through many methods (Assuming board is running)"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
@@ -728,15 +732,10 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
-            recover=True
+            recover=True,
         )
     else:
-        m.board_reboot_auto_folder(
-            folder,
-            sdcard,
-            design_name=board_name,
-            recover=True
-        )
+        m.board_reboot_auto_folder(folder, sdcard, design_name=board_name, recover=True)
 
 
 @task(
@@ -794,11 +793,13 @@ def update_boot_files_manager(
     else:
         m.board_reboot_auto_folder(folder, design_name=board_name)
 
+
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 manager.add_task(check_jtag_manager, name="check_jtag")
+
 
 #############################################
 @task(
@@ -1226,6 +1227,7 @@ def run_command(
     )
     n.run_ssh_command(command, ignore_exception, retries)
 
+
 @task(
     help={
         "ip": "IP address of board. Default from yaml",
@@ -1243,13 +1245,13 @@ def check_board_booted(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """Check if board has booted through network ping and ssh """
+    """Check if board has booted through network ping and ssh"""
     n = nebula.network(
         dutip=ip,
         dutusername=user,
         dutpassword=password,
         yamlfilename=yamlfilename,
-        board_name=board_name
+        board_name=board_name,
     )
     n.check_board_booted()
 

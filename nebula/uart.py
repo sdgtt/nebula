@@ -660,8 +660,8 @@ class uart(utils):
         log.info("Finding {} for max retry {}".format(prompt, max_retry))
         # stop_at_done = False
         if self.listen_thread_run:
-           restart = True
-           self.stop_log()
+            restart = True
+            self.stop_log()
         else:
             restart = False
         for _ in range(max_retry):
@@ -675,7 +675,7 @@ class uart(utils):
                     self.start_log(logappend=True)
                 return True
             time.sleep(0.1)
-        log.info("linux promt not reached")
+        log.info("linux prompt not reached")
         if restart:
             self.start_log(logappend=True)
         return False

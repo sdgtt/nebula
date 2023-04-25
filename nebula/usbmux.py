@@ -1,16 +1,16 @@
 """USB SD Card MUX controller class to manage the mux and connected cards."""
+import glob
 import logging
 import os
 import random
 import re
 import string
 import time
-import glob
-import pyudev
+from pathlib import Path
 
+import pyudev
 from nebula.common import utils
 from usbsdmux import usbsdmux
-from pathlib import Path
 
 log = logging.getLogger(__name__)
 
@@ -78,9 +78,13 @@ class usbmux(utils):
         self.set_mux_mode("host")
         time.sleep(5)
         context = pyudev.Context()
-        for device in context.list_devices(subsystem='block', DEVTYPE='partition'):
-            if device.get('ID_SERIAL_SHORT') == os.path.basename(self._mux_in_use).strip("id-"):
-                self._target_sdcard = re.sub(r"[0-9]+", "", os.path.basename(device.get("DEVNAME")))
+        for device in context.list_devices(subsystem="block", DEVTYPE="partition"):
+            if device.get("ID_SERIAL_SHORT") == os.path.basename(
+                self._mux_in_use
+            ).strip("id-"):
+                self._target_sdcard = re.sub(
+                    r"[0-9]+", "", os.path.basename(device.get("DEVNAME"))
+                )
                 break
 
         if not self._target_sdcard:
@@ -143,8 +147,8 @@ class usbmux(utils):
 
     def backup_files_to_external(
         self,
-        partition = "boot",
-        target = [],
+        partition="boot",
+        target=[],
         destination="backup",
         subfolder=None,
     ):
@@ -156,22 +160,22 @@ class usbmux(utils):
             destination (str): Directory name at host to place the backup'd files
             subfolder (str): Directory name under destination to place the backup'd files, random by default
         """
-        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(include_root_partition=True)
+        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(
+            include_root_partition=True
+        )
 
         target_folder = folder
-        target_partition = boot_p
         if partition == "root":
             target_folder = rootfs_folder
-            target_partition = root_p
 
-        back_up_path = Path(os.path.join(destination,target_folder))
+        back_up_path = Path(os.path.join(destination, target_folder))
         if subfolder:
-            back_up_path = Path(os.path.join(destination,subfolder))
+            back_up_path = Path(os.path.join(destination, subfolder))
         back_up_path.mkdir(parents=True, exist_ok=True)
 
         try:
             for f in target:
-                files = glob.glob(os.path.join(f"/tmp/{target_folder}",f))
+                files = glob.glob(os.path.join(f"/tmp/{target_folder}", f))
                 if not files:
                     raise Exception(f"Cannot enumerate target {f}")
                 for file_path in files:
@@ -179,7 +183,7 @@ class usbmux(utils):
                     if os.path.exists(file_path):
                         os.system(f"cp -r {file_path} {str(back_up_path)}")
                     else:
-                        raise Exception("File not found " + file_name)
+                        raise Exception("File not found " + file_path)
         except Exception as ex:
             log.error(str(ex))
             raise ex
@@ -218,11 +222,13 @@ class usbmux(utils):
                             continue
                         raise Exception(f"Invalid type {type(loc)}")
                     if btfiletype == "bootbin_loc":
-                        outfile = os.path.join("/tmp",folder,"BOOT.BIN")
+                        outfile = os.path.join("/tmp", folder, "BOOT.BIN")
                     elif btfiletype == "devicetree_overlay_loc":
-                        outfile = os.path.join("/tmp",folder,"overlays",os.path.basename(loc))
+                        outfile = os.path.join(
+                            "/tmp", folder, "overlays", os.path.basename(loc)
+                        )
                     else:
-                        outfile = os.path.join("/tmp",folder,os.path.basename(loc))
+                        outfile = os.path.join("/tmp", folder, os.path.basename(loc))
                     if not os.path.isfile(loc):
                         raise Exception("File not found: " + loc)
                     log.info(f"Copying {loc} to {outfile} ")
@@ -236,21 +242,19 @@ class usbmux(utils):
             os.system(f"umount /tmp/{folder}")
             os.system(f"rm -rf /tmp/{folder}")
 
-    def update_rootfs_files_from_external(
-        self,
-        target,
-        destination
-    ):
+    def update_rootfs_files_from_external(self, target, destination):
         """Update the root file system from outside SD card itself.
 
         Args:
             target (str): The path to the external target file/folder.
             destination (str): The path to the destination file/folder.
         """
-        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(include_root_partition=True)
+        folder, boot_p, rootfs_folder, root_p = self._mount_sd_card(
+            include_root_partition=True
+        )
 
         try:
-            outfile = os.path.join("/tmp",rootfs_folder,destination)
+            outfile = os.path.join("/tmp", rootfs_folder, destination)
             if not os.path.exists(target):
                 raise Exception("File/Folder not found: " + target)
             command = f"cp -r {target} {outfile}"

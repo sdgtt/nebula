@@ -70,9 +70,8 @@ class network(utils):
             except Exception:
                 log.warn("Retrying ping")
                 time.sleep(3)
-        
-        return pinged
 
+        return pinged
 
     def check_ssh(self):
         """SSH to board board and check if its possible to run any command

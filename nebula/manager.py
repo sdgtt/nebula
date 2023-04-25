@@ -309,7 +309,6 @@ class manager:
                     bootbinpath, uimagepath, devtreepath, sdcard
                 )
 
-
     @_release_thread_lock
     def board_reboot_jtag_uart(
         self, bootbinpath, uimagepath, devtreepath, sdcard=False
@@ -611,12 +610,7 @@ class manager:
         return (bootbin, kernel, dt, bit)
 
     def board_reboot_auto_folder(
-        self,
-        folder,
-        sdcard=False,
-        design_name=None,
-        recover=False,
-        jtag_mode=False
+        self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
     ):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot

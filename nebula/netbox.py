@@ -2,13 +2,13 @@ import json
 import logging
 import os
 import pathlib
+import pprint
 from re import L
 
 import pynetbox
 import yaml
 from nebula.common import utils
 from numpy import isin
-import pprint
 
 log = logging.getLogger(__name__)
 
@@ -102,7 +102,9 @@ class netbox(utils):
         intf = self.nb.dcim.interfaces.get(device_id=dev.id)
         return intf.mac_address
 
-    def get_devices_name(self, include_variants=False, include_children=False, **filters):
+    def get_devices_name(
+        self, include_variants=False, include_children=False, **filters
+    ):
         devices = self.nb.dcim.devices.filter(**filters)
         devices_names = list()
         for device in devices:
@@ -175,18 +177,34 @@ class netbox(utils):
 
     def get_device_roles(self, **filters):
         if not filters:
-            return [dict(device_role) for device_role in self.nb.dcim.device_roles.all()]
-        return [dict(device_role) for device_role in self.nb.dcim.device_roles.filter(**filters)]
+            return [
+                dict(device_role) for device_role in self.nb.dcim.device_roles.all()
+            ]
+        return [
+            dict(device_role)
+            for device_role in self.nb.dcim.device_roles.filter(**filters)
+        ]
 
     def get_inventory_items(self, **filters):
         if not filters:
-            return [dict(inventory_item) for inventory_item in self.nb.dcim.inventory_items.all()]
-        return [dict(inventory_item) for inventory_item in self.nb.dcim.inventory_items.filter(**filters)]
+            return [
+                dict(inventory_item)
+                for inventory_item in self.nb.dcim.inventory_items.all()
+            ]
+        return [
+            dict(inventory_item)
+            for inventory_item in self.nb.dcim.inventory_items.filter(**filters)
+        ]
 
     def get_device_types(self, **filters):
         if not filters:
-            return [dict(device_type) for device_type in self.nb.dcim.device_types.all()]
-        return [dict(device_type) for device_type in self.nb.dcim.device_types.filter(**filters)]
+            return [
+                dict(device_type) for device_type in self.nb.dcim.device_types.all()
+            ]
+        return [
+            dict(device_type)
+            for device_type in self.nb.dcim.device_types.filter(**filters)
+        ]
 
     def get_chidren_devices(self, parent_id=None, role_id=None):
         children = list()
@@ -194,9 +212,9 @@ class netbox(utils):
         for cdtype in cdtypes:
             children += self.get_devices(device_type_id=cdtype["id"])
         if parent_id:
-            children = [ _c for _c in children if _c["parent_device"]["id"] == parent_id]
+            children = [_c for _c in children if _c["parent_device"]["id"] == parent_id]
         if role_id:
-            children = [ _c for _c in children if _c["device_role"]["id"] == role_id]
+            children = [_c for _c in children if _c["device_role"]["id"] == role_id]
         return children
 
     def get_parent_devices(self):
@@ -206,10 +224,13 @@ class netbox(utils):
             parents += self.get_devices(device_type_id=pdtype["id"])
         return parents
 
+
 class NetboxDevice:
     """Netbox Device Model"""
 
-    def __init__(self, netbox_interface, device_name, dtype=None, variant=None):
+    def __init__(  # noqa: C901
+        self, netbox_interface, device_name, dtype=None, variant=None
+    ):
 
         self.data = dict()
         self.nbi = netbox_interface
@@ -247,10 +268,10 @@ class NetboxDevice:
 
         # check if device is a child
         dev_child_raw = None
-        if dev_raw['parent_device']:
-           dev_child_raw = dev_raw
-           dev_raw = self.nbi.get_devices(id=dev_child_raw['parent_device']['id'])
-           dev_raw = dev_raw[0]
+        if dev_raw["parent_device"]:
+            dev_child_raw = dev_raw
+            dev_raw = self.nbi.get_devices(id=dev_child_raw["parent_device"]["id"])
+            dev_raw = dev_raw[0]
 
         self.data.update({"devices": dev_raw})
 
@@ -291,12 +312,10 @@ class NetboxDevice:
             self.data["devices"]["power_ports"].update({"input": pow})
 
         # get associated sd if present
-        inventory_items =self.nbi.get_inventory_items(device_id=dev_raw["id"])
+        inventory_items = self.nbi.get_inventory_items(device_id=dev_raw["id"])
         for inventory_item in inventory_items:
             if inventory_item["label"] == "USB-SD-MUX":
-                self.data["devices"].update({
-                    "sd": inventory_item
-                })
+                self.data["devices"].update({"sd": inventory_item})
                 break
 
         # update for type/variant
@@ -327,21 +346,23 @@ class NetboxDevice:
         # update for child
         if dev_child_raw:
             log.info(f"Processing for child {dev_child_raw['name']}")
-            _device_daughter = dev_child_raw['name'].upper()
-            _iio_devices = dev_child_raw['custom_fields']['iio_device_names'].split(",")
-            _log_file_name = dev_child_raw['name'] + '.log'
-            _overlay = dev_child_raw['custom_fields']['devicetree_overlay']
-            _dtoverlay_config = dev_child_raw['custom_fields']['dtoverlay_config']
+            _device_daughter = dev_child_raw["name"].upper()
+            _iio_devices = dev_child_raw["custom_fields"]["iio_device_names"].split(",")
+            _log_file_name = dev_child_raw["name"] + ".log"
+            _overlay = dev_child_raw["custom_fields"]["devicetree_overlay"]
+            _dtoverlay_config = dev_child_raw["custom_fields"]["dtoverlay_config"]
             _data_dict = {
                 "board-config": {},
                 "downloader-config": {},
                 "driver-config": {},
-                "uart-config": {}
+                "uart-config": {},
             }
             if _device_daughter:
                 _data_dict["board-config"].update({"daughter": _device_daughter})
             if _dtoverlay_config:
-                _data_dict["board-config"].update({"dtoverlay-config": _dtoverlay_config})
+                _data_dict["board-config"].update(
+                    {"dtoverlay-config": _dtoverlay_config}
+                )
             if _overlay:
                 _data_dict["downloader-config"].update({"devicetree_overlay": _overlay})
             if _iio_devices:
@@ -499,9 +520,7 @@ class NetboxDevices:
             kwargs["tag"] = tag
 
         devices_names = ni.get_devices_name(
-            include_variants=variants,
-            include_children=children,
-            **kwargs
+            include_variants=variants, include_children=children, **kwargs
         )
 
         self.devices_name = devices_names

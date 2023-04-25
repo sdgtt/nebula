@@ -202,6 +202,3 @@ usbmux-config:
     default: none
     optional: True
     netbox_field: devices.sd.serial
-
-
-  
