@@ -478,20 +478,22 @@ class downloader(utils):
 
         url_template = url_template.format(source_root, branch, "{}/{}")
 
-        if "dtb" not in devicetree:
-            devicetree = devicetree + ".dtb"
-        log.info("Getting device tree " + devicetree)
-        url = url_template.format(build_date, devicetree)
-        file = os.path.join(dest, devicetree)
-        self.download(url, file)
+        if devicetree:
+            if "dtb" not in devicetree:
+                devicetree = devicetree + ".dtb"
+            log.info("Getting device tree " + devicetree)
+            url = url_template.format(build_date, devicetree)
+            file = os.path.join(dest, devicetree)
+            self.download(url, file)
 
-        if "dtbo" not in devicetree_overlay:
-            devicetree_overlay = devicetree_overlay + ".dtbo"
-        overlay_f = "overlays/" + devicetree_overlay
-        log.info("Getting overlay " + devicetree_overlay)
-        url = url_template.format(build_date, overlay_f)
-        file = os.path.join(dest, devicetree_overlay)
-        self.download(url, file)
+        if devicetree_overlay:
+            if "dtbo" not in devicetree_overlay:
+                devicetree_overlay = devicetree_overlay + ".dtbo"
+            overlay_f = "overlays/" + devicetree_overlay
+            log.info("Getting overlay " + devicetree_overlay)
+            url = url_template.format(build_date, overlay_f)
+            file = os.path.join(dest, devicetree_overlay)
+            self.download(url, file)
 
         if not kernel:
             kernel = ["kernel.img", "kernel7.img", "kernel7l.img"]
