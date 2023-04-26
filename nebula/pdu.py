@@ -26,6 +26,7 @@ class pdu(utils):
         self.pdu_type = pdu_type
         self.username = username
         self.password = password
+        self.board_name = board_name
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
@@ -47,6 +48,7 @@ class pdu(utils):
 
     def power_cycle_board(self):
         """Power Cycle Board: OFF, wait 5 seconds, ON"""
+        log.info(f"Power cycling {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
@@ -59,6 +61,7 @@ class pdu(utils):
 
     def power_down_board(self):
         """Power Down Board"""
+        log.info(f"Powering off {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
@@ -66,6 +69,7 @@ class pdu(utils):
 
     def power_up_board(self):
         """Power On Board"""
+        log.info(f"Powering on {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
