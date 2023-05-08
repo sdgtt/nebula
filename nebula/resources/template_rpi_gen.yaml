@@ -13,8 +13,8 @@
 board-config:
   field_1:
     name: board-name
-    default: zynq-zc702-adv7511-ad9361-fmcomms2-3
-    help: "Board plus carrier name used by hdl project.\nThis is usually the same as the boot folder name of the AD-FMC-SDCARD."
+    default: eval-cn0508-rpiz
+    help: "Project name commonly the daughter board connected to an RPI-based carrier"
     optional: False
     netbox_field: devices.name
   field_2:
