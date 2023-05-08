@@ -36,6 +36,7 @@ setuptools.setup(
             "resources/err_rejects.txt",
             "resources/noOS_projects.yaml",
             "resources/template_agent_gen.yaml",
+            "resources/template_rpi_gen.yaml",
         ]
     },
     include_package_data=True,

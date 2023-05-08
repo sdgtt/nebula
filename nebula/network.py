@@ -54,6 +54,7 @@ class network(utils):
         """
         log.info("Checking for board through ping")
         out = ""
+        pinged = False
         for p in range(tries):
             try:
                 ping = subprocess.Popen(
@@ -62,15 +63,15 @@ class network(utils):
                     stderr=subprocess.PIPE,
                 )
                 out, error = ping.communicate()
+                if "0 received" in str(out):
+                    raise Exception("Ping failed")
+                pinged = True
                 break
             except Exception:
-                log.error("Ping creation failed")
-                if p >= (tries - 1):
-                    raise Exception("Ping creation sfailed")
+                log.warn("Retrying ping")
                 time.sleep(3)
-        if "0 received" in str(out):
-            return False
-        return True
+
+        return pinged
 
     def check_ssh(self):
         """SSH to board board and check if its possible to run any command

@@ -32,14 +32,17 @@ zynq-zc706-adv7511-fmcomms11:
     - adf4355
     - axi-ad9625-hpc
     - axi-ad9162-hpc
-rpi-4-b-11a43152-eval-adxrs290-pmdz:
+eval-adxrs290-pmdz:
   board-config:
   - board-name: eval-adxrs290-pmdz
-  - monitoring-interface: uart
-  - serial-id: 11a43152
-  - soc: bcm2711
-  - overlay:  rpi-adxrs290
-  - kernel: kernel7l
+  - carrier: RPI
+  - daughter: EVAL-ADXRS290-PMDZ
+  - monitoring-interface: NA
+  - serial: 11a43152
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: rpi-adxrs290.dtbo
   driver-config:
   - iio_device_names:
     - adxrs290

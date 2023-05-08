@@ -283,6 +283,8 @@ class helper:
         netbox_token=None,
         jenkins_agent=None,
         board_name=None,
+        include_variants=None,
+        include_children=None,
         devices_status=None,
         devices_role=None,
         devices_tag=None,
@@ -313,6 +315,8 @@ class helper:
         else:
             nbds = NetboxDevices(
                 ni,
+                variants=include_variants,
+                children=include_children,
                 status=devices_status,
                 role=devices_role,
                 agent=jenkins_agent,

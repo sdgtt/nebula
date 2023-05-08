@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pathlib
+import pprint
 from re import L
 
 import pynetbox
@@ -101,7 +102,9 @@ class netbox(utils):
         intf = self.nb.dcim.interfaces.get(device_id=dev.id)
         return intf.mac_address
 
-    def get_devices_name(self, include_variants=False, **filters):
+    def get_devices_name(
+        self, include_variants=False, include_children=False, **filters
+    ):
         devices = self.nb.dcim.devices.filter(**filters)
         devices_names = list()
         for device in devices:
@@ -119,6 +122,15 @@ class netbox(utils):
                         else:
                             # type is a variant
                             devices_names.append(device_dict["name"] + "-v" + type)
+                    continue
+            if include_children:
+                _devices = list()
+                device_bays = self.get_device_bays(device=device.name)
+                for device_bay in device_bays:
+                    if device_bay["installed_device"]:
+                        _devices.append(device_bay["installed_device"]["name"])
+                if _devices:
+                    devices_names += _devices
                     continue
             devices_names.append(device_dict["name"])
         return devices_names
@@ -158,18 +170,76 @@ class netbox(utils):
             return [dict(device) for device in self.nb.virtualization.clusters.all()]
         return [dict(out) for out in self.nb.virtualization.clusters.filter(**filters)]
 
+    def get_device_bays(self, **filters):
+        if not filters:
+            return [dict(bay) for bay in self.nb.dcim.device_bays.all()]
+        return [dict(bay) for bay in self.nb.dcim.device_bays.filter(**filters)]
+
+    def get_device_roles(self, **filters):
+        if not filters:
+            return [
+                dict(device_role) for device_role in self.nb.dcim.device_roles.all()
+            ]
+        return [
+            dict(device_role)
+            for device_role in self.nb.dcim.device_roles.filter(**filters)
+        ]
+
+    def get_inventory_items(self, **filters):
+        if not filters:
+            return [
+                dict(inventory_item)
+                for inventory_item in self.nb.dcim.inventory_items.all()
+            ]
+        return [
+            dict(inventory_item)
+            for inventory_item in self.nb.dcim.inventory_items.filter(**filters)
+        ]
+
+    def get_device_types(self, **filters):
+        if not filters:
+            return [
+                dict(device_type) for device_type in self.nb.dcim.device_types.all()
+            ]
+        return [
+            dict(device_type)
+            for device_type in self.nb.dcim.device_types.filter(**filters)
+        ]
+
+    def get_chidren_devices(self, parent_id=None, role_id=None):
+        children = list()
+        cdtypes = self.get_device_types(subdevice_role="child")
+        for cdtype in cdtypes:
+            children += self.get_devices(device_type_id=cdtype["id"])
+        if parent_id:
+            children = [_c for _c in children if _c["parent_device"]["id"] == parent_id]
+        if role_id:
+            children = [_c for _c in children if _c["device_role"]["id"] == role_id]
+        return children
+
+    def get_parent_devices(self):
+        parents = list()
+        pdtypes = self.get_device_types(subdevice_role="parent")
+        for pdtype in pdtypes:
+            parents += self.get_devices(device_type_id=pdtype["id"])
+        return parents
+
 
 class NetboxDevice:
     """Netbox Device Model"""
 
-    def __init__(self, netbox_interface, device_name, dtype=None, variant=None):
+    def __init__(  # noqa: C901
+        self, netbox_interface, device_name, dtype=None, variant=None
+    ):
 
         self.data = dict()
         self.nbi = netbox_interface
         self.data_object = object()
         self.type_list = ["rx2tx2"]
+        self.name = None
         self.device_type = None
         self.device_variant = None
+        self.device_child = None
 
         log.info("Creating model for {}".format(device_name))
 
@@ -179,6 +249,7 @@ class NetboxDevice:
                 variant = device_name.split("-v")[1]
             device_name = device_name.split("-v")[0]
 
+        # check if device is a particular device type
         if not dtype:
             if device_name.split("-")[-1] in self.type_list:
                 dtype = device_name.split("-")[-1]
@@ -187,12 +258,22 @@ class NetboxDevice:
             device_name = device_name.split("-" + dtype)[0]
 
         dev_raw = self.nbi.get_devices(name=device_name)
+
         if len(dev_raw) != 1:
             raise Exception(
                 f"Either {device_name} is not found or has multiple netbox entry"
             )
+        else:
+            dev_raw = dev_raw[0]
 
-        self.data.update({"devices": dev_raw[0]})
+        # check if device is a child
+        dev_child_raw = None
+        if dev_raw["parent_device"]:
+            dev_child_raw = dev_raw
+            dev_raw = self.nbi.get_devices(id=dev_child_raw["parent_device"]["id"])
+            dev_raw = dev_raw[0]
+
+        self.data.update({"devices": dev_raw})
 
         # get associated console ports
         cp_raw = self.nbi.get_console_ports(device_id=self.data["devices"]["id"])
@@ -230,6 +311,13 @@ class NetboxDevice:
 
             self.data["devices"]["power_ports"].update({"input": pow})
 
+        # get associated sd if present
+        inventory_items = self.nbi.get_inventory_items(device_id=dev_raw["id"])
+        for inventory_item in inventory_items:
+            if inventory_item["label"] == "USB-SD-MUX":
+                self.data["devices"].update({"sd": inventory_item})
+                break
+
         # update for type/variant
         if "variants" in self.data["devices"]["config_context"]:
             variants_dict = self.data["devices"]["config_context"]["variants"]
@@ -255,7 +343,37 @@ class NetboxDevice:
                 else:
                     raise Exception(f"Variant {variant} not defined")
 
-            self.data["devices"]["name"] = device_name
+        # update for child
+        if dev_child_raw:
+            log.info(f"Processing for child {dev_child_raw['name']}")
+            _device_daughter = dev_child_raw["name"].upper()
+            _iio_devices = dev_child_raw["custom_fields"]["iio_device_names"].split(",")
+            _log_file_name = dev_child_raw["name"] + ".log"
+            _overlay = dev_child_raw["custom_fields"]["devicetree_overlay"]
+            _dtoverlay_config = dev_child_raw["custom_fields"]["dtoverlay_config"]
+            _data_dict = {
+                "board-config": {},
+                "downloader-config": {},
+                "driver-config": {},
+                "uart-config": {},
+            }
+            if _device_daughter:
+                _data_dict["board-config"].update({"daughter": _device_daughter})
+            if _dtoverlay_config:
+                _data_dict["board-config"].update(
+                    {"dtoverlay-config": _dtoverlay_config}
+                )
+            if _overlay:
+                _data_dict["downloader-config"].update({"devicetree_overlay": _overlay})
+            if _iio_devices:
+                _data_dict["driver-config"].update({"iio_device_names": _iio_devices})
+            if _log_file_name:
+                _data_dict["uart-config"].update({"logfilename": _log_file_name})
+
+            self.data["devices"]["variant_data"] = json.dumps(_data_dict)
+
+        self.name = device_name
+        self.data["devices"]["name"] = device_name
 
         data_object = obj_dic(self.data)
         self.__dict__.update(data_object.__dict__.copy())
@@ -311,13 +429,13 @@ class NetboxDevice:
                         template_dict[name][field["name"]] = value
 
                     except Exception as ex:
-                        if "optional" in field and bool(field["optional"]) is True:
-                            log.warning(str(ex) + "." + " Skipping since optional")
-                            continue
-
                         if "default" in field:
                             template_dict[name][field["name"]] = field["default"]
                             log.warning(str(ex) + "." + " Will try to use default")
+                            continue
+
+                        if "optional" in field and bool(field["optional"]) is True:
+                            log.warning(str(ex) + "." + " Skipping since optional")
                             continue
 
                         log.error("Cannot parse {}".format(field["name"]))
@@ -365,7 +483,16 @@ class NetboxDevice:
 class NetboxDevices:
     """List of NetboxDevice"""
 
-    def __init__(self, ni, status="active", role="fpga_dut", agent=None, tag=None):
+    def __init__(
+        self,
+        ni,
+        variants=False,
+        children=False,
+        status="active",
+        role="fpga-dut",
+        agent=None,
+        tag=None,
+    ):
         # get cluster agent
         dut_bank_id = None
         for cluster in ni.get_clusters():
@@ -387,12 +514,14 @@ class NetboxDevices:
         if dut_bank_id:
             kwargs["cluster_id"] = dut_bank_id
 
-        kwargs["role_name"] = role
+        kwargs["role"] = role
         kwargs["status"] = status
         if tag:
             kwargs["tag"] = tag
 
-        devices_names = ni.get_devices_name(include_variants=True, **kwargs)
+        devices_names = ni.get_devices_name(
+            include_variants=variants, include_children=children, **kwargs
+        )
 
         self.devices_name = devices_names
         self.devices = [NetboxDevice(ni, dev) for dev in devices_names]

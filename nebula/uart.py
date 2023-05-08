@@ -655,6 +655,31 @@ class uart(utils):
             self.start_log(logappend=True)
         return False
 
+    def _enter_linux_prompt_from_power_cycle(self, prompt="root@analog", max_retry=30):
+        log.info("Spamming ENTER to get UART console")
+        log.info("Finding {} for max retry {}".format(prompt, max_retry))
+        # stop_at_done = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        else:
+            restart = False
+        for _ in range(max_retry):
+            self._write_data("\r\n")
+            data = self._read_for_time(2)
+            log.info("Found data {}".format(data))
+            # Check uboot console reached
+            if self._check_for_string_console(data, prompt):
+                log.info("linux prompt reached")
+                if restart:
+                    self.start_log(logappend=True)
+                return True
+            time.sleep(0.1)
+        log.info("linux prompt not reached")
+        if restart:
+            self.start_log(logappend=True)
+        return False
+
     def load_system_uart_from_tftp(self):
         """Load complete system (bitstream, devtree, kernel) during uboot from TFTP"""
 
