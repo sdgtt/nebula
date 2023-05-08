@@ -267,7 +267,7 @@ def usbmux_backup_bootfiles(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """Change mux mode of USB SD Card mux. Switch between host, dut, off"""
+    """Backup files from boot and root FS partitions to host"""
     mux = nebula.usbmux(
         yamlfilename=yamlfilename,
         board_name=board_name,
