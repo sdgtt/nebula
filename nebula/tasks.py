@@ -50,7 +50,11 @@ def usbmux_write_sdcard_image(
     board_name=None,
 ):
     """Write SD Card image to SD card connected to MUX"""
-    mux = nebula.usbmux(yamlfilename=yamlfilename, board_name=board_name)
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+    )
     mux.write_img_file_to_sdcard(img_filename)
 
 
@@ -90,17 +94,19 @@ def usbmux_update_bootfiles_on_sdcard(
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.update_boot_files_from_sdcard_itself(
-        bootbin_loc=bootbin_filename,
-        kernel_loc=kernel_filename,
-        devicetree_loc=devicetree_filename,
-    )
-    if update_dt:
-        if not dt_name:
-            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
-        mux.update_devicetree_for_mux(dt_name)
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.update_boot_files_from_sdcard_itself(
+            bootbin_loc=bootbin_filename,
+            kernel_loc=kernel_filename,
+            devicetree_loc=devicetree_filename,
+        )
+        if update_dt:
+            if not dt_name:
+                raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+            mux.update_devicetree_for_mux(dt_name)
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 
 @task(
@@ -108,6 +114,8 @@ def usbmux_update_bootfiles_on_sdcard(
         "bootbin_filename": "The BOOT.BIN file (full path) to write to the SD card",
         "kernel_filename": "The kernel image file (full path) to write to the SD card",
         "devicetree_filename": "The devicetree file (full path) to write to the SD card",
+        "devicetree_overlay_filename": "The devicetree overlay file (full path) to write to the SD card",
+        "devicetree_overlay_config": "The devicetree overlay configuration to be written on /boot/config.txt",
         "update_dt": "Update the device tree file on the SD card necessary for mux+Xilinx",
         "dt_name": "Name of the device tree file to update. Must be system.dtb or devicetree.dtb",
         "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
@@ -122,6 +130,8 @@ def usbmux_update_bootfiles(
     bootbin_filename=None,
     kernel_filename=None,
     devicetree_filename=None,
+    devicetree_overlay_filename=None,
+    devicetree_overlay_config=None,
     update_dt=True,
     dt_name=None,
     mux_mode="dut",
@@ -131,25 +141,77 @@ def usbmux_update_bootfiles(
     board_name=None,
 ):
     """Update boot files on SD card connected to MUX from external source"""
-    if not bootbin_filename and not kernel_filename and not devicetree_filename:
+    if (
+        not bootbin_filename
+        and not kernel_filename
+        and not devicetree_filename
+        and not devicetree_overlay_filename
+    ):
         raise Exception("Must specify at least one file to update")
+
     mux = nebula.usbmux(
         yamlfilename=yamlfilename,
         board_name=board_name,
         target_mux=target_mux,
         search_path=search_path,
     )
-    mux.update_boot_files_from_external(
-        bootbin_loc=bootbin_filename,
-        kernel_loc=kernel_filename,
-        devicetree_loc=devicetree_filename,
+    try:
+        mux.update_boot_files_from_external(
+            bootbin_loc=bootbin_filename,
+            kernel_loc=kernel_filename,
+            devicetree_loc=devicetree_filename,
+            devicetree_overlay_loc=devicetree_overlay_filename,
+            devicetree_overlay_config_loc=devicetree_overlay_config,
+        )
+        if update_dt:
+            if not dt_name:
+                raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
+            mux.update_devicetree_for_mux(dt_name)
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
+
+
+@task(
+    help={
+        "module_loc": "Location (folder) of module to be copied.",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def usbmux_update_modules(
+    c,
+    module_loc=None,
+    mux_mode="dut",
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Update module at rootfs on SD card connected to MUX from external source"""
+    if not module_loc:
+        raise Exception("Must specify module folder path")
+
+    # get base path
+    module = os.path.basename(module_loc)
+    destination = os.path.join("lib", "modules", module)
+
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+        search_path=search_path,
     )
-    if update_dt:
-        if not dt_name:
-            raise Exception("Must specify dt_name [system.dtb or devicetree.dtb]")
-        mux.update_devicetree_for_mux(dt_name)
-    if mux_mode:
-        mux.set_mux_mode(mux_mode)
+    try:
+        mux.update_rootfs_files_from_external(
+            target=module_loc, destination=destination
+        )
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
 
 
 @task(
@@ -179,11 +241,55 @@ def usbmux_change_mux_mode(
     mux.set_mux_mode(mode)
 
 
+@task(
+    help={
+        "partition": "To mount and backup target partition. Options: 'boot' (default), 'root'",
+        "target_file": "List of target to backup. Can be be iterable i.e --target_file 1 ... --target_file n",
+        "backup_loc": "Path in hosts where to backup target files",
+        "backup_subfolder": "Path inside backup_loc where to backup target files, will default to random str if set to None",
+        "mux_mode": "Mode to set the mux to after updates. Defaults to 'dut' Options are: 'host', 'dut', 'off'",
+        "target_mux": "SD card mux to use (default: use first mux found)",
+        "search_path": "Path to search for muxes (default: /dev/usb-sd-mux)",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+    iterable=["target_file"],
+)
+def usbmux_backup_bootfiles(
+    c,
+    partition="boot",
+    target_file=None,
+    backup_loc="backup",
+    backup_subfolder=None,
+    mux_mode="dut",
+    target_mux=None,
+    search_path=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Backup files from boot and root FS partitions to host"""
+    mux = nebula.usbmux(
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        target_mux=target_mux,
+        search_path=search_path,
+    )
+    try:
+        mux.backup_files_to_external(
+            partition, target_file, backup_loc, backup_subfolder
+        )
+    finally:
+        if mux_mode:
+            mux.set_mux_mode(mux_mode)
+
+
 usbsdmux = Collection("usbsdmux")
 usbsdmux.add_task(usbmux_write_sdcard_image, "write_sdcard_image")
 usbsdmux.add_task(usbmux_update_bootfiles_on_sdcard, "update_bootfiles_on_sdcard")
 usbsdmux.add_task(usbmux_update_bootfiles, "update_bootfiles")
+usbsdmux.add_task(usbmux_update_modules, "update_modules")
 usbsdmux.add_task(usbmux_change_mux_mode, "change_mux_mode")
+usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 
 #############################################
 
@@ -513,7 +619,9 @@ def update_config(
         "netbox_token": "Token for authenticating API requests",
         "netbox_baseurl": "baseurl pointing to netbox instance (if exist)",
         "jenkins_agent": "Target Jenkins agent to generate config to",
-        "board_name": "Target board to generate config to, takes higher priority over jenkins_agent",
+        "board_name": "Target board to generate config from, takes higher priority over jenkins_agent",
+        "include_variants": "Include variant devices indicated on device config context",
+        "include_children": "Include children devices defined on the device bays",
         "devices_status": "Select only devices with the specified device status defined in netbox",
         "devices_role": "Select only devices with the specified device role defined in netbox",
         "devices_tag": "Select only devices with the specified device tag defined in netbox",
@@ -529,6 +637,8 @@ def gen_config_netbox(
     netbox_baseurl=None,
     jenkins_agent=None,
     board_name=None,
+    include_variants=True,
+    include_children=True,
     devices_status=None,
     devices_role=None,
     devices_tag=None,
@@ -544,6 +654,8 @@ def gen_config_netbox(
         netbox_token=netbox_token,
         jenkins_agent=jenkins_agent,
         board_name=board_name,
+        include_variants=include_variants,
+        include_children=include_children,
         devices_status=devices_status,
         devices_role=devices_role,
         devices_tag=devices_tag,
@@ -1116,12 +1228,41 @@ def run_command(
     n.run_ssh_command(command, ignore_exception, retries)
 
 
+@task(
+    help={
+        "ip": "IP address of board. Default from yaml",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def check_board_booted(
+    c,
+    ip=None,
+    user="root",
+    password="analog",
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Check if board has booted through network ping and ssh"""
+    n = nebula.network(
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+    )
+    n.check_board_booted()
+
+
 net = Collection("net")
 net.add_task(restart_board)
 net.add_task(update_boot_files)
 net.add_task(check_dmesg)
 net.add_task(run_diagnostics)
 net.add_task(run_command)
+net.add_task(check_board_booted)
 
 
 #############################################

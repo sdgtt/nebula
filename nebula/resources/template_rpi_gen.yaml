@@ -1,0 +1,204 @@
+# This file is used to generate questions for configuration file generation
+# Here is the structure
+# <section>-config:
+#   field_X:
+#     name: <field name>
+#     default: <default option> (Optional)
+#     help: <question asked user>
+#     options: <list of options> (Optional)
+#     optional: <False,True,depends> (depends is used when its a dependent property)
+#     requires: <answer needed>:<field name of fields depending on this one,second field name> (Optional)
+#     netbox_field: <equivalent netbox object attribute>
+
+board-config:
+  field_1:
+    name: board-name
+    default: eval-cn0508-rpiz
+    help: "Project name commonly the daughter board connected to an RPI-based carrier"
+    optional: False
+    netbox_field: devices.name
+  field_2:
+    name: carrier
+    default: RPI4B
+    help: "Carrier board name"
+    optional: True
+    netbox_field: devices.custom_fields.device_carrier
+  field_3:
+    name: daughter
+    help: "Daugther board name"
+    optional: True
+    netbox_field: devices.custom_fields.device_daughter
+  field_4:
+    name: monitoring-interface
+    default: uart
+    help: "Select monitoring interface"
+    options: [uart, netconsole]
+    optional: True
+    netbox_field: devices.custom_fields.monitoring_interface
+  field_5:
+    name: serial
+    help: "Sets the serial number of the device"
+    optional: True
+    netbox_field: devices.serial
+  field_6:
+    name: dtoverlay-config
+    help: "Configuration to load device tree overlay. Format ex. dtoverlay=xxx,param1=val1,param2=val2"
+    optional: True
+    netbox_field: devices.custom_fields.dtoverlay_config
+network-config:
+  field_1:
+    name: dutip
+    default: 192.168.10.2
+    help: "IP address of development board"
+    optional: False
+    netbox_field: devices.interfaces.mgmt.ip.address
+  field_2:
+    name: dhcp
+    help: "DHCP network to development board (False assumes static)"
+    optional: False
+    options: ["True", "False"]
+    requires: False:nic,nicip
+    netbox_field: devices.interfaces.mgmt.custom_fields.dhcp
+  field_3:
+    name: nic
+    default: eth0
+    help: "NIC used to talk to development board"
+    optional: depends
+    callback: get_nics
+    netbox_field: devices.interfaces.mgmt.label
+  field_4:
+    name: nicip
+    default: 192.168.10.1
+    help: "NIC connected to development board ip address"
+    optional: depends
+    netbox_field: devices.interfaces.mgmt.custom_fields.nicip
+pdu-config:
+  field_1:
+    name: pdu_type
+    default: cyberpower
+    help: "PDU type"
+    options: [cyberpower, vesync]
+    optional: True
+    requires: vesync:username,password
+    netbox_field: devices.power_ports.input.pdus[0].device_type.manufacturer.slug
+  field_2:
+    name: pduip
+    default: 192.168.30.2
+    help: "IP address of PDU"
+    optional: True
+    netbox_field: devices.power_ports.input.pdus[0].primary_ip.address
+  field_3:
+    name: outlet
+    default: 1
+    help: "Outlet number on PDU for dev board"
+    optional: False
+    type: int
+    netbox_field: devices.power_ports.input.connected_endpoint.outlet
+  field_4:
+    name: username
+    default: "username"
+    help: "Username needed for login (only need for vesync so far)"
+    optional: depends
+    netbox_field: devices.power_ports.input.pdus[0].custom_fields.username
+  field_5:
+    name: password
+    default: "password"
+    help: "Password needed for login (only need for vesync so far)"
+    optional: depends
+    netbox_field: devices.power_ports.input.pdus[0].custom_fields.password
+uart-config:
+  field_1:
+    name: address
+    help: "UART Address"
+    optional: True
+    callback: get_uarts
+  field_2:
+    name: baudrate
+    help: "UART baudrate"
+    optional: True
+  field_3:
+    name: logfilename
+    default: device.log
+    help: "Output UART logfilename"
+    optional: False
+    netbox_field: devices.custom_fields.logfilename
+system-config:
+  field_1:
+    name: tftpserverip
+    help: "TFTP server address"
+    optional: True
+    netbox_field: devices.config_context.tftpserverip
+  field_2:
+    name: tftpserverroot
+    help: "TFTP folder location"
+    optional: True
+    netbox_field: devices.config_context.tftpserverroot
+driver-config:
+  field_1:
+    name: iio_device_names
+    default: ["axi-ad9144-hpc", "axi-ad9680-hpc"]
+    help: "List of IIO devices on board"
+    optional: False
+    netbox_field: devices.custom_fields.iio_device_names
+downloader-config:
+  field_1:
+    name: http_server_ip
+    help: "IP address of build server with boot files"
+    optional: True
+  field_2:
+    name: devicetree
+    help: "Filename of the devicetree blob"
+    optional: True
+    netbox_field: devices.custom_fields.devicetree
+  field_3:
+    name: devicetree_overlay
+    help: "Filename of the devicetree overlay blob"
+    optional: True
+    netbox_field: devices.custom_fields.devicetree_overlay
+  field_4:
+    name: kernel
+    help: "Filename of the kernel image file"
+    optional: True
+    netbox_field: devices.custom_fields.kernel
+  field_5:
+    name: modules
+    help: "Folder name of the kernel library modules"
+    optional: True
+    netbox_field: devices.custom_fields.modules
+netbox-config:
+  field_1:
+    name: netbox_server
+    help: "IP address of the netbox server"
+    default: 192.168.10.1
+    optional: True
+    netbox_field: devices.config_context.netbox_server
+  field_2:
+    name: netbox_server_port
+    default: 8000
+    help: "Port used by the netbox service"
+    optional: True
+    netbox_field: devices.config_context.netbox_port
+  field_3:
+    name: netbox_base_url
+    default: netbox
+    help: "String used as netbox base url. i.e server:port\base_url"
+    optional: True
+    netbox_field: devices.config_context.netbox_base_url
+  field_4:
+    name: netbox_api_token
+    default: 0123456789abcdef0123456789abcdef01234567
+    help: "Token for netbox rest api access"
+    optional: True
+    netbox_field: devices.config_context.netbox_api_token
+usbmux-config:
+  field_1:
+    name: search_path
+    help: "Path to search for usbmux devices"
+    default: "/dev/usb-sd-mux/"
+    optional: True
+  field_2:
+    name: target_mux
+    help: "Unique serial number of attached usbmux"
+    default: none
+    optional: True
+    netbox_field: devices.sd.serial

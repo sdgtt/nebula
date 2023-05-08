@@ -1,0 +1,213 @@
+adis16480bmlz:
+  board-config:
+  - board-name: adis16480bmlz
+  - carrier: RPI
+  - daughter: ADIS16480BMLZ
+  - monitoring-interface: NA
+  - serial: 2fde4180
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: adis16480.dtbo
+  driver-config:
+  - iio_device_names:
+    - adis16480
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.150
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.150
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '4'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: adis16480bmlz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001272
+eval-ad7124-8-pmdz:
+  board-config:
+  - board-name: eval-ad7124-8-pmdz
+  - carrier: RPI
+  - daughter: EVAL-AD7124-8-PMDZ
+  - monitoring-interface: NA
+  - serial: 11a43152
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: rpi-ad7124.dtbo
+  driver-config:
+  - iio_device_names:
+    - ad7124-4
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.151
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.151
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '3'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: eval-ad7124-8-pmdz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001093
+eval-adxrs290-pmdz:
+  board-config:
+  - board-name: eval-adxrs290-pmdz
+  - carrier: RPI
+  - daughter: EVAL-ADXRS290-PMDZ
+  - monitoring-interface: NA
+  - serial: 11a43152
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: rpi-adxrs290.dtbo
+  driver-config:
+  - iio_device_names:
+    - adxrs290
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.151
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.151
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '3'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: eval-adxrs290-pmdz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001093
+eval-cn0508-rpiz:
+  board-config:
+  - board-name: eval-cn0508-rpiz
+  - carrier: RPI
+  - daughter: EVAL-CN0508-RPIZ
+  - monitoring-interface: NA
+  - serial: 6183d2ad
+  - dtoverlay-config: dtoverlay=rpi-cn0508,rotate=270,speed=64000000,fps=30,spi=on,i2c1=on,i2c_arm=on;dtoverlay=gpio-shutdown,gpio_pin=17,active_low=1,gpiopull=up,act_led_gpio=13,act_led_trigger=heartbeat
+  downloader-config:
+  - devicetree: bcm2710-rpi-3-b-plus.dtb
+  - devicetree_overlay: rpi-cn0508.dtbo
+  - kernel: kernel7.img
+  - modules: 5.10.63-v7+
+  driver-config:
+  - iio_device_names:
+    - ad7124-4
+    - ad5683r
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.152
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.152
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '1'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: eval-cn0508-rpiz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001204
+eval-cn0511-rpiz:
+  board-config:
+  - board-name: eval-cn0511-rpiz
+  - carrier: RPI
+  - daughter: EVAL-CN0511-RPIZ
+  - monitoring-interface: NA
+  - serial: 0eda60fa7
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: rpi-cn0511.dtbo
+  driver-config:
+  - iio_device_names:
+    - cn0511
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.153
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.153
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '2'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: eval-cn0511-rpiz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001430
+eval-cn0552-pmdz:
+  board-config:
+  - board-name: eval-cn0552-pmdz
+  - carrier: RPI
+  - daughter: EVAL-CN0552-PMDZ
+  - monitoring-interface: NA
+  - serial: 11a43152
+  - dtoverlay-config: null
+  downloader-config:
+  - devicetree: bcm2711-rpi-4-b.dtb
+  - devicetree_overlay: rpi-cn0552.dtbo
+  driver-config:
+  - iio_device_names:
+    - cn0552
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.151
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.151
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '3'
+  - username: NA
+  - password: NA
+  uart-config:
+  - logfilename: eval-cn0552-pmdz.log
+  usbmux-config:
+  - search_path: /dev/usb-sd-mux/
+  - target_mux: id-000000001093
