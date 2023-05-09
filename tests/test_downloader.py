@@ -110,7 +110,9 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
 
 
 @pytest.mark.parametrize("board_name", ["pluto"])
-@pytest.mark.parametrize("source, branch", [("github", "v0.33"), ("artifactory", "master")])
+@pytest.mark.parametrize(
+    "source, branch", [("github", "v0.33"), ("artifactory", "master")]
+)
 @pytest.mark.parametrize("filetype", ["firmware"])
 def test_firmware_downloader(test_downloader, board_name, branch, filetype, source):
     test_downloader(board_name, branch, filetype, source=source)

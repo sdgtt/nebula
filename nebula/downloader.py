@@ -42,7 +42,7 @@ def get_firmware_verson(links):
     for link in links:
         file = link.split("/")[-1]
         if "zip" in file:
-            version=file
+            version = file
     return version
 
 
@@ -172,10 +172,8 @@ class downloader(utils):
     def _download_firmware(self, device, source="github", release=None):
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
             dev = "m2k"
-            file = "m2k"
         elif "pluto" in device.lower():
             dev = "plutosdr"
-            file = "pluto"
         else:
             raise Exception("Unknown device " + device)
 
@@ -209,10 +207,8 @@ class downloader(utils):
             url = url_template.format(dev, "", "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(dev, build_date, "")
-            #url = url + str(file) + ".frm"
-            #get version
+            # get version
             ver = get_firmware_verson(listFD(url))
-            #file ="{dev}-fw-{rel}.zip".format(dev=dev, rel=ver)
             url = url_template.format(dev, build_date, ver)
             dest = "outs"
             if not os.path.isdir(dest):
