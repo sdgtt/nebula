@@ -72,6 +72,18 @@ network-config:
     help: "NIC connected to development board ip address"
     optional: depends
     netbox_field: devices.interfaces.mgmt.custom_fields.nicip
+  field_5:
+    name: dutusername
+    default: analog
+    help: "Username to access Device"
+    optional: True
+    netbox_field: devices.custom_fields.username
+  field_6:
+    name: dutpassword
+    default: analog
+    help: "Password associated with the username."
+    optional: True
+    netbox_field: devices.custom_fields.password
 pdu-config:
   field_1:
     name: pdu_type
