@@ -1306,8 +1306,8 @@ def run_command(
 def check_board_booted(
     c,
     ip=None,
-    user="root",
-    password="analog",
+    user=None,
+    password=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
