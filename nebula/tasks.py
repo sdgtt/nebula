@@ -572,8 +572,8 @@ builder.add_task(repo)
 )
 def power_cycle(
     c,
-    pdutype,
-    outlet,
+    pdutype=None,
+    outlet=None,
     pduip=None,
     username=None,
     password=None,
@@ -609,9 +609,9 @@ def power_cycle(
 )
 def power_onoff(
     c,
-    pdutype,
-    outlet,
-    onoff,
+    pdutype=None,
+    outlet=None,
+    onoff=None,
     pduip=None,
     username=None,
     password=None,
