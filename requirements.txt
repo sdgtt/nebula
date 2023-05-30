@@ -18,3 +18,4 @@ artifactory
 usbsdmux
 pyudev
 decorator
+numpy==1.24.3
