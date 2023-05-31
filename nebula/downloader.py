@@ -37,7 +37,7 @@ def convert_to_datetime(date):
         return datetime.strptime(date[:10], "%Y_%m_%d")
 
 
-def get_firmware_verson(links):
+def get_firmware_version(links):
     version = None
     for link in links:
         file = link.split("/")[-1]
@@ -208,7 +208,7 @@ class downloader(utils):
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(dev, build_date, "")
             # get version
-            ver = get_firmware_verson(listFD(url))
+            ver = get_firmware_version(listFD(url))
             url = url_template.format(dev, build_date, ver)
             dest = "outs"
             if not os.path.isdir(dest):
