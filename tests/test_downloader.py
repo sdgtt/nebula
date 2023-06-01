@@ -7,7 +7,7 @@ from nebula import downloader
 # Must be connected to analog VPN
 
 
-def downloader_test(board_name, branch, filetype):
+def downloader_test(board_name, branch, filetype, source="artifactory"):
     file = {
         "firmware": None,
         "boot_partition": None,
@@ -24,7 +24,7 @@ def downloader_test(board_name, branch, filetype):
     d = downloader(yamlfilename=yamlfilename, board_name=board_name)
     d.download_boot_files(
         board_name,
-        source="artifactory",
+        source=source,
         source_root="artifactory.analog.com",
         branch=branch,
         firmware=file["firmware"],
@@ -110,10 +110,12 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
 
 
 @pytest.mark.parametrize("board_name", ["pluto"])
-@pytest.mark.parametrize("branch", ["master", "v0.33"])
+@pytest.mark.parametrize(
+    "source, branch", [("github", "v0.33"), ("artifactory", "master")]
+)
 @pytest.mark.parametrize("filetype", ["firmware"])
-def test_firmware_downloader(test_downloader, board_name, branch, filetype):
-    test_downloader(board_name, branch, filetype)
+def test_firmware_downloader(test_downloader, board_name, branch, filetype, source):
+    test_downloader(board_name, branch, filetype, source=source)
     if branch == "v0.33":
         assert os.path.isfile("outs/plutosdr-fw-v0.33.zip")
     else:

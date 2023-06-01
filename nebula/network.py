@@ -263,7 +263,7 @@ class network(utils):
         tmp_filename_err = "/tmp/" + tmp_filename_root + "_err"
         tmp_filename_war = "/tmp/" + tmp_filename_root + "_warn"
 
-        if self.board_name == "pluto":
+        if self.board_name == "pluto" or self.board_name == "m2k":
             with open(tmp_filename_root, "w") as outfile:
                 outfile.write(self.run_ssh_command("dmesg").stdout)
             with open(tmp_filename_root + "_warn", "w") as outfile:

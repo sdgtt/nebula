@@ -37,6 +37,15 @@ def convert_to_datetime(date):
         return datetime.strptime(date[:10], "%Y_%m_%d")
 
 
+def get_firmware_version(links):
+    version = None
+    for link in links:
+        file = link.split("/")[-1]
+        if "zip" in file:
+            version = file
+    return version
+
+
 def get_latest_release(links):
     latest = "0000_r1"
     for link in links:
@@ -279,10 +288,7 @@ class downloader(utils):
             yamlfilename, __class__.__name__, board_name=board_name
         )
 
-    def _download_firmware(self, device, release=None):
-        if release == "master" or release == "release":
-            release = None
-
+    def _download_firmware(self, device, source="github", release=None):
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
             dev = "m2k"
         elif "pluto" in device.lower():
@@ -290,29 +296,44 @@ class downloader(utils):
         else:
             raise Exception("Unknown device " + device)
 
-        if not release:
-            # Get latest
-            log.info("Release not set. Checking github for latest")
-            g = Github()
-            repo = g.get_repo("analogdevicesinc/{}-fw".format(dev))
-            rel = repo.get_releases()
-            p = rel.get_page(0)
-            r = p[0]
-            release = r.tag_name
-        log.info("Using release: " + release)
+        if source == "github":
+            if release == "master" or release == "release":
+                release = None
+            if not release:
+                # Get latest
+                log.info("Release not set. Checking github for latest")
+                g = Github()
+                repo = g.get_repo("analogdevicesinc/{}-fw".format(dev))
+                rel = repo.get_releases()
+                p = rel.get_page(0)
+                r = p[0]
+                release = r.tag_name
+            log.info("Using release: " + release)
 
-        matched = re.match("v[0-1].[0-9][0-9]", release)
-        is_match = bool(matched)
-        assert is_match, "Version name invalid"
+            matched = re.match("v[0-1].[0-9][0-9]", release)
+            is_match = bool(matched)
+            assert is_match, "Version name invalid"
 
-        url = "https://github.com/analogdevicesinc/{dev}-fw/releases/download/{rel}/{dev}-fw-{rel}.zip".format(
-            dev=dev, rel=release
-        )
-        dest = "outs"
-        if not os.path.isdir(dest):
-            os.mkdir(dest)
-        release = os.path.join(dest, dev + "-fw-" + release + ".zip")
-        self.download(url, release)
+            url = "https://github.com/analogdevicesinc/{dev}-fw/releases/download/{rel}/{dev}-fw-{rel}.zip".format(
+                dev=dev, rel=release
+            )
+            dest = "outs"
+            if not os.path.isdir(dest):
+                os.mkdir(dest)
+            filename = os.path.join(dest, dev + "-fw-" + release + ".zip")
+        elif source == "artifactory":
+            url_template = "https://artifactory.analog.com/artifactory/sdg-generic-development/m2k_and_pluto/{}-fw/{}/{}"
+            url = url_template.format(dev, "", "")
+            build_date = get_newest_folder(listFD(url))
+            url = url_template.format(dev, build_date, "")
+            # get version
+            ver = get_firmware_version(listFD(url))
+            url = url_template.format(dev, build_date, ver)
+            dest = "outs"
+            if not os.path.isdir(dest):
+                os.mkdir(dest)
+            filename = os.path.join(dest, ver)
+        self.download(url, filename)
 
     def _get_file(
         self,
@@ -707,7 +728,7 @@ class downloader(utils):
                 or "m2k" in details["carrier"].lower()
                 or "adalm-2000" in details["carrier"].lower()
             ), "Firmware downloads only available for pluto and m2k"
-            self._download_firmware(details["carrier"], branch)
+            self._download_firmware(details["carrier"], source, branch)
         else:
 
             if source == "local_fs":  # to fix
