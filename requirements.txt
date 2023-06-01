@@ -17,3 +17,4 @@ pynetbox
 artifactory
 usbsdmux
 pyudev
+decorator

@@ -446,9 +446,75 @@ def download_boot_files(
     )
 
 
+@task(
+    help={
+        "toolbox": "Name of toolbox to download",
+        "branch": "Name of branch to download",
+        "build": "Name of build to download",
+        "target_fmc": "Name of target FMC. Default: None",
+        "target_fpga": "Name of target FPGA. Default: None",
+        "download_folder": "Name of folder to download files to. Default: ml_bootbins",
+        "root": "Name of root folder to download files to. Default: dev",
+        "skip_download": "If True, skip downloading files. Default: False",
+    },
+)
+def download_generate_matlab_bootbins(
+    c,
+    toolbox,
+    branch,
+    build,
+    target_fmc=None,
+    target_fpga=None,
+    download_folder="ml_bootbins",
+    root="dev",
+    skip_download=False,
+):
+    """Download MATLAB generated bootfiles for a specific development system"""
+    from nebula.downloader import download_matlab_generate_bootbin
+
+    filenames, rd_names = download_matlab_generate_bootbin(
+        root,
+        toolbox,
+        branch,
+        build,
+        target_fmc,
+        target_fpga,
+        download_folder,
+        skip_download,
+    )
+    print("Downloaded files:")
+    for rd_name, filename in zip(rd_names, filenames):
+        print(filename, " | ", rd_name)
+
+
+@task(
+    help={
+        "folder": "Name of folder of local BOOT.BIN files",
+    },
+)
+def download_generate_bootbin_map_file(
+    c,
+    folder,
+):
+    """Generate map between local BOOT.BIN files and their reference design names"""
+    from nebula.downloader import generate_bootbin_map_file
+
+    filenames, rd_names = generate_bootbin_map_file(folder)
+    print("BOOT.BIN file map:")
+    for rd_name, filename in zip(rd_names, filenames):
+        print(filename, " | ", rd_name)
+    with open("mapping.txt", "w") as f:
+        for rd_name, filename in zip(rd_names, filenames):
+            if rd_name is not None and filename is not None:
+                f.write(filename + " | " + rd_name + "\n")
+    print("Mapping file saved to mapping.txt")
+
+
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
 dl.add_task(download_boot_files, "bootfiles")
+dl.add_task(download_generate_matlab_bootbins, "matlab_bootbins")
+dl.add_task(download_generate_bootbin_map_file, "bootbin_map")
 
 
 #############################################
