@@ -429,13 +429,13 @@ class NetboxDevice:
                         template_dict[name][field["name"]] = value
 
                     except Exception as ex:
+                        if "optional" in field and bool(field["optional"]) is True:
+                            log.warning(str(ex) + "." + " Skipping since optional")
+                            continue
+
                         if "default" in field:
                             template_dict[name][field["name"]] = field["default"]
                             log.warning(str(ex) + "." + " Will try to use default")
-                            continue
-
-                        if "optional" in field and bool(field["optional"]) is True:
-                            log.warning(str(ex) + "." + " Skipping since optional")
                             continue
 
                         log.error("Cannot parse {}".format(field["name"]))

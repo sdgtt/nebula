@@ -21,15 +21,15 @@ class pdu(utils):
         yamlfilename=None,
         board_name=None,
     ):
-        self.pduip = pduip
-        self.outlet = outlet
-        self.pdu_type = pdu_type
-        self.username = username
-        self.password = password
-        self.board_name = board_name
+        props = ["pduip", "outlet", "pdu_type", "username", "password", "board_name"]
+        for prop in props:
+            setattr(self, prop, None)
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
+        for prop in props:
+            if eval(prop) is not None:
+                setattr(self, prop, eval(prop))
 
         if self.pdu_type == "cyberpower":
             if not self.pduip:
