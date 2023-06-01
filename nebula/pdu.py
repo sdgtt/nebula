@@ -21,14 +21,7 @@ class pdu(utils):
         yamlfilename=None,
         board_name=None,
     ):
-        props = [
-            "pduip",
-            "outlet",
-            "pdu_type",
-            "username",
-            "password",
-            "board_name"
-        ]
+        props = ["pduip", "outlet", "pdu_type", "username", "password", "board_name"]
         for prop in props:
             setattr(self, prop, None)
         self.update_defaults_from_yaml(
