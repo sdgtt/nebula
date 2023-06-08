@@ -43,6 +43,16 @@ board-config:
     options: ["True", "False"]
     optional: False
     netbox_field: devices.custom_fields.allow_jtag
+  field_6:
+    name: serial
+    help: "Sets the serial number of the device"
+    optional: True
+    netbox_field: devices.serial
+  field_7:
+    name: instr-serial
+    help: "Serial number of external IIO instrument connected to the carrier"
+    optional: True
+    netbox_field: devices.custom_fields.instr_serial
 network-config:
   field_1:
     name: dutip
