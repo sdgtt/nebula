@@ -13,11 +13,11 @@ class pdu(utils):
 
     def __init__(
         self,
-        pduip="192.168.86.10",
-        outlet=1,
-        pdu_type="cyberpower",
-        username="cyber",
-        password="cyber",
+        pduip=None,
+        outlet=None,
+        pdu_type=None,
+        username=None,
+        password=None,
         yamlfilename=None,
         board_name=None,
     ):
