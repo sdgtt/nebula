@@ -43,12 +43,10 @@ class manager:
             configs = None
 
         configs = common.multi_device_check(configs, board_name)
-
-        if "pdu-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
-        self.power = pdu(yamlfilename=configfilename, board_name=board_name)
+        
+        self.power = None
+        if "pdu-config" in configs:
+            self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.jtag_use = False
         self.jtag = False
