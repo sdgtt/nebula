@@ -146,6 +146,7 @@ def usbmux_update_bootfiles(
         and not kernel_filename
         and not devicetree_filename
         and not devicetree_overlay_filename
+        and not devicetree_overlay_config
     ):
         raise Exception("Must specify at least one file to update")
 
