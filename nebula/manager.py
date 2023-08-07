@@ -166,7 +166,7 @@ class manager:
     def network_check(self):
         if not self.net.ping_board():
             ip = self.monitor[0].get_ip_address()
-            if ip != self.net.dutip:
+            if ip and ip != self.net.dutip:
                 log.info("DUT IP changed to: " + str(ip))
                 self.net.dutip = ip
                 self.driver.uri = "ip:" + ip
@@ -504,7 +504,10 @@ class manager:
 
                     self.monitor[0].load_system_uart()
                     time.sleep(20)
-                    log.info("IP Address: " + str(self.monitor[0].get_ip_address()))
+                    ip = self.monitor[0].get_ip_address()
+                    if not ip:
+                        raise ne.LinuxNotFunctionalAfterBootFileUpdate
+                    log.info("IP Address: " + str(ip))
                     self.net.check_board_booted()
                 except Exception as ex:
                     raise Exception("Getting board back failed", str(ex))
