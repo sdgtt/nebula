@@ -6,6 +6,7 @@ import re
 import string
 import subprocess
 import time
+import datetime as dt
 
 import fabric
 import nebula.errors as ne
@@ -135,9 +136,15 @@ class network(utils):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
 
     def run_ssh_command(
-        self, command, ignore_exceptions=False, retries=3, show_log=True
+        self,
+        command,
+        ignore_exceptions=False,
+        retries=3,
+        show_log=True,
+        print_result_to_file=True
     ):
         result = None
+        filename = None
         for t in range(retries):
             log.info(
                 "ssh command:" + command + " to " + self.dutusername + "@" + self.dutip
@@ -150,16 +157,24 @@ class network(utils):
                 if result.failed:
                     raise Exception("Failed to run command:", command)
 
+                if print_result_to_file:
+                    filename = dt.datetime.now().strftime("%Y%m%d%H%M%S")
+                
                 if show_log and result.stdout:
                     log.info("result stdout begin -------------------------------")
                     log.info(f"{result.stdout}")
                     log.info("result stdout end -------------------------------")
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_out_{filename}.log","w") as f:
+                            f.write(result.stdout)
 
                 if show_log and result.stderr:
                     log.info("result stderr begin -------------------------------")
                     log.info(f"{result.stderr}")
                     log.info("result stderr end -------------------------------")
-
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_err_{filename}.log","w") as f:
+                            f.write(result.stderr)
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
