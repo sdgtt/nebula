@@ -1272,6 +1272,7 @@ def run_diagnostics(
         "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "command": "Shell command to run via ssh. Supports linux systems for now.",
         "ignore_exception": "Ignore errors encountered on the remote side.",
@@ -1283,6 +1284,7 @@ def run_command(
     ip=None,
     user="root",
     password="analog",
+    yamlfilename="/etc/default/nebula",
     board_name=None,
     command=None,
     ignore_exception=False,
@@ -1290,7 +1292,11 @@ def run_command(
 ):
     """Run command on remote via ip"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name
     )
     n.run_ssh_command(command, ignore_exception, retries)
 
