@@ -1282,8 +1282,8 @@ def run_diagnostics(
 def run_command(
     c,
     ip=None,
-    user="root",
-    password="analog",
+    user=None,
+    password=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
     command=None,
