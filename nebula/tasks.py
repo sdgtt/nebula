@@ -1214,7 +1214,7 @@ def restart_board(
     user=None,
     password=None,
     yamlfilename="/etc/default/nebula",
-    board_name=None
+    board_name=None,
 ):
     """Reboot development system over IP"""
     n = nebula.network(
@@ -1222,7 +1222,7 @@ def restart_board(
         dutusername=user,
         dutpassword=password,
         yamlfilename=yamlfilename,
-        board_name=board_name
+        board_name=board_name,
     )
     n.reboot_board(bypass_sleep=True)
 
@@ -1308,7 +1308,7 @@ def run_command(
         dutusername=user,
         dutpassword=password,
         yamlfilename=yamlfilename,
-        board_name=board_name
+        board_name=board_name,
     )
     n.run_ssh_command(command, ignore_exception, retries)
 

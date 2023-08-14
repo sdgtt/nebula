@@ -43,7 +43,7 @@ class manager:
             configs = None
 
         configs = common.multi_device_check(configs, board_name)
-        
+
         self.power = None
         if "pdu-config" in configs:
             self.power = pdu(yamlfilename=configfilename, board_name=board_name)
