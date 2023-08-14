@@ -1204,13 +1204,25 @@ def check_dmesg(c, ip, user="root", password="analog", board_name=None):
         "ip": "IP address of board",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
-def restart_board(c, ip, user="root", password="analog", board_name=None):
+def restart_board(
+    c,
+    ip=None,
+    user=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None
+):
     """Reboot development system over IP"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name
     )
     n.reboot_board(bypass_sleep=True)
 
