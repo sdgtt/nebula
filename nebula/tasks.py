@@ -799,6 +799,7 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
+            sdcard=sdcard,
             recover=True,
         )
     else:

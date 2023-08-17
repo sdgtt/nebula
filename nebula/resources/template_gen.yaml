@@ -253,3 +253,15 @@ netbox-config:
     help: "Token for netbox rest api access"
     optional: True
     netbox_field: devices.config_context.netbox_api_token
+usbmux-config:
+  field_1:
+    name: search_path
+    help: "Path to search for usbmux devices"
+    default: "/dev/usb-sd-mux/"
+    optional: True
+  field_2:
+    name: target_mux
+    help: "Unique serial number of attached usbmux"
+    default: none
+    optional: True
+    netbox_field: devices.sd.serial
