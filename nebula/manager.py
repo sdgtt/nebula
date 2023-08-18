@@ -495,6 +495,68 @@ class manager:
         print("Home sweet home")
         self.monitor[0].stop_log()
 
+    @_release_thread_lock
+    def board_reboot_sdmux_pdu(
+        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+    ):
+        """Manager when sdcardmux, pdu is available"""
+        self._check_files_exist(
+            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        )
+        try:
+            # Flush UART
+            self.monitor[0]._read_until_stop()  # Flush
+            self.monitor[0].start_log(logappend=True)
+            # Check if Linux is accessible
+            log.info("Checking if Linux is accessible")
+            try:
+                out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+                if not out:
+                    raise ne.LinuxNotReached
+            except Exception as e:
+                # raise LinuxNotReached for other exceptions
+                log.info(str(e))
+                raise ne.LinuxNotReached
+
+            # Get IP over UART
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+            if not ip:
+                raise ne.NetworkNotFunctional
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+                # Update config file
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
+                )
+
+            log.info("Update board over usb-sd-mux")
+            self.usbsdmux.update_boot_files_from_external(
+                bootbin_loc=bootbinpath,
+                kernel_loc=uimagepath,
+                devicetree_loc=devtreepath
+            )
+            # if devtreepath:
+            #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
+            self.usbsdmux.set_mux_mode("dut")
+            # powercycle board
+            log.info("Power cycling to boot")
+            self.power_cycle_to_boot()
+
+        except Exception as e:
+            log.error("Updating boot files using usbsdmux failed to complete")
+            raise e
+
+        # Check is networking is working
+        self.network_check()
+
+        print("Home sweet home")
+        self.monitor[0].stop_log()
+
     def board_reboot(self):
         # Try to reboot over SSH first
         try:
@@ -694,15 +756,8 @@ class manager:
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False, recover=False
     ):
         """Automatically select loading mechanism
-        based on current class setup"""
-        if not recover:
-            self.board_reboot_uart_net_pdu(
-                system_top_bit_path=system_top_bit_path,
-                bootbinpath=bootbinpath,
-                uimagepath=uimagepath,
-                devtreepath=devtreepath,
-            )
-        else:
+        based on current class setup"""        
+        if recover:
             self.recover_board(
                 system_top_bit_path=system_top_bit_path,
                 bootbinpath=bootbinpath,
@@ -710,6 +765,21 @@ class manager:
                 devtreepath=devtreepath,
                 sdcard=sdcard,
             )
+        else:
+            if self.usbsdmux:
+                self.board_reboot_sdmux_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                )
+            else:
+                self.board_reboot_uart_net_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                )
 
     def shutdown_powerdown_board(self):
         self.monitor[0].print_to_console = False
