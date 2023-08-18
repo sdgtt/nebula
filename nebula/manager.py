@@ -305,14 +305,12 @@ class manager:
                             devtree_filename=devtreepath,
                         )
                         results = self.monitor[0]._read_until_done_multi(
-                            done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
+                            done_strings=["Starting kernel", "root@analog"], max_time=100
                         )
 
                         if len(results) == 1:
-                            raise Exception("u-boot not reached")
-                        elif not results[1]:
                             raise Exception("u-boot menu cannot boot kernel")
-                        elif not results[2]:
+                        elif not results[1]:
                             raise Exception("Linux not fully booting")
 
                 log.info("Linux fully booted")
