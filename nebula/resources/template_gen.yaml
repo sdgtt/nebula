@@ -53,6 +53,12 @@ board-config:
     help: "Serial number of external IIO instrument connected to the carrier"
     optional: True
     netbox_field: devices.custom_fields.instr_serial
+  field_8:
+    name: hw-mac
+    default: 00:0a:35:05:ca:00
+    help: "Hardware MAC address of DUT carrier"
+    optional: True
+    netbox_field: devices.custom_fields.hw_mac
 network-config:
   field_1:
     name: dutip

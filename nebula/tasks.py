@@ -1129,6 +1129,34 @@ def set_static_ip(
 
 @task(
     help={
+        "mac": "MAC Address to write in /boot/uEnv.txt",
+        "address": "UART device address (/dev/ttyACMO). If a yaml config exist it will override,"
+        + " if no yaml file exists and no address provided auto is used",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def write_mac_uEnv(
+    c,
+    mac,
+    address="auto",
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Set Static IP address of board of DUT from UART connection"""
+    try:
+        u = nebula.uart(
+            address=address, yamlfilename=yamlfilename, board_name=board_name
+        )
+        u.print_to_console = False
+        u.write_mac_uEnv(mac)
+        del u
+    except Exception as ex:
+        print(ex)
+
+
+@task(
+    help={
         "system_top_bit_filename": "Path to system_top.bit.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
@@ -1167,6 +1195,7 @@ uart.add_task(restart_board_uart, name="restart_board")
 uart.add_task(get_ip)
 uart.add_task(set_dhcp)
 uart.add_task(set_static_ip)
+uart.add_task(write_mac_uEnv)
 uart.add_task(get_carriername)
 uart.add_task(get_mezzanine)
 uart.add_task(get_uart_log)

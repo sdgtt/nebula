@@ -392,6 +392,23 @@ class uart(utils):
             self._read_for_time(period=1)
             self.start_log(logappend=True)
 
+    def write_mac_uEnv(self, address):
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
+        cmd = "sed -i 's/ethaddr=\\([0-9A-Fa-f]\\{2\\}[:-]\\)\\{5\\}[0-9A-Fa-f]\\{2\\}"
+        cmd += "//g' /boot/uEnv.txt; "
+        cmd += 'printf " ethaddr=' + address + '" >> /boot/uEnv.txt; '
+        cmd += "ex -s +'v/\\S/d' -cwq /boot/uEnv.txt"
+        self._write_data(cmd)
+        if restart:
+            self._read_for_time(period=1)
+            self.start_log(logappend=True)
+
     def request_ip_dhcp(self, nic="eth0"):
         restart = False
         if self.listen_thread_run:
