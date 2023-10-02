@@ -673,14 +673,7 @@ class downloader(utils):
                 module_files = [tarinfo for tarinfo in tf.getmembers()]
             tf.extractall(path=dest, members=module_files)
 
-    def _get_files_noos(
-        self,
-        source,
-        source_root,
-        branch,
-        project,
-        platform
-    ):
+    def _get_files_noos(self, source, source_root, branch, project, platform):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -691,12 +684,12 @@ class downloader(utils):
             url = url_template.format(source_root, branch, "", "", "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(
-                source_root, branch, build_date, platform, project+".zip"
+                source_root, branch, build_date, platform, project + ".zip"
             )
             log.info(url)
-            file = os.path.join(dest, project+".zip")
+            file = os.path.join(dest, project + ".zip")
             self.download(url, file)
-            #unzip the files
+            # unzip the files
             shutil.unpack_archive(file, dest)
 
     def _get_files(
@@ -748,6 +741,8 @@ class downloader(utils):
         elif "RPI" in details["carrier"]:
             kernel = kernel
             modules = modules
+        elif details["carrier"] in ["Maxim", "ADICUP"]:
+            pass
         else:
             raise Exception("Carrier not supported")
 
@@ -769,11 +764,7 @@ class downloader(utils):
 
             if noos:
                 self._get_files_noos(
-                    source,
-                    source_root,
-                    branch,
-                    noos_project,
-                    platform
+                    source, source_root, branch, noos_project, platform
                 )
 
             if microblaze:
@@ -882,23 +873,7 @@ class downloader(utils):
         noos_project = self.no_os_project
         platform = self.platform
 
-        # if noos:
-        #     res = os.path.join(path, "resources", "noOS_projects.yaml")
-        #     with open(res) as f:
-        #         noos_projects = yaml.load(f, Loader=yaml.FullLoader)
-        #     val = []
-        #     for project in noos_projects:
-        #         hdl_projects = noos_projects[project]
-        #         if hdl_projects is not None:
-        #             for hdl_project in hdl_projects:
-        #                 if hdl_project == hdl_folder:
-        #                     val.append(hdl_project)
-        #                     log.info("No-OS project:" + project)
-
-        #     if not val:
-        #         raise Exception("Design has no support!")
-        # else:
-        #assert design_name in board_configs, "Invalid design name"
+        assert design_name in board_configs, "Invalid design name"
 
         if not firmware:
             matched = re.match("v[0-1].[0-9][0-9]", branch)
