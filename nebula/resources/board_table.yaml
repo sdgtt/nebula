@@ -475,3 +475,11 @@ dc1962c:
   carrier: RPI
 dc2873a:
   carrier: RPI
+
+# ADD no-OS boards
+max32650_adxl355:
+  carrier: Maxim
+max78000_adt7420:
+  carrier: Maxim
+aducm3029_adxrs290:
+  carrier: ADICUP
