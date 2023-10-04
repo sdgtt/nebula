@@ -78,7 +78,7 @@ def test_boot_downloader(test_downloader, board_name, branch, filetype):
 @pytest.mark.parametrize("filetype", ["noos"])
 def test_noos_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
-    file = [_ for _ in os.listdir('outs') if _.endswith(".zip")]
+    file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
     assert len(file) >= 1
 
 
