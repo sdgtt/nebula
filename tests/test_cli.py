@@ -33,19 +33,19 @@ def test_update_config():
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
     o = c.local(
-        "nebula update-config board-config no-os-project --yamlfilename="
+        "nebula update-config board-config board-name --yamlfilename="
         + config
         + " --board-name="
         + board
     )
-    s = "ad9361"
+    s = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     assert s in o.stdout
 
 
 def test_dl_bootfiles():
     config = os.path.join("nebula_config", "nebula.yaml")
-    board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
-    branch = "release"
+    board = "max32650_adxl355"
+    branch = "master"
     file = "noos"
     source_root = "artifactory.analog.com"
     source = "artifactory"
@@ -65,10 +65,8 @@ def test_dl_bootfiles():
         + file
     )
     c.local(cmd)
-    try:
-        assert os.path.isfile("outs/system_top.hdf")
-    except Exception:
-        assert os.path.isfile("outs/system_top.xsa")
+    file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
+    assert len(file) >= 1
 
 
 def test_show_log():
@@ -76,7 +74,7 @@ def test_show_log():
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
     o = c.local(
-        "nebula show-log update-config board-config no-os-project --yamlfilename="
+        "nebula show-log update-config board-config board-name --yamlfilename="
         + config
         + " --board-name="
         + board
