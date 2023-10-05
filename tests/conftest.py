@@ -33,3 +33,13 @@ def power_off_dut(config, board):
     )
     p.power_down_board()
     yield
+
+
+@pytest.fixture()
+def power_on_dut(config, board):
+    p = pdu(
+        yamlfilename=config,
+        board_name=board,
+    )
+    p.power_up_board()
+    yield
