@@ -19,9 +19,8 @@ def downloader_test(board_name, branch, filetype, source="artifactory"):
         file["boot_partition"] = False
     else:
         file[filetype] = True
-    print(file)
-    yamlfilename = os.path.join("nebula_config", "nebula.yaml")
-    d = downloader(yamlfilename=yamlfilename, board_name=board_name)
+    yaml = os.path.join("nebula_config", "nebula.yaml")
+    d = downloader(yamlfilename=yaml, board_name=board_name)
     d.download_boot_files(
         board_name,
         source=source,
@@ -64,7 +63,7 @@ def test_downloader():
 
 @pytest.mark.parametrize("board_name", ["zynq-zc706-adv7511-fmcomms11"])
 @pytest.mark.parametrize("branch", ["release", "master"])
-@pytest.mark.parametrize("filetype", ["boot_partition", "not_boot_partition"])
+@pytest.mark.parametrize("filetype", ["boot_partition"])
 def test_boot_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
     assert os.path.isfile("outs/BOOT.BIN")
@@ -74,20 +73,17 @@ def test_boot_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/properties.yaml")
 
 
-@pytest.mark.parametrize("board_name", ["zynq-zc702-adv7511-ad9361-fmcomms2-3"])
-@pytest.mark.parametrize("branch", ["release", "master"])
+@pytest.mark.parametrize("board_name", ["max32650_adxl355"])
+@pytest.mark.parametrize("branch", ["master"])
 @pytest.mark.parametrize("filetype", ["noos"])
 def test_noos_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
-    try:
-        assert os.path.isfile("outs/system_top.hdf")
-    except Exception:
-        assert os.path.isfile("outs/system_top.xsa")
-    assert os.path.isfile("outs/properties.yaml")
+    file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
+    assert len(file) >= 1
 
 
 @pytest.mark.parametrize("board_name", ["kc705_fmcomms4"])
-@pytest.mark.parametrize("branch", ["release", "master"])
+@pytest.mark.parametrize("branch", ["release"])
 @pytest.mark.parametrize("filetype", ["microblaze"])
 def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)

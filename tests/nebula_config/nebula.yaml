@@ -1,21 +1,32 @@
+max32650_adxl355:
+  board-config:
+  - board-name: max32650_adxl355
+  - carrier: Maxim
+  - daughter: ADXL355
+  - monitoring-interface: uart
+  - example: iio_example
+  downloader-config:
+  - no_os_project: eval-adxl355-pmdz
+  - platform: Maxim
 zynq-zc702-adv7511-ad9361-fmcomms2-3:
   board-config:
-    - board-name: zynq-zc702-adv7511-ad9361-fmcomms2-3
-    - monitoring_interface: uart
-    - allow_jtag: True
-    - no-os-project: ad9361
+  - board-name: zynq-zc702-adv7511-ad9361-fmcomms2-3
+  - monitoring_interface: uart
+  - allow_jtag: True
   downloader-config:
-    - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
-    - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
-    - hdl_folder: fmcomms2_zc702
+  - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
+  - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
+  - hdl_folder: fmcomms2_zc702
+  - no_os_project: ad9361
+  - platform: Xilinx
   driver-config:
-    - iio_device_names:
-      - ad7291
-      - ad9361-phy
-      - adf4351-udc-tx-pmod
-      - adf4351-udc-rx-pmod
-      - cf-ad9361-dds-core-lpc
-      - cf-ad9361-lpc
+  - iio_device_names:
+    - ad7291
+    - ad9361-phy
+    - adf4351-udc-tx-pmod
+    - adf4351-udc-rx-pmod
+    - cf-ad9361-dds-core-lpc
+    - cf-ad9361-lpc
 zynq-zc706-adv7511-fmcomms11:
   board-config:
   - board-name: zynq-zc706-adv7511-fmcomms11
