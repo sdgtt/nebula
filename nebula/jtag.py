@@ -115,7 +115,7 @@ class jtag(utils):
             + "}} ; "
         )
 
-    def boot_to_uboot(self, fsblpath="fsbl.elf" ,ubootpath="u-boot.elf"):
+    def boot_to_uboot(self, fsblpath="fsbl.elf", ubootpath="u-boot.elf"):
         """From JTAG reset board and load up FSBL and uboot
         This should be followed by uboot interaction to stop it"""
         assert os.path.isfile(fsblpath)
@@ -143,7 +143,11 @@ class jtag(utils):
         cmd += "after 1000; "
 
         cmd += "puts {Loading U-BOOT}; "
-        cmd += "if {[catch {dow " + ubootpath + "} result]} {puts {Error loading FSBL... u-boot is probably loaded}; }; "
+        cmd += (
+            "if {[catch {dow "
+            + ubootpath
+            + "} result]} {puts {Error loading FSBL... u-boot is probably loaded}; }; "
+        )
         cmd += "con; "
         self.run_xsdb(cmd)
 

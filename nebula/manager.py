@@ -25,7 +25,7 @@ log = logging.getLogger(__name__)
 class manager:
     """Board Manager"""
 
-    def __init__(
+    def __init__(  # noqa:C901
         self,
         monitor_type="uart",
         configfilename=None,
@@ -112,7 +112,9 @@ class manager:
         self.tftp = False
 
         if "usbmux-config" in configs:
-            self.usbsdmux = usbmux(yamlfilename=self.configfilename, board_name=board_name)
+            self.usbsdmux = usbmux(
+                yamlfilename=self.configfilename, board_name=board_name
+            )
         else:
             self.usbsdmux = None
 
@@ -201,15 +203,15 @@ class manager:
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
     @_release_thread_lock
-    def recover_board(
-        self, 
+    def recover_board(  # noqa:C901
+        self,
         system_top_bit_path,
         bootbinpath,
         uimagepath,
         devtreepath,
         fsblpath=None,
         ubootpath=None,
-        sdcard=False
+        sdcard=False,
     ):
         """Recover boards with UART, PDU, JTAG, USB-SD-Mux and Network if available"""
         self._check_files_exist(
@@ -263,7 +265,7 @@ class manager:
                         self.usbsdmux.update_boot_files_from_external(
                             bootbin_loc=bootbinpath,
                             kernel_loc=uimagepath,
-                            devicetree_loc=devtreepath
+                            devicetree_loc=devtreepath,
                         )
                         # if devtreepath:
                         #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
@@ -305,7 +307,8 @@ class manager:
                             devtree_filename=devtreepath,
                         )
                         results = self.monitor[0]._read_until_done_multi(
-                            done_strings=["Starting kernel", "root@analog"], max_time=100
+                            done_strings=["Starting kernel", "root@analog"],
+                            max_time=100,
                         )
 
                         if len(results) == 1:
@@ -332,7 +335,7 @@ class manager:
                         devtreepath,
                         fsblpath,
                         ubootpath,
-                        sdcard
+                        sdcard,
                     )
                     log.info("Linux fully recovered")
                 else:
@@ -348,7 +351,7 @@ class manager:
         devtreepath,
         fsblpath=None,
         ubootpath=None,
-        sdcard=False
+        sdcard=False,
     ):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
@@ -362,7 +365,7 @@ class manager:
             log.info("u-boot accessible after JTAG reset")
         else:
             log.info("u-boot not reachable, manually loading u-boot over JTAG")
-            self.jtag.boot_to_uboot(fsblpath,ubootpath)
+            self.jtag.boot_to_uboot(fsblpath, ubootpath)
             log.info("Taking over UART control")
             if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
                 raise ne.UbootNotReached
@@ -538,7 +541,7 @@ class manager:
             self.usbsdmux.update_boot_files_from_external(
                 bootbin_loc=bootbinpath,
                 kernel_loc=uimagepath,
-                devicetree_loc=devtreepath
+                devicetree_loc=devtreepath,
             )
             # if devtreepath:
             #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
@@ -753,10 +756,16 @@ class manager:
                 )
 
     def board_reboot_auto(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False, recover=False
+        self,
+        system_top_bit_path,
+        bootbinpath,
+        uimagepath,
+        devtreepath,
+        sdcard=False,
+        recover=False,
     ):
         """Automatically select loading mechanism
-        based on current class setup"""        
+        based on current class setup"""
         if recover:
             self.recover_board(
                 system_top_bit_path=system_top_bit_path,

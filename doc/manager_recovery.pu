@@ -11,17 +11,17 @@ if (Is Linux is accessible?) then (yes)
   #palegreen: Home sweet home;
   kill
 else (no)
-  
+
   if (usbsdmux enabled) then (yes)
     partition #yellow "SD Card Mux"{
       : power down board using PDU
       __power.power_down_board()__;
       if (SD card mode) then (yes)
-        : update boot files 
+        : update boot files
         from within sdcard
         via usb-sd-mux;
       else (no)
-        : update boot files 
+        : update boot files
         from external sources
         via usb-sd-mux;
       endif

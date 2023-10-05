@@ -3,8 +3,8 @@ import shutil
 import time
 
 import pytest
-from nebula import manager
-from nebula import helper
+from nebula import helper, manager
+
 
 # @pytest.mark.skip(reason="Not fully implemented")
 # @pytest.mark.dependency()
@@ -31,17 +31,23 @@ def test_board_reboot_uart_net_pdu():
         devtreepath=devtree_filename,
     )
 
+
 @pytest.mark.hardware
 @pytest.mark.parametrize(
     "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml")],
+    [
+        os.path.join(
+            os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+        )
+    ],
 )
 @pytest.mark.parametrize(
-    "board", [
+    "board",
+    [
         "zynq-zc706-adv7511-ad9361-fmcomms5",
         "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-        "zynqmp-zcu102-rev10-adrv9002-vcmos"
-    ]
+        "zynqmp-zcu102-rev10-adrv9002-vcmos",
+    ],
 )
 def test_board_reboot_sdmux_pdu(power_on_dut, config, board):
 
@@ -54,7 +60,7 @@ def test_board_reboot_sdmux_pdu(power_on_dut, config, board):
 
     if "zynqmp" in board:
         uimage = "Image"
-        devtree= "system.dtb"
+        devtree = "system.dtb"
 
     system_top_bit_path = f"{root}/bootfiles/{board}/" + system_top_bit
     bootbinpath = f"{root}/bootfiles/{board}/" + bootbin
@@ -69,24 +75,25 @@ def test_board_reboot_sdmux_pdu(power_on_dut, config, board):
     m = manager(configfilename=config, board_name=board)
     m.net.check_board_booted()
 
-    m.board_reboot_sdmux_pdu(
-        system_top_bit_path,
-        bootbinpath,
-        uimagepath,
-        devtreepath
-    )
+    m.board_reboot_sdmux_pdu(system_top_bit_path, bootbinpath, uimagepath, devtreepath)
+
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
     "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml")],
+    [
+        os.path.join(
+            os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+        )
+    ],
 )
 @pytest.mark.parametrize(
-    "board", [
+    "board",
+    [
         "zynq-zc706-adv7511-ad9361-fmcomms5",
         "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-        "zynqmp-zcu102-rev10-adrv9002-vcmos"
-    ]
+        "zynqmp-zcu102-rev10-adrv9002-vcmos",
+    ],
 )
 def test_recover_board_functional(power_on_dut, config, board):
 
@@ -108,7 +115,7 @@ def test_recover_board_functional(power_on_dut, config, board):
 
     if "zynqmp" in board:
         uimage = "Image"
-        devtree= "system.dtb"
+        devtree = "system.dtb"
 
     system_top_bit_path = f"{root}/bootfiles/{board}/" + system_top_bit
     bootbinpath = f"{root}/bootfiles/{board}/" + bootbin
@@ -124,31 +131,31 @@ def test_recover_board_functional(power_on_dut, config, board):
     assert os.path.isfile(fsblpath)
     assert os.path.isfile(ubootpath)
 
-
     m = manager(configfilename=config, board_name=board)
     m.net.check_board_booted()
 
     # recover via usb-sd-mux
     m.recover_board(
-        system_top_bit_path,
-        bootbinpath,
-        uimagepath,
-        devtreepath,
-        fsblpath,
-        ubootpath
+        system_top_bit_path, bootbinpath, uimagepath, devtreepath, fsblpath, ubootpath
     )
+
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
     "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml")],
+    [
+        os.path.join(
+            os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+        )
+    ],
 )
 @pytest.mark.parametrize(
-    "board", [
+    "board",
+    [
         "zynq-zc706-adv7511-ad9361-fmcomms5",
         "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-        "zynqmp-zcu102-rev10-adrv9002-vcmos"
-    ]
+        "zynqmp-zcu102-rev10-adrv9002-vcmos",
+    ],
 )
 def test_recover_board_usbsdmux(power_on_dut, config, board):
 
@@ -170,7 +177,7 @@ def test_recover_board_usbsdmux(power_on_dut, config, board):
 
     if "zynqmp" in board:
         uimage = "Image"
-        devtree= "system.dtb"
+        devtree = "system.dtb"
 
     system_top_bit_path = f"{root}/bootfiles/{board}/" + system_top_bit
     bootbinpath = f"{root}/bootfiles/{board}/" + bootbin
@@ -186,7 +193,6 @@ def test_recover_board_usbsdmux(power_on_dut, config, board):
     assert os.path.isfile(fsblpath)
     assert os.path.isfile(ubootpath)
 
-
     m = manager(configfilename=config, board_name=board)
     m.net.check_board_booted()
 
@@ -196,13 +202,9 @@ def test_recover_board_usbsdmux(power_on_dut, config, board):
 
     # recover via usb-sd-mux
     m.recover_board(
-        system_top_bit_path,
-        bootbinpath,
-        uimagepath,
-        devtreepath,
-        fsblpath,
-        ubootpath
+        system_top_bit_path, bootbinpath, uimagepath, devtreepath, fsblpath, ubootpath
     )
+
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
@@ -210,11 +212,12 @@ def test_recover_board_usbsdmux(power_on_dut, config, board):
     [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager.yml")],
 )
 @pytest.mark.parametrize(
-    "board", [
+    "board",
+    [
         "zynq-zc706-adv7511-ad9361-fmcomms5",
         "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-        "zynqmp-zcu102-rev10-adrv9002-vcmos"
-    ]
+        "zynqmp-zcu102-rev10-adrv9002-vcmos",
+    ],
 )
 def test_recover_board_uart(power_on_dut, config, board):
 
@@ -236,7 +239,7 @@ def test_recover_board_uart(power_on_dut, config, board):
 
     if "zynqmp" in board:
         uimage = "Image"
-        devtree= "system.dtb"
+        devtree = "system.dtb"
 
     system_top_bit_path = f"{root}/bootfiles/{board}/" + system_top_bit
     bootbinpath = f"{root}/bootfiles/{board}/" + bootbin
@@ -270,18 +273,24 @@ def test_recover_board_uart(power_on_dut, config, board):
         ubootpath,
     )
 
+
 # @pytest.mark.skip(reason="Not fully implemented")
 @pytest.mark.hardware
 @pytest.mark.parametrize(
     "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml")],
+    [
+        os.path.join(
+            os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml"
+        )
+    ],
 )
 @pytest.mark.parametrize(
-    "board", [
+    "board",
+    [
         "zynq-zc706-adv7511-ad9361-fmcomms5",
         "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-        "zynqmp-zcu102-rev10-adrv9002-vcmos"
-    ]
+        "zynqmp-zcu102-rev10-adrv9002-vcmos",
+    ],
 )
 def test_recover_board_jtag(power_on_dut, config, board):
 
@@ -303,7 +312,7 @@ def test_recover_board_jtag(power_on_dut, config, board):
 
     if "zynqmp" in board:
         uimage = "Image"
-        devtree= "system.dtb"
+        devtree = "system.dtb"
 
     system_top_bit_path = f"{root}/bootfiles/{board}/" + system_top_bit
     bootbinpath = f"{root}/bootfiles/{board}/" + bootbin
@@ -337,6 +346,7 @@ def test_recover_board_jtag(power_on_dut, config, board):
         fsblpath,
         ubootpath,
     )
+
 
 if __name__ == "__main__":
     test_board_reboot_uart_net_pdu()

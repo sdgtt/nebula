@@ -34,6 +34,7 @@ class LinuxNotReached(Error):
 
     pass
 
+
 class UbootNotReached(Error):
     """U-boot menu not reachable"""
 
