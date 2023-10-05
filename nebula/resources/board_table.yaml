@@ -483,3 +483,5 @@ max78000_adt7420:
   carrier: Maxim
 aducm3029_adxrs290:
   carrier: ADICUP
+vc707_fmcomms2:
+  carrier: VC707
