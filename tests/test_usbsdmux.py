@@ -6,46 +6,54 @@ from nebula import pdu, usbmux
 
 
 @pytest.mark.hardware
-@pytest.mark.parametrize("target_mux", ["id-000000001204"])
-@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
 @pytest.mark.parametrize(
-    "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")],
+    "config",[
+        (
+            "eval-cn0508-rpiz",
+            os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml"),
+            "id-000000001204",
+        ),
+    ]
 )
-def test_find_mux_device(config, board, target_mux):
+def test_find_mux_device(config):
     sd = usbmux(
-        target_mux=target_mux,
-        yamlfilename=config,
-        board_name=board,
+        board_name=config[0],
+        yamlfilename=config[1],
+        target_mux=config[2],
     )
-    assert sd._mux_in_use == os.path.join(sd.search_path, target_mux)
+    assert sd._mux_in_use == os.path.join(sd.search_path, config[2])
 
 
 @pytest.mark.hardware
-@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
 @pytest.mark.parametrize(
-    "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")],
+    "config",[
+        ("eval-cn0508-rpiz", os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")),
+    ]
 )
-def test_find_muxed_sdcard(power_off_dut, config, board):
+def test_find_muxed_sdcard(power_off_dut, config):
     sd = usbmux(
-        yamlfilename=config,
-        board_name=board,
+        board_name=config[0],
+        yamlfilename=config[1],
     )
     sd.find_muxed_sdcard()
     assert sd._target_sdcard
 
 
 @pytest.mark.hardware
-@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
+@pytest.mark.hardware
 @pytest.mark.parametrize(
-    "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")],
+    "config",[
+        (
+            "eval-cn0508-rpiz",
+            os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml"),
+            "5.15.92-v7+"
+        ),
+    ]
 )
-def test_backup_update_boot_files_external(power_off_dut, config, board):
+def test_backup_update_boot_files_external(power_off_dut, config):
     sd = usbmux(
-        yamlfilename=config,
-        board_name=board,
+        board_name=config[0],
+        yamlfilename=config[1],
     )
     try:
         destination = "test_backup"
@@ -107,14 +115,14 @@ def test_backup_update_boot_files_external(power_off_dut, config, board):
 
         folder_r = sd.backup_files_to_external(
             partition="root",
-            target=[os.path.join("lib", "modules", "5.10.63-v7+")],
+            target=[os.path.join("lib", "modules", config[2])],
             destination=destination,
         )
-        assert os.path.isdir(os.path.join(destination, folder_r, "5.10.63-v7+"))
+        assert os.path.isdir(os.path.join(destination, folder_r, config[2]))
 
         sd.update_rootfs_files_from_external(
-            target=os.path.join(destination, folder_r, "5.10.63-v7+"),
-            destination=os.path.join("lib", "modules", "5.10.63-v7+"),
+            target=os.path.join(destination, folder_r, config[2]),
+            destination=os.path.join("lib", "modules", config[2]),
         )
 
     finally:

@@ -26,20 +26,20 @@ def pytest_runtest_setup(item):
 
 
 @pytest.fixture()
-def power_off_dut(config, board):
+def power_off_dut(config):
     p = pdu(
-        yamlfilename=config,
-        board_name=board,
+        board_name=config[0],
+        yamlfilename=config[1],
     )
     p.power_down_board()
     yield
 
 
 @pytest.fixture()
-def power_on_dut(config, board):
+def power_on_dut(config):
     p = pdu(
-        yamlfilename=config,
-        board_name=board,
+        board_name=config[0],
+        yamlfilename=config[1],
     )
     p.power_up_board()
     yield

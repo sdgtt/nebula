@@ -84,12 +84,12 @@ def test_show_log():
 
 
 @pytest.mark.hardware
-@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
 @pytest.mark.parametrize(
-    "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")],
+    "config",[
+        ("eval-cn0508-rpiz", os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")),
+    ]
 )
-def test_usbmux_backup_update_bootfiles(power_off_dut, config, board):
+def test_usbmux_backup_update_bootfiles(power_off_dut, config):
     test_dir = os.path.dirname(__file__)
     test_bk_dir = os.path.join(test_dir, "test-backup")
 
@@ -103,9 +103,9 @@ def test_usbmux_backup_update_bootfiles(power_off_dut, config, board):
         + " --target-file overlays/rpi-cn0508.dtbo"
         + " --target-file kernel7.img"
         + " --yamlfilename="
-        + config
+        + config[1]
         + " --board-name="
-        + board
+        + config[0]
     )
 
     assert o.return_code == 0
@@ -129,23 +129,27 @@ def test_usbmux_backup_update_bootfiles(power_off_dut, config, board):
         + " --no-update-dt"
         + " --mux-mode dut"
         + " --yamlfilename="
-        + config
+        + config[1]
         + " --board-name="
-        + board
+        + config[0]
     )
     assert o.return_code == 0
 
 
 @pytest.mark.hardware
-@pytest.mark.parametrize("board", ["eval-cn0508-rpiz"])
 @pytest.mark.parametrize(
-    "config",
-    [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")],
+    "config",[
+        (
+            "eval-cn0508-rpiz",
+            os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml"),
+            "5.15.92-v7+"
+        ),
+    ]
 )
-def test_usbmux_backup_update_modules(power_off_dut, config, board):
+def test_usbmux_backup_update_modules(power_off_dut, config):
     test_dir = os.path.dirname(__file__)
     test_bk_dir = os.path.join(test_dir, "test-backup")
-    modules_path = os.path.join("lib", "modules", "5.10.63-v7+")
+    modules_path = os.path.join("lib", "modules", config[2])
 
     c = con("localhost")
     o = c.local(
@@ -155,20 +159,20 @@ def test_usbmux_backup_update_modules(power_off_dut, config, board):
         + " --backup-subfolder random"
         + f" --target-file {modules_path}"
         + " --yamlfilename="
-        + config
+        + config[1]
         + " --board-name="
-        + board
+        + config[0]
     )
     assert o.return_code == 0
-    assert os.path.isdir(os.path.join(test_bk_dir, "random", "5.10.63-v7+"))
+    assert os.path.isdir(os.path.join(test_bk_dir, "random", config[2]))
     o = c.local(
         "nebula show-log usbsdmux.update-modules"
         + " --module-loc "
-        + os.path.join(test_bk_dir, "random", "5.10.63-v7+")
+        + os.path.join(test_bk_dir, "random", config[2])
         + " --mux-mode off"
         + " --yamlfilename="
-        + config
+        + config[1]
         + " --board-name="
-        + board
+        + config[0]
     )
     assert o.return_code == 0
