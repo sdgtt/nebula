@@ -752,7 +752,7 @@ class manager:
                     uimagepath=kernel,
                     devtreepath=dt,
                     sdcard=sdcard,
-                    recover=True,
+                    recover=recover,
                 )
 
     def board_reboot_auto(
