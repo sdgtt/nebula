@@ -15,7 +15,7 @@ requests
 pygithub
 pynetbox
 artifactory
-usbsdmux
+usbsdmux==0.2.1
 pyudev
 decorator
 numpy<=1.24.3
