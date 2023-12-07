@@ -404,7 +404,8 @@ class manager:
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False
     ):
         """Manager when UART, PDU, and Network are available"""
-        self._check_files_exist(
+        if not sdcard:
+            self._check_files_exist(
             system_top_bit_path, bootbinpath, uimagepath, devtreepath
         )
         try:
