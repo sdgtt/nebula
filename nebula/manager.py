@@ -878,6 +878,7 @@ class manager:
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
                     preloader_path=preloader_path,
+                    sdcard=sdcard
                 )
 
     def shutdown_powerdown_board(self):
