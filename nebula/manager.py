@@ -794,6 +794,7 @@ class manager:
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
                     devtreepath=devtreepath,
+                    sdcard=sdcard
                 )
 
     def shutdown_powerdown_board(self):
