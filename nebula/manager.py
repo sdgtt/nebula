@@ -429,15 +429,17 @@ class manager:
         sdcard=False,
     ):
         """Manager when UART, PDU, and Network are available"""
-        self._check_files_exist(
-            system_top_bit_path,
-            bootbinpath,
-            uimagepath,
-            devtreepath,
-            extlinux_path,
-            scr_path,
-            preloader_path,
-        )
+<<<<<<< HEAD
+        if not sdcard:
+            self._check_files_exist(
+                system_top_bit_path,
+                bootbinpath,
+                uimagepath,
+                devtreepath,
+                extlinux_path,
+                scr_path,
+                preloader_path,
+            )
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
