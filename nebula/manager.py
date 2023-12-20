@@ -804,7 +804,10 @@ class manager:
                 preloader,
                 uboot,
             ) = self._find_boot_files(folder)
-
+            log.info("Found boot files:")
+            for file in [bootbin, kernel, dt, bit, ext, scr, preloader, uboot]:
+                if file:
+                    log.info(file)
             if jtag_mode:
                 self.board_reboot_jtag_uart(
                     system_top_bit_path=bit,
