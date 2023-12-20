@@ -6,6 +6,7 @@ import time
 
 import pytest
 from fabric import Connection as con
+
 from nebula import pdu, uart
 
 # must include -s

@@ -197,7 +197,7 @@ class manager:
             self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def recover_board(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False
     ):
@@ -310,7 +310,7 @@ class manager:
                     bootbinpath, uimagepath, devtreepath, sdcard
                 )
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_jtag_uart(
         self, bootbinpath, uimagepath, devtreepath, sdcard=False
     ):
@@ -363,7 +363,7 @@ class manager:
 
         self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_uart_net_pdu(
         self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
     ):
