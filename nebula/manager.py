@@ -206,7 +206,7 @@ class manager:
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
     @_release_thread_lock
-    def recover_board(  # noqa:C901
+    def recover_board(  # type: ignore
         self,
         system_top_bit_path,
         bootbinpath,
@@ -360,7 +360,7 @@ class manager:
                     raise e
                 self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_jtag_uart(
         self,
         system_top_bit_path,
@@ -416,7 +416,7 @@ class manager:
             self.network_check()
             self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_uart_net_pdu(
         self,
         system_top_bit_path,

@@ -2,6 +2,7 @@ import os
 import shutil
 
 import pytest
+
 from nebula import downloader
 
 # Must be connected to analog VPN
