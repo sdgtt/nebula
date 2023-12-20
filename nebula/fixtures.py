@@ -56,9 +56,6 @@ def sd_card_update_boot(request):
         yamlfilename = "/tmp/hw_test/test.yaml"
         folder = "/tmp/hw_test/boot_files"
 
-        import nebula
-        import logging
-
         level = request.config.getoption("--nb-log-level")
         if level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
             raise ValueError("Invalid nebula log level: " + level)
@@ -84,8 +81,9 @@ def sd_card_update_boot(request):
 
     print("Generated log files:")
 
+
 # # Example use
-    
+
 # @pytest.mark.nebula_update_boot("zynq-adrv9364")
 # def test_boot_hw(sd_card_update_boot):
 
