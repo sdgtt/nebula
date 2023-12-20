@@ -9,8 +9,9 @@ import time
 from pathlib import Path
 
 import pyudev
-from nebula.common import utils
 from usbsdmux import usbsdmux
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 

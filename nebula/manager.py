@@ -4,10 +4,11 @@ import os
 import tarfile
 import time
 
+import yaml
+
 import nebula.common as common
 import nebula.errors as ne
 import nebula.helper as helper
-import yaml
 from nebula.driver import driver
 from nebula.jtag import jtag
 from nebula.netconsole import netconsole

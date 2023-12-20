@@ -26,7 +26,7 @@ board-config:
   field_3:
     name: daughter
     default: FMCOMMS2-3
-    help: "Daugther board name"
+    help: "Daughter board name"
     optional: False
     netbox_field: devices.custom_fields.device_daughter
   field_4:
