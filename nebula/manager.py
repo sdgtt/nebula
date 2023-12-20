@@ -642,7 +642,9 @@ class manager:
         else:
             log.info("SD-Card/microblaze based device selected")
             (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
-            print(bootbin, kernel, dt, bit)
+            log.info("Found boot files:")
+            for file in [bootbin, kernel, dt, bit]:
+                log.info(file)
             if jtag_mode:
                 self.board_reboot_jtag_uart(
                     system_top_bit_path=bit,
