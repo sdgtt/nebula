@@ -87,7 +87,7 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/properties.yaml")
 
 
-@pytest.mark.parametrize("board_name", ["kc705_fmcomms4"])
+@pytest.mark.parametrize("board_name", ["vcu118_ad9081_fmca_ebz"])
 @pytest.mark.parametrize("branch", ["release", "master"])
 @pytest.mark.parametrize("filetype", ["microblaze"])
 def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
