@@ -16,10 +16,11 @@ import yaml
 from artifactory import ArtifactoryPath
 from bs4 import BeautifulSoup
 from github import Github
-from nebula.common import utils
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 

@@ -8,8 +8,9 @@ import subprocess
 import time
 
 import fabric
-import nebula.errors as ne
 from fabric import Connection
+
+import nebula.errors as ne
 from nebula.common import utils
 
 log = logging.getLogger(__name__)

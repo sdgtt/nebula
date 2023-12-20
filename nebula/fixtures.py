@@ -1,8 +1,9 @@
-import pytest
-import os
-import nebula
 import logging
+import os
 
+import pytest
+
+import nebula
 
 logging.getLogger().setLevel(logging.INFO)
 

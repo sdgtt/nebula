@@ -9,8 +9,9 @@ import time
 
 import serial
 import xmodem
-from nebula.common import utils
 from tqdm import tqdm
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 

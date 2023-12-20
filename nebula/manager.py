@@ -4,10 +4,11 @@ import os
 import tarfile
 import time
 
+import yaml
+
 import nebula.common as common
 import nebula.errors as ne
 import nebula.helper as helper
-import yaml
 from nebula.driver import driver
 from nebula.jtag import jtag
 from nebula.netconsole import netconsole
@@ -322,7 +323,7 @@ class manager:
         # Check if u-boot loads first
         # log.info("Resetting with JTAG and checking if u-boot is reachable")
         # self.jtag.restart_board()
-        # do a power cylcle rather than jtag reboot to make sure jtag devices are working
+        # do a power cycle rather than jtag reboot to make sure jtag devices are working
         log.info("Resetting with JTAG and checking if u-boot is reachable")
         self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
