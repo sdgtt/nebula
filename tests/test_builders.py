@@ -37,7 +37,7 @@ def test_libiio_build():
 
 def test_hdl_build():
     b = builder()
-    b.analog_clone_build("hdl", "hdl_2018_r2", "fmcomms2", "zed")
+    b.analog_clone_build("hdl", "hdl_2021_r1", "fmcomms2", "zed")
     filename = "hdl/projects/fmcomms2/zed/fmcomms2_zed.sdk/system_top.hdf"
     assert os.path.isfile(filename)
 

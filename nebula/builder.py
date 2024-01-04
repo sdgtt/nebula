@@ -15,9 +15,12 @@ class builder:
     def __init__(self):
         pass
 
+    def _save_metadata(self, metadata):
+        ...
+
     def shell_out(self, cmd):
         cmd = cmd.split(" ")
-        logging.info("Running command: " + cmd)
+        logging.info(f"Running command: {cmd}")
         subprocess.run(cmd)
 
     def shell_out2(self, script):
@@ -40,7 +43,10 @@ class builder:
         except FileNotFoundError:
             file = open("projects/scripts/adi_project.tcl", "rt")
         for line in file:
-            if "set REQUIRED_VIVADO_VERSION" in line:
+            if (
+                "set REQUIRED_VIVADO_VERSION" in line
+                or "set required_vivado_version" in line
+            ):
                 vivado_version = line.split()[2].replace('"', "")
                 vivado = "/opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
                 if not os.path.isfile(vivado):
@@ -96,8 +102,10 @@ class builder:
                 vivado = "2018.2"
             elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
                 vivado = "2018.3"
+            elif "2021_r1" in branch.lower() or "2021.1" in branch.lower():
+                vivado = "2021.1"
             elif branch == "master":
-                vivado = "2019.1"
+                vivado = "2023.1"
             else:
                 raise Exception("Unsupported branch")
         if "zcu102" in board.lower():
