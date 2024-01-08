@@ -733,6 +733,7 @@ def gen_config_netbox(
 #############################################
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -745,6 +746,7 @@ def gen_config_netbox(
 )
 def update_boot_files_jtag_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -755,7 +757,7 @@ def update_boot_files_jtag_manager(
     board_name=None,
 ):
     """Update boot files through JTAG (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
     # m.board_reboot_jtag_uart()
 
     if not folder:
@@ -771,6 +773,7 @@ def update_boot_files_jtag_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -783,6 +786,7 @@ def update_boot_files_jtag_manager(
 )
 def recovery_device_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -793,7 +797,7 @@ def recovery_device_manager(
     sdcard=False,
 ):
     """Recover device through many methods (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
 
     if not folder:
         m.board_reboot_auto(
@@ -831,6 +835,7 @@ def check_jtag_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -843,6 +848,7 @@ def check_jtag_manager(
 )
 def update_boot_files_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -853,7 +859,7 @@ def update_boot_files_manager(
     board_name=None,
 ):
     """Update boot files through u-boot menu (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
 
     if not folder:
         m.board_reboot_auto(

@@ -14,7 +14,7 @@ class jtag(utils):
 
     def __init__(
         self,
-        vivado_version="2019.1",
+        vivado_version="2021.1",
         custom_vivado_path=None,
         yamlfilename=None,
         board_name=None,
