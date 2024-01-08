@@ -406,8 +406,8 @@ class manager:
         """Manager when UART, PDU, and Network are available"""
         if not sdcard:
             self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
-        )
+                system_top_bit_path, bootbinpath, uimagepath, devtreepath
+            )
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -795,7 +795,7 @@ class manager:
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
                     devtreepath=devtreepath,
-                    sdcard=sdcard
+                    sdcard=sdcard,
                 )
 
     def shutdown_powerdown_board(self):
