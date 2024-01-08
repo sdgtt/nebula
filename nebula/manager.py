@@ -432,6 +432,7 @@ class manager:
 <<<<<<< HEAD
         if not sdcard:
             self._check_files_exist(
+<<<<<<< HEAD
                 system_top_bit_path,
                 bootbinpath,
                 uimagepath,
@@ -439,6 +440,9 @@ class manager:
                 extlinux_path,
                 scr_path,
                 preloader_path,
+=======
+                system_top_bit_path, bootbinpath, uimagepath, devtreepath
+>>>>>>> 497fc8d (fix lint)
             )
         try:
             # Flush UART
@@ -877,10 +881,14 @@ class manager:
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
                     devtreepath=devtreepath,
+<<<<<<< HEAD
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
                     preloader_path=preloader_path,
                     sdcard=sdcard
+=======
+                    sdcard=sdcard,
+>>>>>>> 497fc8d (fix lint)
                 )
 
     def shutdown_powerdown_board(self):

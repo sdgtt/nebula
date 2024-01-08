@@ -307,7 +307,7 @@ class network(utils):
             log.info(f"Copying {boot_file[1]}")
             self.run_ssh_command(f"cp {boot_file[1]} /tmp/sdcard/")
 
-        self.run_ssh_command("sudo reboot", retries=1 , ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1, ignore_exceptions=True)
 
     def _dl_file(self, filename):
         fabric.Connection(
