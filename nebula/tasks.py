@@ -758,7 +758,11 @@ def update_boot_files_jtag_manager(
     board_name=None,
 ):
     """Update boot files through JTAG (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
     # m.board_reboot_jtag_uart()
 
     if not folder:
@@ -798,7 +802,11 @@ def recovery_device_manager(
     sdcard=False,
 ):
     """Recover device through many methods (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
 
     if not folder:
         m.board_reboot_auto(
@@ -860,7 +868,11 @@ def update_boot_files_manager(
     board_name=None,
 ):
     """Update boot files through u-boot menu (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name, vivado_version=vivado_version,)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
 
     if not folder:
         m.board_reboot_auto(
@@ -868,7 +880,7 @@ def update_boot_files_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
-            sdcard=sdcard
+            sdcard=sdcard,
         )
     else:
         m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
