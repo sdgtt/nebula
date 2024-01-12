@@ -865,7 +865,15 @@ class manager:
                 sdcard=sdcard,
             )
         else:
-            if self.usbsdmux:
+            if sdcard:
+                self.board_reboot_uart_net_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    sdcard=sdcard,
+                )
+            elif self.usbsdmux:
                 self.board_reboot_sdmux_pdu(
                     system_top_bit_path=system_top_bit_path,
                     bootbinpath=bootbinpath,
@@ -880,6 +888,7 @@ class manager:
                     system_top_bit_path=system_top_bit_path,
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
+<<<<<<< HEAD
                     devtreepath=devtreepath,
 <<<<<<< HEAD
                     extlinux_path=extlinux_path,
@@ -889,6 +898,9 @@ class manager:
 =======
                     sdcard=sdcard,
 >>>>>>> 497fc8d (fix lint)
+=======
+                    devtreepath=devtreepath
+>>>>>>> d19395a (Copy bootfiles from sdcard using network first)
                 )
 
     def shutdown_powerdown_board(self):
