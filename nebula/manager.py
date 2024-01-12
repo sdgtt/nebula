@@ -860,7 +860,15 @@ class manager:
                 sdcard=sdcard,
             )
         else:
-            if self.usbsdmux:
+            if sdcard:
+                self.board_reboot_uart_net_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    sdcard=sdcard,
+                )
+            elif self.usbsdmux:
                 self.board_reboot_sdmux_pdu(
                     system_top_bit_path=system_top_bit_path,
                     bootbinpath=bootbinpath,
