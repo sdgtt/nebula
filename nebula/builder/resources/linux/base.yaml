@@ -1,0 +1,27 @@
+source:
+  url: https://github.com/analogdevicesinc/linux.git
+
+boards:
+  zcu102:
+    arch: arm64
+    cross_compile: aarch64-linux-gnu-
+    defconfig: adi_zynqmp_defconfig
+    vendor: xilinx
+
+  zed:
+    arch: arm
+    cross_compile: arm-linux-gnueabihf-
+    defconfig: zynq_xcomm_adv7511_defconfig
+    vendor: xilinx
+
+  zc702:
+    arch: arm
+    cross_compile: arm-linux-gnueabihf-
+    defconfig: zynq_xcomm_adv7511_defconfig
+    vendor: xilinx
+
+  zc706:
+    arch: arm
+    cross_compile: arm-linux-gnueabihf-
+    defconfig: zynq_xcomm_adv7511_defconfig
+    vendor: xilinx

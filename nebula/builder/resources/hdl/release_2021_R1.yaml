@@ -1,0 +1,14 @@
+include:
+  - hdl/base.yaml
+
+tools:
+  xilinx:
+    vivado: 2021.1
+  intel:
+    quartus_pro: 21.2
+    # Need a better way to handle this for specific projects
+    quartus_standard: 20.1
+
+source:
+  url: https://github.com/analogdevicesinc/hdl.git
+  branch: hdl_2021_r1

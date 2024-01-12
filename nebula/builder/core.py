@@ -5,15 +5,28 @@ import os
 import shutil
 import subprocess
 import time
+import yaml
+from glob import glob
+
+from .tooling import Tooling
 
 log = logging.getLogger(__name__)
 
 
-class builder:
+class BuilderCore(Tooling):
     vivado_override = None
 
-    def __init__(self):
-        pass
+    def __init__(self, release="2021_R1", board="zed", project="fmcomms2"):
+        self.release = release
+        self.board = board
+        self.project = project
+        self.import_all_configs(release)
+
+    
+    def import_all_configs(self, release):
+        self.cfg_uboot = self.import_config("uboot", release)
+        self.cfg_linux = self.import_config("linux", release)
+        self.cfg_hdl = self.import_config("hdl", release)
 
     def _save_metadata(self, metadata):
         ...
@@ -57,33 +70,51 @@ class builder:
                 return vivado
         raise Exception("REQUIRED_VIVADO_VERSION not found in repo")
 
-    def uboot_build(self, dir, def_config=None, branch="2018_R2", board="zed"):
+
+
+    def uboot_build(self, dir):
         logging.info("Starting u-boot build")
         os.chdir(dir)
-        if not def_config:
-            def_config = self.def_config_map(board)
-            cc, arch, vivado_version = self.linux_tools_map(branch, board)
-        else:
-            cc, arch, vivado_version = self.linux_tools_map(branch, def_config)
-        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
-        cmd = vivado
+        arch, cc, def_config = self.get_compiler_args("uboot")
+        cmd = self.get_tooling_setup_prefix('uboot')
         cmd += "; export ARCH=" + arch + "; export CROSS_COMPILE=" + cc
         cmd += "; make distclean; make clean"
         cmd += "; make " + def_config
         cmd += "; make -j" + str(os.cpu_count())
         self.shell_out2(cmd)
+        # Find full path to u-boot.elf
+        for filename in glob('./**/u-boot.elf', recursive=True):
+            return filename
+        raise Exception("u-boot.elf not found")
 
-    def hdl_build(self, dir, project, board):
-        logging.info("Starting HDL build for project: " + project + " board: " + board)
+    def hdl_build(self, dir):
+        logging.info("Starting HDL build for project: " + self.project + " board: " + self.board)
         os.chdir(dir)
-        vivado = self.add_vivado_path(dir)
+        # vivado = self.add_vivado_path(dir)
+        project_dir = os.path.join("projects", self.project)
+        if not os.path.isdir(project_dir):
+            raise Exception(f"Project dir not found: {project_dir}")
+        board_dir = os.path.join(project_dir, self.board)
+        if not os.path.isdir(board_dir):
+            raise Exception(f"Board dir not found: {board_dir}")
+        cmd = self.get_tooling_setup_prefix('hdl')
         args = "--no-print-directory"
-        cmd = vivado + "; make " + args + " -C projects/" + project + "/" + board
+        cmd += f"; make {args} -C {board_dir}"
+        if os.name == "nt":
+            raise Exception("Windows not supported yet")
         self.shell_out2(cmd)
+        # Find .hdf file recursively in current and subdirectories with glob
+        for filename in glob('./**/*.hdf', recursive=True):
+            return filename
+        for filename in glob('./**/*.xsa', recursive=True):
+            return filename
+        raise Exception("HDF file not found")
+
 
     def def_config_map(self, board):
         if "zcu102" in board.lower():
-            def_conf = "xilinx_zynqmp_zcu102_rev1_0_defconfig"
+            # def_conf = "xilinx_zynqmp_zcu102_rev1_0_defconfig"
+            def_conf = "xilinx_zynqmp_virt_defconfig"
         elif "zc706" in board.lower():
             def_conf = "zynq_zc706_defconfig"
         elif "zc702" in board.lower():
@@ -94,20 +125,56 @@ class builder:
             raise Exception("Unsupported board")
         return def_conf
 
-    def linux_tools_map(self, branch, board):
+    def linux_tools_map(self, branch, board, build_component: str = "hdl"):
+        """Map git branch to supported compilers
+
+        Args:
+            branch (str): git branch name
+            board (str): board name
+            build_component (str): component to build [u_boot_xlnx, linux, hdl]
+
+        Returns:
+            tuple: (cc, arch, vivado)
+        """
+
+        if build_component not in ["u_boot_xlnx", "linux", "hdl"]:
+            raise Exception("Unknown build component")
+
         if self.vivado_override:
             vivado = self.vivado_override
         else:
-            if "2018_r2" in branch.lower() or "2018.2" in branch.lower():
-                vivado = "2018.2"
-            elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
-                vivado = "2018.3"
-            elif "2021_r1" in branch.lower() or "2021.1" in branch.lower():
-                vivado = "2021.1"
-            elif branch == "master":
-                vivado = "2023.1"
-            else:
-                raise Exception("Unsupported branch")
+            resource_folder = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)), "resources", "builder"
+            )
+            tools_file = os.path.join(resource_folder, "builder_tools_2021_R1.yaml")
+            if not os.path.isfile(tools_file):
+                raise Exception("builder_tools.yaml not found")
+            with open(tools_file, "r") as f:
+                tools = yaml.safe_load(f)
+
+            vivado = None
+            for release in tools:
+                print("Release", release)
+                print("build_component", build_component)
+                print("branch", branch)
+                if build_component == "u_boot_xlnx":
+                    if branch == tools[release]["u_boot_xlnx_branch"]:
+                        vivado = tools[release]["vivado"]
+                        break
+                elif build_component == "linux":
+                    if branch == tools[release]["linux_branch"]:
+                        vivado = tools[release]["vivado"]
+                        break
+                elif build_component == "hdl":
+                    if branch == tools[release]["hdl_branch"]:
+                        vivado = tools[release]["vivado"]
+                        break
+
+            if not vivado:
+                raise Exception(
+                    "Cannot automatically determine Vivado version, use override"
+                )
+
         if "zcu102" in board.lower():
             arch = "arm64"
             cc = "aarch64-linux-gnu-"
@@ -125,49 +192,24 @@ class builder:
             raise Exception("Unsupported board")
         return (cc, arch, vivado)
 
-    def linux_build(self, dir, branch="2018_R2", board="zed"):
+    def linux_build(self, dir):
         logging.info("Starting Linux build")
         os.chdir(dir)
-        cc, arch, vivado_version = self.linux_tools_map(branch, board)
-        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
-        cmd = vivado
+        arch, cc, def_config = self.get_compiler_args("linux")
+        cmd = self.get_tooling_setup_prefix('linux')
         cmd += "; export ARCH=" + arch + "; export CROSS_COMPILE=" + cc
         cmd += "; make distclean; make clean"
+        cmd += "; make " + def_config
         if "64" in arch:
-            cmd += "; make adi_zynqmp_defconfig"
             cmd += "; make -j" + str(os.cpu_count()) + " UIMAGE_LOADADDR=0x8000 Image"
         else:
-            cmd += "; make zynq_xcomm_adv7511_defconfig"
             cmd += "; make -j" + str(os.cpu_count()) + " UIMAGE_LOADADDR=0x8000 uImage"
         self.shell_out2(cmd)
 
-    def build_repo(self, repo, project=None, board=None, def_config=None):
-        pwd = os.getcwd()
-        if repo in ["libiio", "gr-iio", "libad9361", "iio-oscilloscope"]:
-            self.cmake_build(repo)
-        elif repo == "hdl":
-            self.hdl_build(repo, project, board)
-        elif repo == "u-boot-xlnx":
-            self.uboot_build(repo, def_config, board=board)
-        elif repo == "linux":
-            self.linux_build(repo, board=board)
+        if "64" in arch:
+            return "arch/arm64/boot/Image"
         else:
-            print("Unknown ADI repo, not building")
-        os.chdir(pwd)
-
-    def analog_clone(self, repo, branch="master", githuborg="analogdevicesinc"):
-        cmd = (
-            "git clone -b "
-            + branch
-            + " https://github.com/"
-            + githuborg
-            + "/"
-            + repo
-            + ".git"
-        )
-        if repo in ["linux", "u-boot-xlnx"]:
-            cmd += " --depth=1"
-        self.shell_out(cmd)
+            return "arch/arm/boot/uImage"
 
     def create_zynq_bif(self, hdf_filename, build_dir):
         logging.info("Constructing zynq-bif")
@@ -265,13 +307,15 @@ class builder:
         f.close()
         os.chdir(pwd)
 
-    def build_fsbl(self, build_dir, branch, board):
+    def build_fsbl(self, build_dir):
         logging.info("Building fsbl")
         pwd = os.getcwd()
         os.chdir(build_dir)
-        cc, arch, vivado_version = self.linux_tools_map(branch, board)
-        vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
-        cmd = vivado
+        # arch, cc, def_config = self.get_compiler_args("hdl")
+        # cc, arch, vivado_version = self.linux_tools_map(branch, board)
+        cmd = self.get_tooling_setup_prefix('hdl')
+        # vivado = ". /opt/Xilinx/Vivado/" + vivado_version + "/settings64.sh"
+        # cmd = vivado
         cmd += "; xsdk -batch -source create_fsbl_project.tcl"
         self.shell_out2(cmd)
         os.chdir(pwd)
@@ -403,28 +447,9 @@ class builder:
         # Build BOOT.BIN
         self.build_bootbin(dest, hdl_branch, board, archbg=archbg)
 
-    def analog_clone_build(
-        self,
-        repo,
-        branch="master",
-        project=None,
-        board=None,
-        def_config=None,
-        githuborg=None,
-    ):
-        if repo in ["linux"] and not board:
-            raise Exception("Must supply board for " + repo + " builds")
-        if repo in ["u-boot-xlnx"] and (not board and not def_config):
-            raise Exception("Must supply board or def_config for " + repo + " builds")
-        if "u-boot" in repo:
-            self.analog_clone(repo, branch, githuborg="Xilinx")
-        else:
-            self.analog_clone(repo, branch)
-        time.sleep(1)
-        self.build_repo(repo, project=project, board=board, def_config=def_config)
-
 
 if __name__ == "__main__":
-    b = builder()
-    b.analog_clone_build("u-boot-xlnx", "2018_R2")
+    ...
+    # b = builder()
+    # b.analog_clone_build("u-boot-xlnx", "2018_R2")
     # b.analog_clone_build("linux", "2018_R2")

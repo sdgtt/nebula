@@ -1,0 +1,15 @@
+include:
+  - linux/base.yaml
+
+boards:
+  zcu102:
+    defconfig: xilinx_zynqmp_virt_defconfig
+
+  zed:
+    defconfig: xilinx_zynq_virt_defconfig
+
+  zc702:
+    defconfig: xilinx_zynq_virt_defconfig
+
+  zc706:
+    defconfig: xilinx_zynq_virt_defconfig

@@ -3,7 +3,7 @@
 # print(f.renderText("Nebula"))
 import os
 
-from nebula.builder import builder
+from nebula.builder.interface import BuilderInterface as builder
 from nebula.common import LINUX_DEFAULT_PATH, utils
 from nebula.coverage import coverage
 from nebula.downloader import downloader

@@ -1,0 +1,18 @@
+include:
+  - uboot/base.yaml
+
+tools:
+  xilinx:
+    vivado: 2021.1
+  intel:
+    quartus_pro: 21.2
+    # Need a better way to handle this for specific projects
+    quartus_standard: 20.1
+
+source:
+  xilinx:
+    url: https://github.com/Xilinx/u-boot-xlnx.git
+    branch: xilinx-v2021.1
+  intel:
+    url:
+    branch:

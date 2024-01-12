@@ -1,0 +1,15 @@
+release_2021_R1:
+  release: 2021_R1
+  release_date: '2022-08-04'
+  sd_card_url: https://swdownloads.analog.com/cse/kuiper/image_2022-08-04-ADI-Kuiper-full.zip
+  sd_card_file_compression: zip
+  sd_card_compressed_hash:  9201b9e6580a0ce5c606f40f99c11b9a
+  sd_card_img_hash: dbbee112f5174dc23b4f5142994e4ff9
+
+release_2021_R2:
+  release: 2021_R2
+  release_date: '2023-04-02'
+  sd_card_url: https://swdownloads.analog.com/cse/kuiper/image_2023-04-02-ADI-Kuiper-full.zip
+  sd_card_file_compression: zip
+  sd_card_compressed_hash:  0cdcf6e131318113a137cf54335b9614
+  sd_card_img_hash: aeff476b577b45cc6ce6ce02403a57c2
