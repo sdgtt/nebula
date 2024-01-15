@@ -111,12 +111,12 @@ class manager:
 
         self.tftp = False
 
-        if "usbmux-config" in configs:
-            self.usbsdmux = usbmux(
-                yamlfilename=self.configfilename, board_name=board_name
-            )
-        else:
-            self.usbsdmux = None
+        # if "usbmux-config" in configs:
+        #     self.usbsdmux = usbmux(
+        #         yamlfilename=self.configfilename, board_name=board_name
+        #     )
+        # else:
+        #     self.usbsdmux = None
 
         self.help = helper.helper()
         self.usbdev = usbdev()
