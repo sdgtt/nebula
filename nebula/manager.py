@@ -117,7 +117,7 @@ class manager:
         #         yamlfilename=self.configfilename, board_name=board_name
         #     )
         # else:
-        #     self.usbsdmux = None
+        self.usbsdmux = None
 
         self.help = helper()
         self.usbdev = usbdev()
