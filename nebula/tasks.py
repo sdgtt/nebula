@@ -146,6 +146,7 @@ def usbmux_update_bootfiles(
         and not kernel_filename
         and not devicetree_filename
         and not devicetree_overlay_filename
+        and not devicetree_overlay_config
     ):
         raise Exception("Must specify at least one file to update")
 
@@ -732,27 +733,35 @@ def gen_config_netbox(
 #############################################
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "sdcard": "Will use bootfiles from sd card if set to true",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def update_boot_files_jtag_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
     devtreepath="devicetree.dtb",
     folder=None,
+    sdcard=False,
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
     """Update boot files through JTAG (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
     # m.board_reboot_jtag_uart()
 
     if not folder:
@@ -768,6 +777,7 @@ def update_boot_files_jtag_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -780,6 +790,7 @@ def update_boot_files_jtag_manager(
 )
 def recovery_device_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -790,7 +801,11 @@ def recovery_device_manager(
     sdcard=False,
 ):
     """Recover device through many methods (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
 
     if not folder:
         m.board_reboot_auto(
@@ -798,6 +813,7 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
+            sdcard=sdcard,
             recover=True,
         )
     else:
@@ -827,27 +843,35 @@ def check_jtag_manager(
 
 @task(
     help={
+        "vivado_version": "Vivado tool version. Default: 2021.1.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
         "devtreepath": "Path to devicetree.",
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "sdcard": "Get boot files from the sdcard",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def update_boot_files_manager(
     c,
+    vivado_version="2021.1",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
     devtreepath="devicetree.dtb",
     folder=None,
+    sdcard=False,
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
     """Update boot files through u-boot menu (Assuming board is running)"""
-    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m = nebula.manager(
+        configfilename=yamlfilename,
+        board_name=board_name,
+        vivado_version=vivado_version,
+    )
 
     if not folder:
         m.board_reboot_auto(
@@ -855,9 +879,10 @@ def update_boot_files_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
+            sdcard=sdcard,
         )
     else:
-        m.board_reboot_auto_folder(folder, design_name=board_name)
+        m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
 
 
 manager = Collection("manager")
@@ -1203,13 +1228,25 @@ def check_dmesg(c, ip, user="root", password="analog", board_name=None):
         "ip": "IP address of board",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
-def restart_board(c, ip, user="root", password="analog", board_name=None):
+def restart_board(
+    c,
+    ip=None,
+    user=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
     """Reboot development system over IP"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
     )
     n.reboot_board(bypass_sleep=True)
 
@@ -1271,6 +1308,7 @@ def run_diagnostics(
         "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "command": "Shell command to run via ssh. Supports linux systems for now.",
         "ignore_exception": "Ignore errors encountered on the remote side.",
@@ -1280,8 +1318,9 @@ def run_diagnostics(
 def run_command(
     c,
     ip=None,
-    user="root",
-    password="analog",
+    user=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
     board_name=None,
     command=None,
     ignore_exception=False,
@@ -1289,7 +1328,11 @@ def run_command(
 ):
     """Run command on remote via ip"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
     )
     n.run_ssh_command(command, ignore_exception, retries)
 

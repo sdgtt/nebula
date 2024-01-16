@@ -43,6 +43,16 @@ board-config:
     options: ["True", "False"]
     optional: False
     netbox_field: devices.custom_fields.allow_jtag
+  field_6:
+    name: serial
+    help: "Sets the serial number of the device"
+    optional: True
+    netbox_field: devices.serial
+  field_7:
+    name: instr-serial
+    help: "Serial number of external IIO instrument connected to the carrier"
+    optional: True
+    netbox_field: devices.custom_fields.instr_serial
 network-config:
   field_1:
     name: dutip
@@ -70,6 +80,18 @@ network-config:
     help: "NIC connected to development board ip address"
     optional: depends
     netbox_field: devices.interfaces.mgmt.custom_fields.nicip
+  field_5:
+    name: dutusername
+    default: analog
+    help: "Username to access Device"
+    optional: True
+    netbox_field: devices.custom_fields.username
+  field_6:
+    name: dutpassword
+    default: analog
+    help: "Password associated with the username."
+    optional: True
+    netbox_field: devices.custom_fields.password
 pdu-config:
   field_1:
     name: pdu_type
@@ -231,3 +253,15 @@ netbox-config:
     help: "Token for netbox rest api access"
     optional: True
     netbox_field: devices.config_context.netbox_api_token
+usbmux-config:
+  field_1:
+    name: search_path
+    help: "Path to search for usbmux devices"
+    default: "/dev/usb-sd-mux/"
+    optional: True
+  field_2:
+    name: target_mux
+    help: "Unique serial number of attached usbmux"
+    default: none
+    optional: True
+    netbox_field: devices.sd.serial

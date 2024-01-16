@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import pathlib
@@ -9,6 +10,7 @@ import time
 
 import fabric
 import nebula.errors as ne
+import nebula.helper as helper
 from fabric import Connection
 from nebula.common import utils
 
@@ -135,9 +137,15 @@ class network(utils):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
 
     def run_ssh_command(
-        self, command, ignore_exceptions=False, retries=3, show_log=True
+        self,
+        command,
+        ignore_exceptions=False,
+        retries=3,
+        show_log=True,
+        print_result_to_file=True,
     ):
         result = None
+        filename = None
         for t in range(retries):
             log.info(
                 "ssh command:" + command + " to " + self.dutusername + "@" + self.dutip
@@ -150,16 +158,24 @@ class network(utils):
                 if result.failed:
                     raise Exception("Failed to run command:", command)
 
+                if print_result_to_file:
+                    filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
                 if show_log and result.stdout:
                     log.info("result stdout begin -------------------------------")
                     log.info(f"{result.stdout}")
                     log.info("result stdout end -------------------------------")
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_out_{filename}.log", "w") as f:
+                            f.write(result.stdout)
 
                 if show_log and result.stderr:
                     log.info("result stderr begin -------------------------------")
                     log.info(f"{result.stderr}")
                     log.info("result stderr end -------------------------------")
-
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_err_{filename}.log", "w") as f:
+                            f.write(result.stderr)
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
@@ -214,7 +230,7 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
-        self.run_ssh_command("sudo reboot", ignore_exceptions=True)
+        self.run_ssh_command("sudo reboot", retries=1, ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
         """update_boot_partition_existing_files:
@@ -227,20 +243,41 @@ class network(utils):
         log.info("Updating boot files over SSH from SD card itself")
         if not subfolder:
             raise Exception("Must provide a subfolder")
-        self.run_ssh_command("mkdir /tmp/sdcard")
-        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
-        self.run_ssh_command("cp /tmp/sdcard/" + subfolder + "/BOOT.BIN /tmp/sdcard/")
-        if "zynqmp" in subfolder:
-            self.run_ssh_command("cp /tmp/sdcard/zynqmp-common/Image /tmp/sdcard/")
-            self.run_ssh_command(
-                "cp /tmp/sdcard/" + subfolder + "/system.dtb /tmp/sdcard/"
-            )
+        log.info("Updating boot files over SSH")
+        try:
+            self.run_ssh_command("ls /tmp/sdcard", retries=1)
+            dir_exists = True
+        except Exception:
+            log.info("Existing /tmp/sdcard directory not found. Will need to create it")
+            dir_exists = False
+        if dir_exists:
+            try:
+                log.info("Trying to unmounting directory")
+                self.run_ssh_command("umount /tmp/sdcard", retries=1)
+            except Exception:
+                log.info("Unmount failed... Likely not mounted")
+                pass
         else:
-            self.run_ssh_command("cp /tmp/sdcard/zynq-common/uImage /tmp/sdcard/")
-            self.run_ssh_command(
-                "cp /tmp/sdcard/" + subfolder + "/devicetree.dtb /tmp/sdcard/"
-            )
-        self.run_ssh_command("sudo reboot")
+            self.run_ssh_command("mkdir /tmp/sdcard", retries=1)
+
+        self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
+
+        # extract needed boot files from the kuiper descriptor file
+        h = helper.helper()
+        descriptor_path = "nebula/resources/kuiper.json"
+        try:
+            self._dl_file("/tmp/sdcard/kuiper.json")
+            os.replace("kuiper.json", descriptor_path)
+        except Exception:
+            log.warning("Cannot find project descriptor on target")
+
+        boot_files_path = h.get_boot_files_from_descriptor(descriptor_path, subfolder)
+
+        for boot_file in boot_files_path:
+            log.info(f"Copying {boot_file[1]}")
+            self.run_ssh_command(f"cp {boot_file[1]} /tmp/sdcard/")
+
+        self.run_ssh_command("sudo reboot", retries=1, ignore_exceptions=True)
 
     def _dl_file(self, filename):
         fabric.Connection(
