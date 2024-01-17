@@ -139,3 +139,51 @@ zynqmp-zcu102-rev10-adrv9002-vcmos:
   - logfilename: zynqmp-zcu102-rev10-adrv9002-vcmos.log
   usbmux-config:
     - target_mux: id-000000001358
+socfpga_cyclone5_de10_nano_cn0540:
+  board-config:
+  - board-name: socfpga_cyclone5_de10_nano_cn0540
+  - carrier: DE10-NANO
+  - daughter: CN0540
+  - monitoring-interface: uart
+  - allow-jtag: False
+  - serial: ''
+  - instr-serial: NA
+  downloader-config:
+  - reference_boot_folder: socfpga_cyclone5_de10_nano_cn0540
+  - devicetree_subfolder: NA
+  - boot_subfolder: NA
+  - hdl_folder: NA
+  driver-config:
+  - iio_device_names:
+    - ad7768-1
+    - ltc2308
+    - one-bit-adc-dac
+    - ltc2606
+  jtag-config:
+  - vivado_version: '2019.1'
+  - jtag_cpu_target_name: NA
+  netbox-config:
+  - netbox_server: primary.englab
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.117
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.117
+  - dutusername: analog
+  - dutpassword: analog
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.24
+  - outlet: '8'
+  - username: cyber
+  - password: cyber
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:2:1.0-port0
+  - baudrate: '115200'
+  - logfilename: socfpga_cyclone5_de10_nano_cn0540.log
+  - uboot_done_string: =>
+  usbmux-config:
+  - target_mux: id-000000001396

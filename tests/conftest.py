@@ -1,5 +1,6 @@
 import pytest
 from nebula import pdu
+from nebula import usbmux
 
 
 def pytest_addoption(parser):
@@ -26,20 +27,47 @@ def pytest_runtest_setup(item):
 
 
 @pytest.fixture()
-def power_off_dut(config):
+def power_off_dut(param):
     p = pdu(
-        board_name=config[0],
-        yamlfilename=config[1],
+        board_name=param["board"],
+        yamlfilename=param["config"],
     )
     p.power_down_board()
     yield
 
 
 @pytest.fixture()
-def power_on_dut(config):
+def power_on_dut(param):
     p = pdu(
-        board_name=config[0],
-        yamlfilename=config[1],
+        board_name=param["board"],
+        yamlfilename=param["config"],
     )
     p.power_up_board()
+    yield
+
+@pytest.fixture()
+def sdmux_dutmode(param):
+    u = usbmux(
+        board_name=param["board"],
+        yamlfilename=param["config"],
+    )
+    u.set_mux_mode(mode="dut")
+    yield
+
+@pytest.fixture()
+def sdmux_hostmode(param):
+    u = usbmux(
+        board_name=param["board"],
+        yamlfilename=param["config"],
+    )
+    u.set_mux_mode(mode="host")
+    yield
+
+@pytest.fixture()
+def sdmux_offmode(param):
+    u = usbmux(
+        board_name=param["board"],
+        yamlfilename=param["config"],
+    )
+    u.set_mux_mode(mode="off")
     yield

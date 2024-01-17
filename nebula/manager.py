@@ -140,8 +140,10 @@ class manager:
     def load_boot_bin(self):
         pass
 
-    def _check_files_exist(self, *args):
+    def _check_files_exist(self, args):
         for filename in args:
+            if not filename:
+                continue
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
@@ -500,12 +502,19 @@ class manager:
 
     @_release_thread_lock
     def board_reboot_sdmux_pdu(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        self,
+        system_top_bit_path=None,
+        bootbinpath=None,
+        uimagepath=None,
+        devtreepath=None,
+        devtree_overlay_path=None,
+        devtree_overlay_config_path=None,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
     ):
         """Manager when sdcardmux, pdu is available"""
-        self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
-        )
+    
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -542,6 +551,11 @@ class manager:
                 bootbin_loc=bootbinpath,
                 kernel_loc=uimagepath,
                 devicetree_loc=devtreepath,
+                devicetree_overlay_loc=devtree_overlay_path,
+                devicetree_overlay_config_loc=devtree_overlay_config_path,
+                extlinux_loc=extlinux_path,
+                scr_loc=scr_path,
+                preloader_loc=preloader_path,
             )
             # if devtreepath:
             #     self.usbsdmux.update_devicetree_for_mux(devtreepath)

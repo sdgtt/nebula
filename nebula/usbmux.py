@@ -177,7 +177,7 @@ class usbmux(utils):
             for f in target:
                 files = glob.glob(os.path.join(f"/tmp/{target_folder}", f))
                 if not files:
-                    raise Exception(f"Cannot enumerate target {f}")
+                    raise Exception(f"Cannot enumerate target /tmp/{target_folder}/{f}")
                 for file_path in files:
                     log.info(f"Backing up {file_path} to {str(back_up_path)}")
                     if os.path.exists(file_path):
@@ -201,6 +201,9 @@ class usbmux(utils):
         devicetree_loc=None,
         devicetree_overlay_loc=None,
         devicetree_overlay_config_loc=None,
+        extlinux_loc=None,
+        scr_loc=None,
+        preloader_loc=None,
     ):
         """Update the boot files from outside SD card itself.
 
@@ -210,29 +213,41 @@ class usbmux(utils):
             devicetree_loc (str): The path to the devicetree file
             devicetree_overlay_loc (str): The path to the devicetree overlay file
             devicetree_overlay_config (str): The devicetree overlay configuration to be written on /boot/config.txt
+            extlinux_loc (str): The path to the Extlinux configuratoin file (Intel boards).
+            scr_loc (str): The path to the .scr file (Intel boards).
+            preloader_loc (str): The path to the preloader file (.sfp) (Intel boards).
         """
         args = locals()
         folder, boot_p = self._mount_sd_card()
+        preloader_p = f"{self._target_sdcard}3"
 
         try:
-            for btfiletype, loc in args.items():
-                if loc:
-                    if not isinstance(loc, (str, bytes, os.PathLike)):
-                        if isinstance(loc, type(self)):
-                            continue
-                        raise Exception(f"Invalid type {type(loc)}")
-                    if btfiletype == "bootbin_loc":
-                        outfile = os.path.join("/tmp", folder, "BOOT.BIN")
-                    elif btfiletype == "devicetree_overlay_loc":
-                        outfile = os.path.join(
-                            "/tmp", folder, "overlays", os.path.basename(loc)
-                        )
-                    else:
-                        outfile = os.path.join("/tmp", folder, os.path.basename(loc))
-                    if not os.path.isfile(loc):
-                        raise Exception("File not found: " + loc)
-                    log.info(f"Copying {loc} to {outfile} ")
-                    os.system(f"cp -r {loc} {outfile}")
+            for field, bootfile_loc in args.items():
+                if field in ["self"]:
+                    continue
+                if not bootfile_loc:
+                    log.warn(f"Empty argument {field} ")
+                    continue
+                bootfile_name = os.path.basename(bootfile_loc)
+                if not os.path.isfile(bootfile_loc):
+                    raise Exception("File not found: " + loc)
+
+                if field == "devicetree_overlay_loc":
+                    outfile = os.path.join(
+                        "/tmp", folder, "overlays", bootfile_name
+                    )
+                elif field == "preloader_loc":
+                    log.info(f"Writing {bootfile_loc} to /dev/{preloader_p} ")
+                    os.system(f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress')
+                    continue
+                elif field == "extlinux_loc":
+                    os.system(f"mkdir -p /tmp/{folder}/extlinux")
+                    outfile = os.path.join("/tmp", folder, "extlinux", bootfile_name)
+                else:
+                    outfile = os.path.join("/tmp", folder, bootfile_name)
+
+                log.info(f"Copying {bootfile_loc} to {outfile} ")
+                os.system(f"cp -r {bootfile_loc} {outfile}")
 
             log.info("Updated boot files successfully... unmounting")
         except Exception as ex:
@@ -268,7 +283,13 @@ class usbmux(utils):
             os.system(f"rm -rf /tmp/{rootfs_folder}")
 
     def update_boot_files_from_sdcard_itself(
-        self, bootbin_loc=None, kernel_loc=None, devicetree_loc=None
+        self,
+        bootbin_loc=None,
+        kernel_loc=None,
+        devicetree_loc=None,
+        extlinux_loc=None,
+        scr_loc=None,
+        preloader_loc=None,
     ):
         """Update the boot files from the SD card itself.
 
@@ -276,54 +297,47 @@ class usbmux(utils):
             bootbin_loc (str): The path to the boot.bin file on the SD card.
             kernel_loc (str): The path to the kernel file on the SD card.
             devicetree_loc (str): The path to the devicetree file on the SD card.
+            extlinux_loc (str): The path to the Extlinux configuratoin file on the SD card (Intel boards).
+            scr_loc (str): The path to the .scr file on the SD card (Intel boards).
+            preloader_loc (str): The path to the preloader file (.sfp) on the SD card (Intel boards).
         """
+        args = locals()
+
         folder, boot_p = self._mount_sd_card()
+        preloader_p = f"{self._target_sdcard}3"
 
-        if bootbin_loc:
-            bootbin_loc = os.path.join("/tmp/", folder, bootbin_loc)
-            if not os.path.isfile(bootbin_loc):
-                options = os.listdir(f"/tmp/{folder}")
-                options = [
-                    folder for o in options if os.path.isdir(f"/tmp/{folder}/{o}")
-                ]
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception(
-                    "File not found: "
-                    + bootbin_loc
-                    + "\nOptions are: "
-                    + "\n".join(options)
-                )
-            os.system(f"cp {bootbin_loc} /tmp/{folder}/BOOT.BIN")
-        if kernel_loc:
-            kernel_loc = os.path.join("/tmp/", folder, kernel_loc)
-            if not os.path.isfile(kernel_loc):
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception("File not found: " + kernel_loc)
-            image = os.path.basename(kernel_loc)
-            os.system(f"cp {kernel_loc} /tmp/{folder}/{image}")
-        if devicetree_loc:
-            devicetree_loc = os.path.join("/tmp/", folder, devicetree_loc)
-            if not os.path.isfile(devicetree_loc):
-                options = os.listdir(f"/tmp/{folder}")
-                options = [
-                    folder for o in options if os.path.isdir(f"/tmp/{folder}/{o}")
-                ]
-                os.system(f"umount /tmp/{folder}")
-                os.system(f"rm -rf /tmp/{folder}")
-                raise Exception(
-                    "File not found: "
-                    + devicetree_loc
-                    + "\nOptions are: "
-                    + "\n".join(options)
-                )
-            dt = os.path.basename(devicetree_loc)
-            os.system(f"cp {devicetree_loc} /tmp/{folder}/{dt}")
+        try:
+            for field,bootfile_loc in args.items():
+                if field in ["self"]:
+                    continue
+                bootfile_loc = os.path.join("/tmp/", folder, bootfile_loc)
+                if not os.path.isfile(bootfile_loc):
+                    options = os.listdir(f"/tmp/{folder}")
+                    options = [
+                        folder for o in options if os.path.isdir(f"/tmp/{folder}/{o}")
+                    ]
+                    os.system(f"umount /tmp/{folder}")
+                    os.system(f"rm -rf /tmp/{folder}")
+                    raise Exception(
+                        "File not found: "
+                        + bootfile_loc
+                        + "\nOptions are: "
+                        + "\n".join(options)
+                    )
+                if field == "preloader_loc":
+                    os.system(f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress')
+                    continue
 
-        log.info("Updated boot files successfully... unmounting")
-        os.system(f"umount /tmp/{folder}")
-        os.system(f"rm -rf /tmp/{folder}")
+                bootfile_name = os.path.basename(bootfile_loc)
+                if field == "extlinux_loc":
+                    os.system(f"mkdir -p /tmp/{folder}/extlinux")
+                    bootfile_name = "extlinux/" + bootfile_name
+                os.system(f"cp {bootfile_loc} /tmp/{folder}/{bootfile_name}")
+
+            log.info("Updated boot files successfully... unmounting")
+        finally:
+            os.system(f"umount /tmp/{folder}")
+            os.system(f"rm -rf /tmp/{folder}")
 
     def update_devicetree_for_mux(self, devicetree_filename="system.dtb"):
 
