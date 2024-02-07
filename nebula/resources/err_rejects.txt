@@ -24,3 +24,4 @@ adrv9002 spi0.0: [ERROR]: Error number  3 (0x00000003), Recovery action -2.In fi
 adrv9002 spi1.0: [ERROR]: Error number  3 (0x00000003), Recovery action -2.In file drivers/iio/adc/navassa/devices/adrv9001/public/src/adi_adrv9001_fh.c, in function adi_adrv9001_fh_HopTable_Inspect_Validate, in line  412, variable name devStateInfo->frequencyHoppingEnabled.Error message Frequency hopping not enabled in device profile.
 adrv9002 spi0.0: Frequency hopping not enabled
 adrv9002 spi1.0: Frequency hopping not enabled
+debugfs: File 'Capture' in directory 'dapm' already present!
