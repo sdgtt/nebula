@@ -16,8 +16,8 @@ platform regulatory.0: Direct firmware load for regulatory.db failed with error 
 xilinx-dp-snd-codec fd4a0000.display:zynqmp_dp_snd_codec0: Failed to get required clock freq
 adf4350 spi1.0: Probe failed (muxout)
 adf4350 spi1.1: Probe failed (muxout)
-adrv9002 spi0.0: adrv9002_hop_table_dump_show, 974: failed with ""Frequency hopping not enabled in device profile"" (3)
-adrv9002 spi1.0: adrv9002_hop_table_dump_show, 974: failed with ""Frequency hopping not enabled in device profile"" (3)
+adrv9002 spi0.0: adrv9002_hop_table_dump_show, 974: failed with "Frequency hopping not enabled in device profile" (3)
+adrv9002 spi1.0: adrv9002_hop_table_dump_show, 974: failed with "Frequency hopping not enabled in device profile" (3)
 adrv9002 spi0.0: [ERROR]: Error number  3 (0x00000003), Recovery action -2.In file drivers/iio/adc/navassa/devices/adrv9001/public/src/adi_adrv9001_fh.c, in function adi_adrv9001_fh_HopTable_Inspect, in line  864, variable name NULL.Error message Frequency hopping not enabled in device profile.
 adrv9002 spi1.0: [ERROR]: Error number  3 (0x00000003), Recovery action -2.In file drivers/iio/adc/navassa/devices/adrv9001/public/src/adi_adrv9001_fh.c, in function adi_adrv9001_fh_HopTable_Inspect, in line  864, variable name NULL.Error message Frequency hopping not enabled in device profile.
 adrv9002 spi0.0: [ERROR]: Error number  3 (0x00000003), Recovery action -2.In file drivers/iio/adc/navassa/devices/adrv9001/public/src/adi_adrv9001_fh.c, in function adi_adrv9001_fh_HopTable_Inspect_Validate, in line  412, variable name devStateInfo->frequencyHoppingEnabled.Error message Frequency hopping not enabled in device profile.
