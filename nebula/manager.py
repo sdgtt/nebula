@@ -140,7 +140,7 @@ class manager:
     def load_boot_bin(self):
         pass
 
-    def _check_files_exist(self, args):
+    def _check_files_exist(self, *args):
         for filename in args:
             if not filename:
                 continue
@@ -211,13 +211,24 @@ class manager:
         bootbinpath,
         uimagepath,
         devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
         fsblpath=None,
         ubootpath=None,
         sdcard=False,
     ):
         """Recover boards with UART, PDU, JTAG, USB-SD-Mux and Network if available"""
         self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+            system_top_bit_path,
+            bootbinpath,
+            uimagepath,
+            devtreepath,
+            extlinux_path,
+            scr_path,
+            preloader_path,
+            fsblpath,
+            ubootpath,
         )
         try:
             # Flush UART
@@ -268,6 +279,9 @@ class manager:
                             bootbin_loc=bootbinpath,
                             kernel_loc=uimagepath,
                             devicetree_loc=devtreepath,
+                            extlinux_loc=extlinux_path,
+                            scr_loc=scr_path,
+                            preloader_loc=preloader_path
                         )
                         # if devtreepath:
                         #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
@@ -403,11 +417,24 @@ class manager:
 
     @_release_thread_lock
     def board_reboot_uart_net_pdu(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        self,
+        system_top_bit_path,
+        bootbinpath,
+        uimagepath,
+        devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None
     ):
         """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+            system_top_bit_path,
+            bootbinpath,
+            uimagepath,
+            devtreepath,
+            extlinux_path,
+            scr_path,
+            preloader_path
         )
         try:
             # Flush UART
@@ -443,7 +470,12 @@ class manager:
             # Update board over SSH and reboot
             log.info("Update board over SSH and reboot")
             self.net.update_boot_partition(
-                bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
+                bootbinpath=bootbinpath,
+                uimagepath=uimagepath,
+                devtreepath=devtreepath,
+                extlinux_path=extlinux_path,
+                scr_path=scr_path,
+                preloader_path=preloader_path,
             )
             log.info("Waiting for reboot to complete")
 
@@ -688,39 +720,52 @@ class manager:
         if len(res) != 0:
             raise Exception("Empty files:" + str(res))
 
-        if "BOOT.BIN" not in files:
-            raise Exception("BOOT.BIN not found")
-        if "devicetree.dtb" not in files:
-            if "system.dtb" not in files:
-                raise Exception("Device tree not found")
-            else:
-                dt = "system.dtb"
-        else:
-            dt = "devicetree.dtb"
-        if "uImage" not in files:
-            if "Image" not in files:
-                raise Exception("kernel not found")
-            else:
-                kernel = "Image"
-        else:
-            kernel = "uImage"
-        if "system_top.bit" not in files:
-            if "bootgen_sysfiles.tgz" not in files:
-                raise Exception("system_top.bit not found")
-            else:
-                tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar, "r:gz")
-                tf.extractall(folder)
-                tf.close()
-                files2 = os.listdir(folder)
-                if "system_top.bit" not in files2:
-                    raise Exception("system_top.bit not found")
+        if "bootgen_sysfiles.tgz" in files:
+            tar = os.path.join(folder, "bootgen_sysfiles.tgz")
+            tf = tarfile.open(tar, "r:gz")
+            tf.extractall(folder)
+            tf.close()
+            # populate again files after tgz extraction
+            files = os.listdir(folder)
 
-        kernel = os.path.join(folder, kernel)
-        dt = os.path.join(folder, dt)
-        bootbin = os.path.join(folder, "BOOT.BIN")
-        bit = os.path.join(folder, "system_top.bit")
-        return (bootbin, kernel, dt, bit)
+        targets = {
+            "bit": ["system_top.bit"],
+            "bootbin": ["BOOT.BIN","soc_system.rbf"],
+            "kernel": ["uImage","Image","zImage"],
+            "dt": ["devicetree.dtb","system.dtb","socfpga.dtb"],
+            "ext": ["extlinux.conf"],
+            "scr": ["u-boot.scr"],
+            "preloader" : ["u-boot-with-spl.sfp"],
+            "uboot": [
+                "u-boot_zynq.elf",
+                "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf",
+                "u-boot_xilinx_zynqmp_zcu102_revA.elf"
+            ]
+        }
+        required = ["bootbin", "dt", "kernel"]
+        found_files = {}
+        for filetype in targets.keys():
+            for pattern in targets[filetype]:
+                if pattern in files:
+                    found_files.update({filetype: os.path.join(folder, pattern)})
+                    continue
+            if not filetype in found_files.keys():
+                if filetype in required:
+                    raise Exception(f"{filetype} - {pattern} not found")
+                else:
+                    found_files.update({filetype: None})
+
+        return (
+            found_files["bit"],
+            found_files["bootbin"],
+            found_files["kernel"],
+            found_files["dt"],
+            found_files["ext"],
+            found_files["scr"],
+            found_files["preloader"],
+            found_files["uboot"],
+        )
+
 
     def board_reboot_auto_folder(
         self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
@@ -735,7 +780,6 @@ class manager:
                 raise Exception("jtag_mode not supported for firmware device")
             try:
                 files = glob.glob(os.path.join(folder, "*.zip"))
-                print(files[0])
             except IndexError:
                 files = glob.glob(os.path.join(folder, "*.frm"))
             if not files:
@@ -751,8 +795,9 @@ class manager:
 
         else:
             log.info("SD-Card/microblaze based device selected")
-            (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
-            print(bootbin, kernel, dt, bit)
+            (bit, bootbin, kernel, dt, ext, scr, preloader, uboot) = \
+                self._find_boot_files(folder)
+
             if jtag_mode:
                 self.board_reboot_jtag_uart(
                     system_top_bit_path=bit,
@@ -765,6 +810,9 @@ class manager:
                     bootbinpath=bootbin,
                     uimagepath=kernel,
                     devtreepath=dt,
+                    extlinux_path=ext,
+                    scr_path=scr,
+                    preloader_path=preloader,
                     sdcard=sdcard,
                     recover=recover,
                 )
@@ -775,6 +823,9 @@ class manager:
         bootbinpath,
         uimagepath,
         devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
         sdcard=False,
         recover=False,
     ):
@@ -786,6 +837,9 @@ class manager:
                 bootbinpath=bootbinpath,
                 uimagepath=uimagepath,
                 devtreepath=devtreepath,
+                extlinux_path=extlinux_path,
+                scr_path=scr_path,
+                preloader_path=preloader_path,
                 sdcard=sdcard,
             )
         else:
@@ -795,6 +849,9 @@ class manager:
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
                     devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path
                 )
             else:
                 self.board_reboot_uart_net_pdu(
@@ -802,6 +859,9 @@ class manager:
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
                     devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path
                 )
 
     def shutdown_powerdown_board(self):
