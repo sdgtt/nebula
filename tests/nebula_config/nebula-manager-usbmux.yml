@@ -172,8 +172,6 @@ socfpga_cyclone5_de10_nano_cn0540:
   - dhcp: False
   - nic: eth0
   - nicip: 192.168.10.117
-  - dutusername: analog
-  - dutpassword: analog
   pdu-config:
   - pdu_type: cyberpower
   - pduip: 192.168.10.24
