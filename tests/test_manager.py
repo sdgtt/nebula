@@ -6,60 +6,111 @@ import pytest
 from nebula import helper, manager
 
 param_default = [
-        pytest.param({
+    pytest.param(
+        {
             "board": "zynq-zc706-adv7511-ad9361-fmcomms5",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager.yml")
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager.yml")
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-zcu102-rev10-adrv9002-vcmos",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager.yml")
-        }, id="sdg-nuc-02"),
-    ]
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+]
 
 param_usbmux = [
-        pytest.param({
+    pytest.param(
+        {
             "board": "zynq-zc706-adv7511-ad9361-fmcomms5",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"),
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"),     
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-zcu102-rev10-adrv9002-vcmos",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"),
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "socfpga_cyclone5_de10_nano_cn0540",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"),
-        }, id="sdg-nuc-03"),
-    ]
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+            ),
+        },
+        id="sdg-nuc-03",
+    ),
+]
 
 param_jtag = [
-        pytest.param({
+    pytest.param(
+        {
             "board": "zynq-zc706-adv7511-ad9361-fmcomms5",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml")
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml")
-        }, id="sdg-nuc-02"),
-        pytest.param({
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+    pytest.param(
+        {
             "board": "zynqmp-zcu102-rev10-adrv9002-vcmos",
-            "config": os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml")
-        }, id="sdg-nuc-02"),
-    ]
+            "config": os.path.join(
+                os.path.dirname(__file__), "nebula_config", "nebula-manager-jtag.yml"
+            ),
+        },
+        id="sdg-nuc-02",
+    ),
+]
+
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
     "param",
     param_usbmux,
 )
-def test_board_reboot_uart_net_pdu(power_off_dut, sdmux_dutmode, power_on_dut,  param):
+def test_board_reboot_uart_net_pdu(power_off_dut, sdmux_dutmode, power_on_dut, param):
 
     # Get necessary boot files
     board = param["board"]
@@ -82,28 +133,30 @@ def test_board_reboot_uart_net_pdu(power_off_dut, sdmux_dutmode, power_on_dut,  
         elif "socfpga_cyclone5" in board:
             files = {
                 "bootbinpath": "soc_system.rbf",
-                "uimagepath" : "zImage",
+                "uimagepath": "zImage",
                 "devtreepath": "socfpga.dtb",
                 "extlinux_path": "extlinux.conf",
                 "scr_path": "u-boot.scr",
-                "preloader_path": "u-boot-with-spl.sfp"
+                "preloader_path": "u-boot-with-spl.sfp",
             }
 
     boot_files = {
         "system_top_bit_path": None,
         "bootbinpath": None,
         "uimagepath": None,
-        "devtreepath" : None,
+        "devtreepath": None,
         "extlinux_path": None,
         "scr_path": None,
-        "preloader_path": None
+        "preloader_path": None,
     }
 
     root = os.path.dirname(os.path.realpath(__file__))
 
     for boot_file_path in boot_files.keys():
         if boot_file_path in files.keys():
-            boot_files[boot_file_path] = f"{root}/bootfiles/{board}/" + files[boot_file_path]
+            boot_files[boot_file_path] = (
+                f"{root}/bootfiles/{board}/" + files[boot_file_path]
+            )
             assert os.path.isfile(boot_files[boot_file_path])
 
     m = manager(configfilename=config, board_name=board)
@@ -117,7 +170,7 @@ def test_board_reboot_uart_net_pdu(power_off_dut, sdmux_dutmode, power_on_dut,  
     "param",
     param_usbmux,
 )
-def test_board_reboot_sdmux_pdu(power_off_dut, sdmux_dutmode, power_on_dut,  param):
+def test_board_reboot_sdmux_pdu(power_off_dut, sdmux_dutmode, power_on_dut, param):
 
     # Get necessary boot files
     board = param["board"]
@@ -140,30 +193,32 @@ def test_board_reboot_sdmux_pdu(power_off_dut, sdmux_dutmode, power_on_dut,  par
         elif "socfpga_cyclone5" in board:
             files = {
                 "bootbinpath": "soc_system.rbf",
-                "uimagepath" : "zImage",
+                "uimagepath": "zImage",
                 "devtreepath": "socfpga.dtb",
                 "extlinux_path": "extlinux.conf",
                 "scr_path": "u-boot.scr",
-                "preloader_path": "u-boot-with-spl.sfp"
+                "preloader_path": "u-boot-with-spl.sfp",
             }
 
     boot_files = {
         "system_top_bit_path": None,
         "bootbinpath": None,
         "uimagepath": None,
-        "devtreepath" : None,
-        "devtree_overlay_path" : None,
-        "devtree_overlay_config_path" : None,
+        "devtreepath": None,
+        "devtree_overlay_path": None,
+        "devtree_overlay_config_path": None,
         "extlinux_path": None,
         "scr_path": None,
-        "preloader_path": None
+        "preloader_path": None,
     }
 
     root = os.path.dirname(os.path.realpath(__file__))
 
     for boot_file_path in boot_files.keys():
         if boot_file_path in files.keys():
-            boot_files[boot_file_path] = f"{root}/bootfiles/{board}/" + files[boot_file_path]
+            boot_files[boot_file_path] = (
+                f"{root}/bootfiles/{board}/" + files[boot_file_path]
+            )
             assert os.path.isfile(boot_files[boot_file_path])
 
     m = manager(configfilename=config, board_name=board)
@@ -194,35 +249,41 @@ def test_board_reboot_auto_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, 
         files = param["files"]
     else:
         if "zynqmp" in board:
-            files.update({
-                "bootbinpath": "BOOT.BIN",
-                "uimagepath": "Image",
-                "devtreepath": "system.dtb",
-            })
+            files.update(
+                {
+                    "bootbinpath": "BOOT.BIN",
+                    "uimagepath": "Image",
+                    "devtreepath": "system.dtb",
+                }
+            )
         elif "socfpga_cyclone5" in board:
-            files.update({
-                "bootbinpath": "soc_system.rbf",
-                "uimagepath" : "zImage",
-                "devtreepath": "socfpga.dtb",
-                "extlinux_path": "extlinux.conf",
-                "scr_path": "u-boot.scr",
-                "preloader_path": "u-boot-with-spl.sfp",
-                "fsblpath": None,
-                "ubootpath": None,
-            })
+            files.update(
+                {
+                    "bootbinpath": "soc_system.rbf",
+                    "uimagepath": "zImage",
+                    "devtreepath": "socfpga.dtb",
+                    "extlinux_path": "extlinux.conf",
+                    "scr_path": "u-boot.scr",
+                    "preloader_path": "u-boot-with-spl.sfp",
+                    "fsblpath": None,
+                    "ubootpath": None,
+                }
+            )
 
         if "zc706" in board:
-            files.update({"ubootpath" : "u-boot_zynq_zc706.elf"})
+            files.update({"ubootpath": "u-boot_zynq_zc706.elf"})
         elif "zu11eg" in board:
-            files.update({"ubootpath" : "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"})
+            files.update(
+                {"ubootpath": "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"}
+            )
         elif "zcu102" in board:
-            files.update({"ubootpath" : "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
+            files.update({"ubootpath": "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
 
     boot_files = {
         "system_top_bit_path": None,
         "bootbinpath": None,
         "uimagepath": None,
-        "devtreepath" : None,
+        "devtreepath": None,
         "extlinux_path": None,
         "scr_path": None,
         "preloader_path": None,
@@ -233,16 +294,16 @@ def test_board_reboot_auto_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, 
     for boot_file_path in boot_files.keys():
         if boot_file_path in files.keys():
             if files[boot_file_path]:
-                boot_files[boot_file_path] = f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                boot_files[boot_file_path] = (
+                    f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                )
                 assert os.path.isfile(boot_files[boot_file_path])
 
     m = manager(configfilename=config, board_name=board)
     m.net.check_board_booted()
 
     # load files vi board_reboot_auto()
-    m.board_reboot_auto(
-        **boot_files
-    )
+    m.board_reboot_auto(**boot_files)
 
 
 @pytest.mark.hardware
@@ -250,7 +311,9 @@ def test_board_reboot_auto_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, 
     "param",
     param_usbmux,
 )
-def test_board_reboot_auto_folder_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, param):
+def test_board_reboot_auto_folder_usbsdmux(
+    power_off_dut, sdmux_dutmode, power_on_dut, param
+):
 
     # Get necessary boot files
     board = param["board"]
@@ -265,6 +328,7 @@ def test_board_reboot_auto_folder_usbsdmux(power_off_dut, sdmux_dutmode, power_o
         folder=f"{root}/bootfiles/{board}",
         design_name=board,
     )
+
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
@@ -288,35 +352,41 @@ def test_recover_board_functional(power_off_dut, sdmux_dutmode, power_on_dut, pa
         files = param["files"]
     else:
         if "zynqmp" in board:
-            files.update({
-                "bootbinpath": "BOOT.BIN",
-                "uimagepath": "Image",
-                "devtreepath": "system.dtb",
-            })
+            files.update(
+                {
+                    "bootbinpath": "BOOT.BIN",
+                    "uimagepath": "Image",
+                    "devtreepath": "system.dtb",
+                }
+            )
         elif "socfpga_cyclone5" in board:
-            files.update({
-                "bootbinpath": "soc_system.rbf",
-                "uimagepath" : "zImage",
-                "devtreepath": "socfpga.dtb",
-                "extlinux_path": "extlinux.conf",
-                "scr_path": "u-boot.scr",
-                "preloader_path": "u-boot-with-spl.sfp",
-                "fsblpath": None,
-                "ubootpath": None,
-            })
+            files.update(
+                {
+                    "bootbinpath": "soc_system.rbf",
+                    "uimagepath": "zImage",
+                    "devtreepath": "socfpga.dtb",
+                    "extlinux_path": "extlinux.conf",
+                    "scr_path": "u-boot.scr",
+                    "preloader_path": "u-boot-with-spl.sfp",
+                    "fsblpath": None,
+                    "ubootpath": None,
+                }
+            )
 
         if "zc706" in board:
-            files.update({"ubootpath" : "u-boot_zynq_zc706.elf"})
+            files.update({"ubootpath": "u-boot_zynq_zc706.elf"})
         elif "zu11eg" in board:
-            files.update({"ubootpath" : "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"})
+            files.update(
+                {"ubootpath": "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"}
+            )
         elif "zcu102" in board:
-            files.update({"ubootpath" : "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
+            files.update({"ubootpath": "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
 
     boot_files = {
         "system_top_bit_path": None,
         "bootbinpath": None,
         "uimagepath": None,
-        "devtreepath" : None,
+        "devtreepath": None,
         "extlinux_path": None,
         "scr_path": None,
         "preloader_path": None,
@@ -329,16 +399,16 @@ def test_recover_board_functional(power_off_dut, sdmux_dutmode, power_on_dut, pa
     for boot_file_path in boot_files.keys():
         if boot_file_path in files.keys():
             if files[boot_file_path]:
-                boot_files[boot_file_path] = f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                boot_files[boot_file_path] = (
+                    f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                )
                 assert os.path.isfile(boot_files[boot_file_path])
 
     m = manager(configfilename=config, board_name=board)
     m.net.check_board_booted()
 
     # recover via usb-sd-mux
-    m.recover_board(
-        **boot_files
-    )
+    m.recover_board(**boot_files)
 
 
 @pytest.mark.hardware
@@ -363,35 +433,41 @@ def test_recover_board_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, para
         files = param["files"]
     else:
         if "zynqmp" in board:
-            files.update({
-                "bootbinpath": "BOOT.BIN",
-                "uimagepath": "Image",
-                "devtreepath": "system.dtb",
-            })
+            files.update(
+                {
+                    "bootbinpath": "BOOT.BIN",
+                    "uimagepath": "Image",
+                    "devtreepath": "system.dtb",
+                }
+            )
         elif "socfpga_cyclone5" in board:
-            files.update({
-                "bootbinpath": "soc_system.rbf",
-                "uimagepath" : "zImage",
-                "devtreepath": "socfpga.dtb",
-                "extlinux_path": "extlinux.conf",
-                "scr_path": "u-boot.scr",
-                "preloader_path": "u-boot-with-spl.sfp",
-                "fsblpath": None,
-                "ubootpath": None,
-            })
+            files.update(
+                {
+                    "bootbinpath": "soc_system.rbf",
+                    "uimagepath": "zImage",
+                    "devtreepath": "socfpga.dtb",
+                    "extlinux_path": "extlinux.conf",
+                    "scr_path": "u-boot.scr",
+                    "preloader_path": "u-boot-with-spl.sfp",
+                    "fsblpath": None,
+                    "ubootpath": None,
+                }
+            )
 
         if "zc706" in board:
-            files.update({"ubootpath" : "u-boot_zynq_zc706.elf"})
+            files.update({"ubootpath": "u-boot_zynq_zc706.elf"})
         elif "zu11eg" in board:
-            files.update({"ubootpath" : "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"})
+            files.update(
+                {"ubootpath": "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf"}
+            )
         elif "zcu102" in board:
-            files.update({"ubootpath" : "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
+            files.update({"ubootpath": "u-boot_xilinx_zynqmp_zcu102_revA.elf"})
 
     boot_files = {
         "system_top_bit_path": None,
         "bootbinpath": None,
         "uimagepath": None,
-        "devtreepath" : None,
+        "devtreepath": None,
         "extlinux_path": None,
         "scr_path": None,
         "preloader_path": None,
@@ -404,7 +480,9 @@ def test_recover_board_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, para
     for boot_file_path in boot_files.keys():
         if boot_file_path in files.keys():
             if files[boot_file_path]:
-                boot_files[boot_file_path] = f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                boot_files[boot_file_path] = (
+                    f"{root}/bootfiles/{board}/" + files[boot_file_path]
+                )
                 assert os.path.isfile(boot_files[boot_file_path])
 
     m = manager(configfilename=config, board_name=board)
@@ -415,9 +493,7 @@ def test_recover_board_usbsdmux(power_off_dut, sdmux_dutmode, power_on_dut, para
     m.power.power_cycle_board()
 
     # recover via usb-sd-mux
-    m.recover_board(
-        **boot_files
-    )
+    m.recover_board(**boot_files)
 
 
 @pytest.mark.hardware
@@ -546,6 +622,7 @@ def test_recover_board_jtag(power_on_dut, param):
         fsblpath,
         ubootpath,
     )
+
 
 if __name__ == "__main__":
     test_board_reboot_uart_net_pdu()

@@ -85,9 +85,13 @@ def test_show_log():
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
-    "config",[
-        ("eval-cn0508-rpiz", os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml")),
-    ]
+    "config",
+    [
+        (
+            "eval-cn0508-rpiz",
+            os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml"),
+        ),
+    ],
 )
 def test_usbmux_backup_update_bootfiles(power_off_dut, config):
     test_dir = os.path.dirname(__file__)
@@ -138,13 +142,14 @@ def test_usbmux_backup_update_bootfiles(power_off_dut, config):
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
-    "config",[
+    "config",
+    [
         (
             "eval-cn0508-rpiz",
             os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-rpi.yaml"),
-            "5.15.92-v7+"
+            "5.15.92-v7+",
         ),
-    ]
+    ],
 )
 def test_usbmux_backup_update_modules(power_off_dut, config):
     test_dir = os.path.dirname(__file__)

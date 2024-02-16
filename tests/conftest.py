@@ -1,6 +1,5 @@
 import pytest
-from nebula import pdu
-from nebula import usbmux
+from nebula import pdu, usbmux
 
 
 def pytest_addoption(parser):
@@ -45,6 +44,7 @@ def power_on_dut(param):
     p.power_up_board()
     yield
 
+
 @pytest.fixture()
 def sdmux_dutmode(param):
     u = usbmux(
@@ -54,6 +54,7 @@ def sdmux_dutmode(param):
     u.set_mux_mode(mode="dut")
     yield
 
+
 @pytest.fixture()
 def sdmux_hostmode(param):
     u = usbmux(
@@ -62,6 +63,7 @@ def sdmux_hostmode(param):
     )
     u.set_mux_mode(mode="host")
     yield
+
 
 @pytest.fixture()
 def sdmux_offmode(param):

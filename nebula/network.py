@@ -243,7 +243,9 @@ class network(utils):
         if preloader_path:
             preloader_file = os.path.basename(preloader_path)
             self.copy_file_to_remote(preloader_path, "/tmp/sdcard/")
-            self.run_ssh_command(f"dd if=/tmp/sdcard/{preloader_file} of=/dev/mmcblk0p3 bs=512 && sync")
+            self.run_ssh_command(
+                f"dd if=/tmp/sdcard/{preloader_file} of=/dev/mmcblk0p3 bs=512 && sync"
+            )
         self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):

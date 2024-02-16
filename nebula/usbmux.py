@@ -213,7 +213,7 @@ class usbmux(utils):
             devicetree_loc (str): The path to the devicetree file
             devicetree_overlay_loc (str): The path to the devicetree overlay file
             devicetree_overlay_config (str): The devicetree overlay configuration to be written on /boot/config.txt
-            extlinux_loc (str): The path to the Extlinux configuratoin file (Intel boards).
+            extlinux_loc (str): The path to the Extlinux configuration file (Intel boards).
             scr_loc (str): The path to the .scr file (Intel boards).
             preloader_loc (str): The path to the preloader file (.sfp) (Intel boards).
         """
@@ -230,15 +230,15 @@ class usbmux(utils):
                     continue
                 bootfile_name = os.path.basename(bootfile_loc)
                 if not os.path.isfile(bootfile_loc):
-                    raise Exception("File not found: " + loc)
+                    raise Exception("File not found: " + bootfile_loc)
 
                 if field == "devicetree_overlay_loc":
-                    outfile = os.path.join(
-                        "/tmp", folder, "overlays", bootfile_name
-                    )
+                    outfile = os.path.join("/tmp", folder, "overlays", bootfile_name)
                 elif field == "preloader_loc":
                     log.info(f"Writing {bootfile_loc} to /dev/{preloader_p} ")
-                    os.system(f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress')
+                    os.system(
+                        f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress'
+                    )
                     continue
                 elif field == "extlinux_loc":
                     os.system(f"mkdir -p /tmp/{folder}/extlinux")
@@ -297,7 +297,7 @@ class usbmux(utils):
             bootbin_loc (str): The path to the boot.bin file on the SD card.
             kernel_loc (str): The path to the kernel file on the SD card.
             devicetree_loc (str): The path to the devicetree file on the SD card.
-            extlinux_loc (str): The path to the Extlinux configuratoin file on the SD card (Intel boards).
+            extlinux_loc (str): The path to the Extlinux configuration file on the SD card (Intel boards).
             scr_loc (str): The path to the .scr file on the SD card (Intel boards).
             preloader_loc (str): The path to the preloader file (.sfp) on the SD card (Intel boards).
         """
@@ -307,7 +307,7 @@ class usbmux(utils):
         preloader_p = f"{self._target_sdcard}3"
 
         try:
-            for field,bootfile_loc in args.items():
+            for field, bootfile_loc in args.items():
                 if field in ["self"]:
                     continue
                 bootfile_loc = os.path.join("/tmp/", folder, bootfile_loc)
@@ -325,7 +325,9 @@ class usbmux(utils):
                         + "\n".join(options)
                     )
                 if field == "preloader_loc":
-                    os.system(f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress')
+                    os.system(
+                        f'dd if={bootfile_loc} of="/dev/{preloader_p}" bs=512 status=progress'
+                    )
                     continue
 
                 bootfile_name = os.path.basename(bootfile_loc)

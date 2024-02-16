@@ -281,7 +281,7 @@ class manager:
                             devicetree_loc=devtreepath,
                             extlinux_loc=extlinux_path,
                             scr_loc=scr_path,
-                            preloader_loc=preloader_path
+                            preloader_loc=preloader_path,
                         )
                         # if devtreepath:
                         #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
@@ -424,7 +424,7 @@ class manager:
         devtreepath,
         extlinux_path=None,
         scr_path=None,
-        preloader_path=None
+        preloader_path=None,
     ):
         """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
@@ -434,7 +434,7 @@ class manager:
             devtreepath,
             extlinux_path,
             scr_path,
-            preloader_path
+            preloader_path,
         )
         try:
             # Flush UART
@@ -546,7 +546,7 @@ class manager:
         preloader_path=None,
     ):
         """Manager when sdcardmux, pdu is available"""
-    
+
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -730,17 +730,17 @@ class manager:
 
         targets = {
             "bit": ["system_top.bit"],
-            "bootbin": ["BOOT.BIN","soc_system.rbf"],
-            "kernel": ["uImage","Image","zImage"],
-            "dt": ["devicetree.dtb","system.dtb","socfpga.dtb"],
+            "bootbin": ["BOOT.BIN", "soc_system.rbf"],
+            "kernel": ["uImage", "Image", "zImage"],
+            "dt": ["devicetree.dtb", "system.dtb", "socfpga.dtb"],
             "ext": ["extlinux.conf"],
             "scr": ["u-boot.scr"],
-            "preloader" : ["u-boot-with-spl.sfp"],
+            "preloader": ["u-boot-with-spl.sfp"],
             "uboot": [
                 "u-boot_zynq.elf",
                 "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf",
-                "u-boot_xilinx_zynqmp_zcu102_revA.elf"
-            ]
+                "u-boot_xilinx_zynqmp_zcu102_revA.elf",
+            ],
         }
         required = ["bootbin", "dt", "kernel"]
         found_files = {}
@@ -749,7 +749,7 @@ class manager:
                 if pattern in files:
                     found_files.update({filetype: os.path.join(folder, pattern)})
                     continue
-            if not filetype in found_files.keys():
+            if filetype not in found_files.keys():
                 if filetype in required:
                     raise Exception(f"{filetype} - {pattern} not found")
                 else:
@@ -765,7 +765,6 @@ class manager:
             found_files["preloader"],
             found_files["uboot"],
         )
-
 
     def board_reboot_auto_folder(
         self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
@@ -795,8 +794,16 @@ class manager:
 
         else:
             log.info("SD-Card/microblaze based device selected")
-            (bit, bootbin, kernel, dt, ext, scr, preloader, uboot) = \
-                self._find_boot_files(folder)
+            (
+                bit,
+                bootbin,
+                kernel,
+                dt,
+                ext,
+                scr,
+                preloader,
+                uboot,
+            ) = self._find_boot_files(folder)
 
             if jtag_mode:
                 self.board_reboot_jtag_uart(
@@ -851,7 +858,7 @@ class manager:
                     devtreepath=devtreepath,
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
-                    preloader_path=preloader_path
+                    preloader_path=preloader_path,
                 )
             else:
                 self.board_reboot_uart_net_pdu(
@@ -861,7 +868,7 @@ class manager:
                     devtreepath=devtreepath,
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
-                    preloader_path=preloader_path
+                    preloader_path=preloader_path,
                 )
 
     def shutdown_powerdown_board(self):
