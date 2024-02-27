@@ -205,8 +205,8 @@ class manager:
             self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
-    @_release_thread_lock
-    def recover_board(  # type: ignore
+    @_release_thread_lock  # type: ignore
+    def recover_board(  # noqa:C901
         self,
         system_top_bit_path,
         bootbinpath,
@@ -533,7 +533,7 @@ class manager:
         print("Home sweet home")
         self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_sdmux_pdu(
         self,
         system_top_bit_path=None,
