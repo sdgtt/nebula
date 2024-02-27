@@ -201,7 +201,13 @@ class network(utils):
                     raise ne.SSHError
 
     def update_boot_partition(
-        self, bootbinpath=None, uimagepath=None, devtreepath=None
+        self,
+        bootbinpath=None,
+        uimagepath=None,
+        devtreepath=None,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
     ):
         """update_boot_partition:
         Update boot files on existing card which from remote files
@@ -229,6 +235,17 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
+        if extlinux_path:
+            self.run_ssh_command("mkdir -p /tmp/sdcard/extlinux")
+            self.copy_file_to_remote(extlinux_path, "/tmp/sdcard/extlinux/")
+        if scr_path:
+            self.copy_file_to_remote(scr_path, "/tmp/sdcard/")
+        if preloader_path:
+            preloader_file = os.path.basename(preloader_path)
+            self.copy_file_to_remote(preloader_path, "/tmp/sdcard/")
+            self.run_ssh_command(
+                f"dd if=/tmp/sdcard/{preloader_file} of=/dev/mmcblk0p3 bs=512 && sync"
+            )
         self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
