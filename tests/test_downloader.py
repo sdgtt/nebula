@@ -82,6 +82,7 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
     file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
     assert len(file) >= 1
 
+
 @pytest.mark.skip(reason="Not built")
 @pytest.mark.parametrize("board_name", ["kc705_fmcomms4"])
 @pytest.mark.parametrize("branch", ["release", "master"])
