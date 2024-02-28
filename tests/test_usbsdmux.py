@@ -2,6 +2,7 @@ import os
 import shutil
 
 import pytest
+
 from nebula import pdu, usbmux
 
 

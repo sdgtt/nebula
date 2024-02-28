@@ -3,9 +3,10 @@ import os
 import time
 from operator import truediv
 
-import nebula
 import yaml
 from invoke import Collection, task
+
+import nebula
 
 logging.getLogger().setLevel(logging.WARNING)
 

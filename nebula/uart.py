@@ -9,8 +9,9 @@ import time
 
 import serial
 import xmodem
-from nebula.common import utils
 from tqdm import tqdm
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 
@@ -132,7 +133,6 @@ class uart(utils):
         """Trigger monitoring with UART interface"""
         if not self.listen_thread_run or force:
             self.listen_thread_run = True
-            print("STARTING UART LOG")
             log.info("Launching UART listening thread")
             if not self.print_to_console:
                 log.info("UART console saving to file: " + self.logfilename)

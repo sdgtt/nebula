@@ -2,6 +2,7 @@ import os
 import shutil
 
 import pytest
+
 from nebula import downloader
 
 # Must be connected to analog VPN
@@ -82,8 +83,9 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
     assert len(file) >= 1
 
 
+@pytest.mark.skip(reason="Not built")
 @pytest.mark.parametrize("board_name", ["kc705_fmcomms4"])
-@pytest.mark.parametrize("branch", ["release"])
+@pytest.mark.parametrize("branch", ["release", "master"])
 @pytest.mark.parametrize("filetype", ["microblaze"])
 def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)

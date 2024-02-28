@@ -50,7 +50,7 @@ setuptools.setup(
         "pysnmp",
         "invoke",
         "xmodem",
-        "pytest",
+        "pytest>=7.0.0",
         "pyvesync_v2",
         "pyfiglet",
         "usbsdmux",

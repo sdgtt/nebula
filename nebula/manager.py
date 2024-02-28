@@ -4,10 +4,11 @@ import os
 import tarfile
 import time
 
+import yaml
+
 import nebula.common as common
 import nebula.errors as ne
 import nebula.helper as helper
-import yaml
 from nebula.driver import driver
 from nebula.jtag import jtag
 from nebula.netconsole import netconsole
@@ -204,7 +205,7 @@ class manager:
             self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def recover_board(  # noqa:C901
         self,
         system_top_bit_path,
@@ -359,7 +360,7 @@ class manager:
                     raise e
                 self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_jtag_uart(
         self,
         system_top_bit_path,
@@ -415,7 +416,7 @@ class manager:
             self.network_check()
             self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_uart_net_pdu(
         self,
         system_top_bit_path,
@@ -532,7 +533,7 @@ class manager:
         print("Home sweet home")
         self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_sdmux_pdu(
         self,
         system_top_bit_path=None,
@@ -804,7 +805,10 @@ class manager:
                 preloader,
                 uboot,
             ) = self._find_boot_files(folder)
-
+            log.info("Found boot files:")
+            for file in [bootbin, kernel, dt, bit, ext, scr, preloader, uboot]:
+                if file:
+                    log.info(file)
             if jtag_mode:
                 self.board_reboot_jtag_uart(
                     system_top_bit_path=bit,

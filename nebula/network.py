@@ -9,8 +9,9 @@ import subprocess
 import time
 
 import fabric
-import nebula.errors as ne
 from fabric import Connection
+
+import nebula.errors as ne
 from nebula.common import utils
 
 log = logging.getLogger(__name__)
@@ -86,7 +87,13 @@ class network(utils):
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
-                ).run("uname -a", hide=True, timeout=self.ssh_timeout)
+                ).run(
+                    "uname -a",
+                    hide=True,
+                    timeout=self.ssh_timeout,
+                    pty=True,
+                    in_stream=False,
+                )
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
@@ -153,7 +160,13 @@ class network(utils):
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
-                ).run(command, hide=True, timeout=self.ssh_timeout)
+                ).run(
+                    command,
+                    hide=True,
+                    timeout=self.ssh_timeout,
+                    pty=True,
+                    in_stream=False,
+                )
                 if result.failed:
                     raise Exception("Failed to run command:", command)
 
