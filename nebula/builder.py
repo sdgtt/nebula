@@ -97,7 +97,7 @@ class builder:
             elif "2019_r1" in branch.lower() or "2019.1" in branch.lower():
                 vivado = "2018.3"
             elif branch == "master":
-                vivado = "2019.1"
+                vivado = "2021.2"
             else:
                 raise Exception("Unsupported branch")
         if "zcu102" in board.lower():

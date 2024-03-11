@@ -298,7 +298,7 @@ usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 
 @task(
     help={
-        "vivado_version": "Set vivado version. Defaults to 2019.1",
+        "vivado_version": "Set vivado version. Defaults to 2021.2",
         "custom_vivado_path": "Full path to vivado settings64 file. When set ignores vivado version",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -306,7 +306,7 @@ usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 )
 def jtag_reboot(
     c,
-    vivado_version="2019.1",
+    vivado_version="2021.2",
     custom_vivado_path=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
