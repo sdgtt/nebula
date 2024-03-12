@@ -119,7 +119,7 @@ class manager:
         else:
             self.usbsdmux = None
 
-        self.help = helper.helper()
+        self.help = helper()
         self.usbdev = usbdev()
         self.board_name = board_name
 
