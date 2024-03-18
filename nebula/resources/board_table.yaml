@@ -459,7 +459,7 @@ eval-adxl355-pmdz:
   carrier: RPI
 eval-ad7124-8-pmdz:
   carrier: RPI
-eval_adt7420_pmdz:
+eval-adt7420-pmdz:
   carrier: RPI
 eval-adxrs290-pmdz:
   carrier: RPI
@@ -474,6 +474,8 @@ dc1012a-b:
 dc1962c:
   carrier: RPI
 dc2873a:
+  carrier: RPI
+eval-cn0575-rpiz:
   carrier: RPI
 
 # ADD no-OS boards
