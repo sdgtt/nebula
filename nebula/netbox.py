@@ -7,8 +7,9 @@ from re import L
 
 import pynetbox
 import yaml
-from nebula.common import utils
 from numpy import isin
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 

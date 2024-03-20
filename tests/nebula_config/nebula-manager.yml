@@ -1,0 +1,135 @@
+zynq-zc706-adv7511-ad9361-fmcomms5:
+  board-config:
+  - board-name: zynq-zc706-adv7511-ad9361-fmcomms5
+  - carrier: ZC706
+  - daughter: FMCOMMS5
+  - monitoring-interface: uart
+  - allow-jtag: False
+  downloader-config:
+  - reference_boot_folder: zynq-zc706-adv7511-ad9361-fmcomms5
+  - hdl_folder: fmcomms5_zc706
+  driver-config:
+  - iio_device_names:
+    - ad7291
+    - ad9361-phy
+    - ad9361-phy-B
+    - cf-ad9361-dds-core-lpc
+    - cf-ad9361-dds-core-B
+    - cf-ad9361-A
+    - cf-ad9361-B
+  jtag-config:
+  - vivado_version: '2019.1'
+  - jtag_cable_id: 210251A077E0
+  - jtag_cpu_target_name: ARM*#0
+  netbox-config:
+  - netbox_server: 192.168.10.11
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.111
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.111
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.23
+  - outlet: '5'
+  - username: cyberpower
+  - password: cyberpower
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:8.1.1:1.0-port0
+  - baudrate: '115200'
+  - logfilename: zynq-zc706-adv7511-ad9361-fmcomms5.log
+zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb:
+  board-config:
+  - board-name: zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb
+  - carrier: ADRV2CRR-FMC
+  - daughter: ADRV9009-ZU11EG
+  - monitoring-interface: uart
+  - allow-jtag: False
+  - serial: ''
+  - instr-serial: NA
+  downloader-config:
+  - reference_boot_folder: zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb
+  - hdl_folder: adrv9009zu11eg_adrv2crr_fmc
+  driver-config:
+  - iio_device_names:
+    - ams
+    - hmc7044-car
+    - hmc7044-ext
+    - hmc7044
+    - adrv9009-phy
+    - adrv9009-phy-b
+    - axi-adrv9009-rx-hpc
+    - axi-adrv9009-rx-obs-hpc
+    - axi-adrv9009-tx-hpc
+  jtag-config:
+  - vivado_version: '2019.1'
+  - jtag_cable_id: 210299B1A500
+  - jtag_cpu_target_name: Cortex-A53*#0
+  netbox-config:
+  - netbox_server: primary.englab
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.115
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.115
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.23
+  - outlet: '7'
+  - username: cyber
+  - password: cyber
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:2.2:1.0-port0
+  - baudrate: '115200'
+  - logfilename: zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb.log
+zynqmp-zcu102-rev10-adrv9002-vcmos:
+  board-config:
+  - board-name: zynqmp-zcu102-rev10-adrv9002-vcmos
+  - carrier: ZCU102
+  - daughter: ADRV9002-CMOS
+  - monitoring-interface: uart
+  - allow-jtag: False
+  downloader-config:
+  - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
+  - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002
+  - boot_subfolder: boot_bin_CMOS
+  - hdl_folder: adrv9001_zcu102
+  driver-config:
+  - iio_device_names:
+    - adrv9002-phy
+    - axi-adrv9002-rx-lpc
+    - axi-adrv9002-rx2-lpc
+    - axi-core-tdd
+    - axi-core-tdd
+    - axi-adrv9002-tx-lpc
+    - axi-adrv9002-tx2-lpc
+  jtag-config:
+  - vivado_version: '2019.1'
+  - jtag_cable_id: 210308AE6A13
+  - jtag_cpu_target_name: Cortex-A53*#0
+  netbox-config:
+  - netbox_server: primary.englab
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 0123456789abcdef0123456789abcdef01234567
+  network-config:
+  - dutip: 192.168.10.112
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.112
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.23
+  - outlet: '6'
+  - username: cyber
+  - password: cyber
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:8.3:1.0-port0
+  - baudrate: 115200
+  - logfilename: zynqmp-zcu102-rev10-adrv9002-vcmos.log

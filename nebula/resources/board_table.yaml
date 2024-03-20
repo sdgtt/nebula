@@ -459,7 +459,7 @@ eval-adxl355-pmdz:
   carrier: RPI
 eval-ad7124-8-pmdz:
   carrier: RPI
-eval_adt7420_pmdz:
+eval-adt7420-pmdz:
   carrier: RPI
 eval-adxrs290-pmdz:
   carrier: RPI
@@ -475,3 +475,15 @@ dc1962c:
   carrier: RPI
 dc2873a:
   carrier: RPI
+eval-cn0575-rpiz:
+  carrier: RPI
+
+# ADD no-OS boards
+max32650_adxl355:
+  carrier: Maxim
+max78000_adt7420:
+  carrier: Maxim
+aducm3029_adxrs290:
+  carrier: ADICUP
+vc707_fmcomms2:
+  carrier: VC707

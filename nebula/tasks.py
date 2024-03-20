@@ -3,9 +3,10 @@ import os
 import time
 from operator import truediv
 
-import nebula
 import yaml
 from invoke import Collection, task
+
+import nebula
 
 logging.getLogger().setLevel(logging.WARNING)
 
@@ -146,6 +147,7 @@ def usbmux_update_bootfiles(
         and not kernel_filename
         and not devicetree_filename
         and not devicetree_overlay_filename
+        and not devicetree_overlay_config
     ):
         raise Exception("Must specify at least one file to update")
 
@@ -296,7 +298,7 @@ usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 
 @task(
     help={
-        "vivado_version": "Set vivado version. Defaults to 2019.1",
+        "vivado_version": "Set vivado version. Defaults to 2021.2",
         "custom_vivado_path": "Full path to vivado settings64 file. When set ignores vivado version",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
@@ -304,7 +306,7 @@ usbsdmux.add_task(usbmux_backup_bootfiles, "backup_bootfiles")
 )
 def jtag_reboot(
     c,
-    vivado_version="2019.1",
+    vivado_version="2021.2",
     custom_vivado_path=None,
     yamlfilename="/etc/default/nebula",
     board_name=None,
@@ -798,6 +800,7 @@ def recovery_device_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
+            sdcard=sdcard,
             recover=True,
         )
     else:
@@ -1203,13 +1206,25 @@ def check_dmesg(c, ip, user="root", password="analog", board_name=None):
         "ip": "IP address of board",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
 )
-def restart_board(c, ip, user="root", password="analog", board_name=None):
+def restart_board(
+    c,
+    ip=None,
+    user=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
     """Reboot development system over IP"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
     )
     n.reboot_board(bypass_sleep=True)
 
@@ -1271,6 +1286,7 @@ def run_diagnostics(
         "ip": "IP address of board. Default from yaml",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "command": "Shell command to run via ssh. Supports linux systems for now.",
         "ignore_exception": "Ignore errors encountered on the remote side.",
@@ -1280,8 +1296,9 @@ def run_diagnostics(
 def run_command(
     c,
     ip=None,
-    user="root",
-    password="analog",
+    user=None,
+    password=None,
+    yamlfilename="/etc/default/nebula",
     board_name=None,
     command=None,
     ignore_exception=False,
@@ -1289,7 +1306,11 @@ def run_command(
 ):
     """Run command on remote via ip"""
     n = nebula.network(
-        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+        dutip=ip,
+        dutusername=user,
+        dutpassword=password,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
     )
     n.run_ssh_command(command, ignore_exception, retries)
 

@@ -4,9 +4,10 @@ import os
 import pathlib
 
 import click
-import nebula.errors as ne
 import netifaces
 import yaml
+
+import nebula.errors as ne
 from nebula.common import multi_device_check
 from nebula.netbox import NetboxDevice, NetboxDevices, netbox
 

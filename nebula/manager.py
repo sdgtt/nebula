@@ -4,10 +4,11 @@ import os
 import tarfile
 import time
 
+import yaml
+
 import nebula.common as common
 import nebula.errors as ne
 import nebula.helper as helper
-import yaml
 from nebula.driver import driver
 from nebula.jtag import jtag
 from nebula.netconsole import netconsole
@@ -16,6 +17,7 @@ from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 from nebula.usbdev import usbdev
+from nebula.usbmux import usbmux
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
@@ -24,7 +26,7 @@ log = logging.getLogger(__name__)
 class manager:
     """Board Manager"""
 
-    def __init__(
+    def __init__(  # noqa:C901
         self,
         monitor_type="uart",
         configfilename=None,
@@ -44,11 +46,9 @@ class manager:
 
         configs = common.multi_device_check(configs, board_name)
 
-        if "pdu-config" not in configs:
-            configfilename = None
-        else:
-            configfilename = self.configfilename
-        self.power = pdu(yamlfilename=configfilename, board_name=board_name)
+        self.power = None
+        if "pdu-config" in configs:
+            self.power = pdu(yamlfilename=configfilename, board_name=board_name)
 
         self.jtag_use = False
         self.jtag = False
@@ -112,7 +112,14 @@ class manager:
 
         self.tftp = False
 
-        self.help = helper.helper()
+        if "usbmux-config" in configs:
+            self.usbsdmux = usbmux(
+                yamlfilename=self.configfilename, board_name=board_name
+            )
+        else:
+            self.usbsdmux = None
+
+        self.help = helper()
         self.usbdev = usbdev()
         self.board_name = board_name
 
@@ -136,11 +143,13 @@ class manager:
 
     def _check_files_exist(self, *args):
         for filename in args:
+            if not filename:
+                continue
             if not os.path.exists(filename):
                 raise Exception(filename + " not found or does not exist")
 
     def copy_reference_from_sdcard(self, bootbinpath, uimagepath, devtreepath):
-        target = uimagepath.split("/")[1].rstrip()
+        target = os.path.basename(uimagepath).strip("\n")
         if "uImage" in str(uimagepath):
             ref = "zynq-common/" + str(target)
         else:
@@ -151,7 +160,7 @@ class manager:
             ref = self.reference_boot_folder + "/" + str(self.boot_subfolder)
         else:
             ref = self.reference_boot_folder
-        target = bootbinpath.split("/")[1].rstrip()
+        target = os.path.basename(bootbinpath).strip("\n")
         ref = ref + "/" + str(target)
         self.monitor[0].copy_reference(ref, target)
 
@@ -159,7 +168,7 @@ class manager:
             ref = self.reference_boot_folder + "/" + str(self.devicetree_subfolder)
         else:
             ref = self.reference_boot_folder
-        target = devtreepath.split("/")[1].rstrip()
+        target = os.path.basename(devtreepath).strip("\n")
         ref = ref + "/" + str(target)
         self.monitor[0].copy_reference(ref, target)
 
@@ -196,13 +205,31 @@ class manager:
             self.monitor[0].stop_log()
             raise ne.SSHNotFunctionalAfterBootFileUpdate
 
-    @_release_thread_lock
-    def recover_board(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, sdcard=False
+    @_release_thread_lock  # type: ignore
+    def recover_board(  # noqa:C901
+        self,
+        system_top_bit_path,
+        bootbinpath,
+        uimagepath,
+        devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
+        fsblpath=None,
+        ubootpath=None,
+        sdcard=False,
     ):
-        """Recover boards with UART, PDU, JTAG, and Network are available"""
+        """Recover boards with UART, PDU, JTAG, USB-SD-Mux and Network if available"""
         self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+            system_top_bit_path,
+            bootbinpath,
+            uimagepath,
+            devtreepath,
+            extlinux_path,
+            scr_path,
+            preloader_path,
+            fsblpath,
+            ubootpath,
         )
         try:
             # Flush UART
@@ -240,135 +267,175 @@ class manager:
             return
 
         except (ne.LinuxNotReached, TimeoutError):
+            log.warn("Linux is not accessible")
             try:
-                # Power cycle
-                log.info("SSH reboot failed again after power cycling")
-                log.info("Forcing UART override on reset")
-                if self.jtag_use:
-                    log.info("Resetting with JTAG")
-                    self.jtag.restart_board()
+                if self.usbsdmux:
+                    log.info("Will try to recover using usb-sd mux...")
+                    self.power.power_down_board()
+                    if sdcard:
+                        # TODO: Recover using SD card boot files
+                        pass
+                    else:
+                        self.usbsdmux.update_boot_files_from_external(
+                            bootbin_loc=bootbinpath,
+                            kernel_loc=uimagepath,
+                            devicetree_loc=devtreepath,
+                            extlinux_loc=extlinux_path,
+                            scr_loc=scr_path,
+                            preloader_loc=preloader_path,
+                        )
+                        # if devtreepath:
+                        #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
+                    self.usbsdmux.set_mux_mode("dut")
+
+                    # powercycle board
+                    log.info("Power cycling to boot")
+                    self.power_cycle_to_boot()
                 else:
-                    # TODO: consider zed boards which uart closes after a powercycle
-                    log.info("Power cycling")
-                    self.power.power_cycle_board()
+                    # Power cycle
+                    log.info("Will try to recover using uart...")
+                    log.info("Forcing UART override on reset")
+                    if self.jtag_use:
+                        log.info("Resetting with JTAG")
+                        self.jtag.restart_board()
+                    else:
+                        # TODO: consider zed boards which uart closes after a powercycle
+                        log.info("Power cycling")
+                        self.power.power_cycle_board()
 
-                # Enter u-boot menu
-                if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
-                    raise ne.LinuxNotReached
+                    # Enter u-boot menu
+                    if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
+                        raise ne.UbootNotReached
 
-                if self.tftp:
-                    # Move files to correct position for TFTP
-                    # self.monitor[0].load_system_uart_from_tftp()
+                    if self.tftp:
+                        # Move files to correct position for TFTP
+                        # self.monitor[0].load_system_uart_from_tftp()
 
-                    # Load boot files over tftp
-                    self.monitor[0].load_system_uart_from_tftp()
+                        # Load boot files over tftp
+                        self.monitor[0].load_system_uart_from_tftp()
 
-                else:
-                    try:
-                        if sdcard:
-                            log.info("Copying reference from sdcard")
-                            self.copy_reference_from_sdcard(
-                                bootbinpath, uimagepath, devtreepath
-                            )
-                            self.monitor[0]._write_data("\r\n")
-                            self.monitor[0]._write_data("boot")
-                        else:
-                            # Load boot files via uart
-                            log.info("Sending reference via uart")
-                            self.monitor[0].load_system_uart(
-                                system_top_bit_filename=system_top_bit_path,
-                                kernel_filename=uimagepath,
-                                devtree_filename=devtreepath,
-                            )
-                    except Exception as ex:
-                        log.warning("Error copying reference.")
-                        log.warning(str(ex))
+                    else:
+                        # TODO: Add option to load boot files from SD card reference
+                        # Load boot files via uart
+                        log.info("Sending reference via uart")
+                        self.monitor[0].load_system_uart(
+                            system_top_bit_filename=system_top_bit_path,
+                            kernel_filename=uimagepath,
+                            devtree_filename=devtreepath,
+                        )
+                        results = self.monitor[0]._read_until_done_multi(
+                            done_strings=["Starting kernel", "root@analog"],
+                            max_time=100,
+                        )
 
-                log.info("Waiting for boot to complete")
-
-                # Verify linux is reached
-                result = self.monitor[0]._read_until_done(
-                    done_string="root@analog", max_time=100
-                )
-
-                if not result:
-                    # raise Exception("Linux not fully booting")
-                    raise ne.LinuxNotReached
+                        if len(results) == 1:
+                            raise Exception("u-boot menu cannot boot kernel")
+                        elif not results[1]:
+                            raise Exception("Linux not fully booting")
 
                 log.info("Linux fully booted")
 
                 # Check is networking is working
                 self.network_check()
-
-                print("Home sweet home")
+                log.info("Board recovery complete")
+                log.info("Home sweet home")
                 self.monitor[0].stop_log()
 
             # JTAG RECOVERY
-            except Exception:
-                self.board_reboot_jtag_uart(
-                    bootbinpath, uimagepath, devtreepath, sdcard
-                )
+            except Exception as e:
 
-    @_release_thread_lock
+                if self.jtag:
+                    log.warn("Recovery failed. Will try JTAG")
+                    self.board_reboot_jtag_uart(
+                        system_top_bit_path,
+                        uimagepath,
+                        devtreepath,
+                        fsblpath,
+                        ubootpath,
+                        sdcard,
+                    )
+                    log.info("Linux fully recovered")
+                else:
+                    log.error("JTAG not configured, cannot recover further!")
+                    raise e
+                self.monitor[0].stop_log()
+
+    @_release_thread_lock  # type: ignore
     def board_reboot_jtag_uart(
-        self, bootbinpath, uimagepath, devtreepath, sdcard=False
+        self,
+        system_top_bit_path,
+        uimagepath,
+        devtreepath,
+        fsblpath=None,
+        ubootpath=None,
+        sdcard=False,
     ):
         """Reset board and load fsbl, uboot, bitstream, and kernel
         over JTAG. Then over UART boot
         """
-        # self.monitor[0].start_log()
+        self.monitor[0]._read_until_stop()  # Flush
+        self.monitor[0].start_log(logappend=True)
         log.info("Resetting and looking DDR with boot files")
-        # self.jtag.full_boot()
-        # Check if u-boot loads first
-        # log.info("Resetting with JTAG and checking if u-boot is reachable")
-        # self.jtag.restart_board()
-        # do a power cylcle rather than jtag reboot to make sure jtag devices are working
         log.info("Resetting with JTAG and checking if u-boot is reachable")
         self.jtag.restart_board()
         if self.monitor[0]._enter_uboot_menu_from_power_cycle():
             log.info("u-boot accessible after JTAG reset")
-            self.jtag.restart_board()
-            log.info("Taking over UART control")
-            self.monitor[0]._enter_uboot_menu_from_power_cycle()
         else:
             log.info("u-boot not reachable, manually loading u-boot over JTAG")
-            self.jtag.boot_to_uboot()
+            self.jtag.boot_to_uboot(fsblpath, ubootpath)
             log.info("Taking over UART control")
-            self.monitor[0]._enter_uboot_menu_from_power_cycle()
+            if not self.monitor[0]._enter_uboot_menu_from_power_cycle():
+                raise ne.UbootNotReached
 
-        # Get SD card file directory
-        if not sdcard:
-            # Copy over and write to disk
-            log.info("Copying boot files over UART to SD card")
-            self.monitor[0].load_system_uart_copy_to_sdcard(
-                bootbinpath, devtreepath, uimagepath
-            )
+        if self.tftp:
+            # Load boot files over tftp
+            self.monitor[0].load_system_uart_from_tftp()
         else:
-            self.copy_reference_from_sdcard(bootbinpath, uimagepath, devtreepath)
+            # TODO: Add option to load boot files from SD card reference
+            # Load boot files via uart
+            log.info("Sending reference via uart")
+            self.monitor[0].load_system_uart(
+                system_top_bit_filename=system_top_bit_path,
+                kernel_filename=uimagepath,
+                devtree_filename=devtreepath,
+            )
+            results = self.monitor[0]._read_until_done_multi(
+                done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
+            )
 
-        # self.jtag.load_post_uboot_files()
-        # self.monitor[0].update_boot_args()
-        # self.monitor[0].boot()
-        # self.monitor[0].load_system_uart(
-        #     system_top_bit_filename="system_top.bit",
-        #     kernel_filename="uImage",
-        #     devtree_filename="devicetree.dtb",
-        # )
-        # power cycle board
-        self.power_cycle_to_boot()
+            if len(results) == 1:
+                raise Exception("u-boot not reached")
+            elif not results[1]:
+                raise Exception("u-boot menu cannot boot kernel")
+            elif not results[2]:
+                raise Exception("Linux not fully booting")
 
-        # Check is networking is working
-        self.network_check()
+            log.info("Linux fully booted")
 
-        self.monitor[0].stop_log()
+            # Check is networking is working
+            self.network_check()
+            self.monitor[0].stop_log()
 
-    @_release_thread_lock
+    @_release_thread_lock  # type: ignore
     def board_reboot_uart_net_pdu(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath
+        self,
+        system_top_bit_path,
+        bootbinpath,
+        uimagepath,
+        devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
     ):
         """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
-            system_top_bit_path, bootbinpath, uimagepath, devtreepath
+            system_top_bit_path,
+            bootbinpath,
+            uimagepath,
+            devtreepath,
+            extlinux_path,
+            scr_path,
+            preloader_path,
         )
         try:
             # Flush UART
@@ -404,7 +471,12 @@ class manager:
             # Update board over SSH and reboot
             log.info("Update board over SSH and reboot")
             self.net.update_boot_partition(
-                bootbinpath=bootbinpath, uimagepath=uimagepath, devtreepath=devtreepath
+                bootbinpath=bootbinpath,
+                uimagepath=uimagepath,
+                devtreepath=devtreepath,
+                extlinux_path=extlinux_path,
+                scr_path=scr_path,
+                preloader_path=preloader_path,
             )
             log.info("Waiting for reboot to complete")
 
@@ -454,6 +526,80 @@ class manager:
             # NEED A CHECK HERE OR SOMETHING
             log.info("Waiting for boot to complete")
             time.sleep(60)
+
+        # Check is networking is working
+        self.network_check()
+
+        print("Home sweet home")
+        self.monitor[0].stop_log()
+
+    @_release_thread_lock  # type: ignore
+    def board_reboot_sdmux_pdu(
+        self,
+        system_top_bit_path=None,
+        bootbinpath=None,
+        uimagepath=None,
+        devtreepath=None,
+        devtree_overlay_path=None,
+        devtree_overlay_config_path=None,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
+    ):
+        """Manager when sdcardmux, pdu is available"""
+
+        try:
+            # Flush UART
+            self.monitor[0]._read_until_stop()  # Flush
+            self.monitor[0].start_log(logappend=True)
+            # Check if Linux is accessible
+            log.info("Checking if Linux is accessible")
+            try:
+                out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+                if not out:
+                    raise ne.LinuxNotReached
+            except Exception as e:
+                # raise LinuxNotReached for other exceptions
+                log.info(str(e))
+                raise ne.LinuxNotReached
+
+            # Get IP over UART
+            ip = self.monitor[0].get_ip_address()
+            if not ip:
+                self.monitor[0].request_ip_dhcp()
+                ip = self.monitor[0].get_ip_address()
+            if not ip:
+                raise ne.NetworkNotFunctional
+            if ip != self.net.dutip:
+                log.info("DUT IP changed to: " + str(ip))
+                self.net.dutip = ip
+                self.driver.uri = "ip:" + ip
+                # Update config file
+                self.help.update_yaml(
+                    self.configfilename, "network-config", "dutip", ip, self.board_name
+                )
+
+            log.info("Update board over usb-sd-mux")
+            self.usbsdmux.update_boot_files_from_external(
+                bootbin_loc=bootbinpath,
+                kernel_loc=uimagepath,
+                devicetree_loc=devtreepath,
+                devicetree_overlay_loc=devtree_overlay_path,
+                devicetree_overlay_config_loc=devtree_overlay_config_path,
+                extlinux_loc=extlinux_path,
+                scr_loc=scr_path,
+                preloader_loc=preloader_path,
+            )
+            # if devtreepath:
+            #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
+            self.usbsdmux.set_mux_mode("dut")
+            # powercycle board
+            log.info("Power cycling to boot")
+            self.power_cycle_to_boot()
+
+        except Exception as e:
+            log.error("Updating boot files using usbsdmux failed to complete")
+            raise e
 
         # Check is networking is working
         self.network_check()
@@ -578,39 +724,51 @@ class manager:
         if len(res) != 0:
             raise Exception("Empty files:" + str(res))
 
-        if "BOOT.BIN" not in files:
-            raise Exception("BOOT.BIN not found")
-        if "devicetree.dtb" not in files:
-            if "system.dtb" not in files:
-                raise Exception("Device tree not found")
-            else:
-                dt = "system.dtb"
-        else:
-            dt = "devicetree.dtb"
-        if "uImage" not in files:
-            if "Image" not in files:
-                raise Exception("kernel not found")
-            else:
-                kernel = "Image"
-        else:
-            kernel = "uImage"
-        if "system_top.bit" not in files:
-            if "bootgen_sysfiles.tgz" not in files:
-                raise Exception("system_top.bit not found")
-            else:
-                tar = os.path.join(folder, "bootgen_sysfiles.tgz")
-                tf = tarfile.open(tar, "r:gz")
-                tf.extractall(folder)
-                tf.close()
-                files2 = os.listdir(folder)
-                if "system_top.bit" not in files2:
-                    raise Exception("system_top.bit not found")
+        if "bootgen_sysfiles.tgz" in files:
+            tar = os.path.join(folder, "bootgen_sysfiles.tgz")
+            tf = tarfile.open(tar, "r:gz")
+            tf.extractall(folder)
+            tf.close()
+            # populate again files after tgz extraction
+            files = os.listdir(folder)
 
-        kernel = os.path.join(folder, kernel)
-        dt = os.path.join(folder, dt)
-        bootbin = os.path.join(folder, "BOOT.BIN")
-        bit = os.path.join(folder, "system_top.bit")
-        return (bootbin, kernel, dt, bit)
+        targets = {
+            "bit": ["system_top.bit"],
+            "bootbin": ["BOOT.BIN", "soc_system.rbf"],
+            "kernel": ["uImage", "Image", "zImage"],
+            "dt": ["devicetree.dtb", "system.dtb", "socfpga.dtb"],
+            "ext": ["extlinux.conf"],
+            "scr": ["u-boot.scr"],
+            "preloader": ["u-boot-with-spl.sfp"],
+            "uboot": [
+                "u-boot_zynq.elf",
+                "u-boot_adi_zynqmp_adrv9009_zu11eg_adrv2crr_fmc.elf",
+                "u-boot_xilinx_zynqmp_zcu102_revA.elf",
+            ],
+        }
+        required = ["bootbin", "dt", "kernel"]
+        found_files = {}
+        for filetype in targets.keys():
+            for pattern in targets[filetype]:
+                if pattern in files:
+                    found_files.update({filetype: os.path.join(folder, pattern)})
+                    continue
+            if filetype not in found_files.keys():
+                if filetype in required:
+                    raise Exception(f"{filetype} - {pattern} not found")
+                else:
+                    found_files.update({filetype: None})
+
+        return (
+            found_files["bit"],
+            found_files["bootbin"],
+            found_files["kernel"],
+            found_files["dt"],
+            found_files["ext"],
+            found_files["scr"],
+            found_files["preloader"],
+            found_files["uboot"],
+        )
 
     def board_reboot_auto_folder(
         self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
@@ -625,7 +783,6 @@ class manager:
                 raise Exception("jtag_mode not supported for firmware device")
             try:
                 files = glob.glob(os.path.join(folder, "*.zip"))
-                print(files[0])
             except IndexError:
                 files = glob.glob(os.path.join(folder, "*.frm"))
             if not files:
@@ -641,42 +798,85 @@ class manager:
 
         else:
             log.info("SD-Card/microblaze based device selected")
-            (bootbin, kernel, dt, bit) = self._find_boot_files(folder)
-            print(bootbin, kernel, dt, bit)
+            (
+                bit,
+                bootbin,
+                kernel,
+                dt,
+                ext,
+                scr,
+                preloader,
+                uboot,
+            ) = self._find_boot_files(folder)
+            log.info("Found boot files:")
+            for file in [bootbin, kernel, dt, bit, ext, scr, preloader, uboot]:
+                if file:
+                    log.info(file)
             if jtag_mode:
                 self.board_reboot_jtag_uart(
                     system_top_bit_path=bit,
-                    bootbinpath=bootbin,
-                    uimagepath=kernel,
-                    devtreepath=dt,
-                )
-            if not recover:
-                self.board_reboot_uart_net_pdu(
-                    system_top_bit_path=bit,
-                    bootbinpath=bootbin,
                     uimagepath=kernel,
                     devtreepath=dt,
                 )
             else:
-                self.recover_board(
+                self.board_reboot_auto(
                     system_top_bit_path=bit,
                     bootbinpath=bootbin,
                     uimagepath=kernel,
                     devtreepath=dt,
+                    extlinux_path=ext,
+                    scr_path=scr,
+                    preloader_path=preloader,
                     sdcard=sdcard,
+                    recover=recover,
                 )
 
     def board_reboot_auto(
-        self, system_top_bit_path, bootbinpath, uimagepath, devtreepath, recover=False
+        self,
+        system_top_bit_path,
+        bootbinpath,
+        uimagepath,
+        devtreepath,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
+        sdcard=False,
+        recover=False,
     ):
         """Automatically select loading mechanism
         based on current class setup"""
-        self.board_reboot_uart_net_pdu(
-            system_top_bit_path=system_top_bit_path,
-            bootbinpath=bootbinpath,
-            uimagepath=uimagepath,
-            devtreepath=devtreepath,
-        )
+        if recover:
+            self.recover_board(
+                system_top_bit_path=system_top_bit_path,
+                bootbinpath=bootbinpath,
+                uimagepath=uimagepath,
+                devtreepath=devtreepath,
+                extlinux_path=extlinux_path,
+                scr_path=scr_path,
+                preloader_path=preloader_path,
+                sdcard=sdcard,
+            )
+        else:
+            if self.usbsdmux:
+                self.board_reboot_sdmux_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path,
+                )
+            else:
+                self.board_reboot_uart_net_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path,
+                )
 
     def shutdown_powerdown_board(self):
         self.monitor[0].print_to_console = False

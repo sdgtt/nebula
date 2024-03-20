@@ -1,0 +1,100 @@
+@startuml Nebula Manager Device Recovery
+start
+title Nebula Manager Device Recovery
+if (Is Linux is accessible?) then (yes)
+  partition "Verify IP Address" {
+    :(1)get ip address via uart,
+        if none assign one via dhcp
+     (2)if address is not expected,
+        update nebula config to new address;
+  }
+  #palegreen: Home sweet home;
+  kill
+else (no)
+
+  if (usbsdmux enabled) then (yes)
+    partition #yellow "SD Card Mux"{
+      : power down board using PDU
+      __power.power_down_board()__;
+      if (SD card mode) then (yes)
+        : update boot files
+        from within sdcard
+        via usb-sd-mux;
+      else (no)
+        : update boot files
+        from external sources
+        via usb-sd-mux;
+      endif
+      : Update device tree
+      via usb-sd-mux;
+    }
+    #Gray: Power cycle using PDU;
+    kill
+  else
+    if (JTAG enabled) then (yes)
+      : Restart board via JTAG;
+    else (no)
+    : Restart board via PDU;
+    endif
+
+    if (if uboot menu reached) then (yes)
+      if (if tftp enabled) then (yes)
+        : load boot files
+        from tftp via uart;
+        #Gray: Power cycle using PDU;
+        kill
+      else (no)
+        if (SD card mode) then (yes)
+          : copy bootfiles
+          from within sdcard via uart;
+        else (no)
+          : copy bootfiles
+          from external sources via uart;
+        endif
+        #Gray: Power cycle using PDU;
+        kill
+      endif
+    else (no)
+      #orange: Second Stage;
+      kill
+    endif
+  endif
+
+  #Gray: Power cycle using PDU;
+  if (Linux prompt reached) then (yes)
+    partition "Network check"{
+      if (is Network (IP) functional) then (yes)
+        if (is SSH  functional) then (yes)
+          #palegreen: Home sweet home;
+          kill
+        else (no)
+          #orange: Second Stage;
+          kill
+        endif
+      else (no)
+        #orange: Second Stage;
+        kill
+      endif
+    }
+  else (no)
+    #orange: Second Stage;
+    kill
+  endif
+  #orange :Second Stage;
+  : TO FIX JTAG Recovery
+  __manager.board_reboot_jtag_uart()__;
+  :__manager.power_cycle_to_boot()__;
+  if (power_cycle_to_boot ok) then (yes)
+    :__manager.network_check()__;
+    if (network check ok) then (yes)
+      #palegreen: Home sweet home;
+      kill
+    else (no)
+      #red: Recovery Failed;
+    endif
+  else (no)
+    #red: Recovery Failed;
+  endif
+endif
+end
+@enduml

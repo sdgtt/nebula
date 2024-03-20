@@ -25,7 +25,7 @@ board-config:
     netbox_field: devices.custom_fields.device_carrier
   field_3:
     name: daughter
-    help: "Daugther board name"
+    help: "Daughter board name"
     optional: True
     netbox_field: devices.custom_fields.device_daughter
   field_4:

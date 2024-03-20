@@ -30,7 +30,13 @@ class SSHNotFunctionalAfterBootFileUpdate(Error):
 
 
 class LinuxNotReached(Error):
-    """Linux is accessible (likely previous bad BOOT.BIN or kernel crash)"""
+    """Linux is inaccessible (likely previous bad BOOT.BIN or kernel crash)"""
+
+    pass
+
+
+class UbootNotReached(Error):
+    """U-boot menu not reachable"""
 
     pass
 
