@@ -14,7 +14,7 @@ beautifulsoup4
 requests
 pygithub
 pynetbox
-artifactory
+dohq-artifactory
 usbsdmux==0.2.1
 pyudev
 decorator
