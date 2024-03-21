@@ -883,19 +883,11 @@ class manager:
                     system_top_bit_path=system_top_bit_path,
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
-<<<<<<< HEAD
                     devtreepath=devtreepath,
-<<<<<<< HEAD
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
                     preloader_path=preloader_path,
-                    sdcard=sdcard
-=======
                     sdcard=sdcard,
->>>>>>> 497fc8d (fix lint)
-=======
-                    devtreepath=devtreepath
->>>>>>> d19395a (Copy bootfiles from sdcard using network first)
                 )
 
     def shutdown_powerdown_board(self):
