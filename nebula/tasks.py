@@ -733,7 +733,7 @@ def gen_config_netbox(
 #############################################
 @task(
     help={
-        "vivado_version": "Vivado tool version. Default: 2021.1.",
+        "vivado_version": "Vivado tool version. Default: 2021.2.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -746,7 +746,7 @@ def gen_config_netbox(
 )
 def update_boot_files_jtag_manager(
     c,
-    vivado_version="2021.1",
+    vivado_version="2021.2",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -777,7 +777,7 @@ def update_boot_files_jtag_manager(
 
 @task(
     help={
-        "vivado_version": "Vivado tool version. Default: 2021.1.",
+        "vivado_version": "Vivado tool version. Default: 2021.2.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -790,7 +790,7 @@ def update_boot_files_jtag_manager(
 )
 def recovery_device_manager(
     c,
-    vivado_version="2021.1",
+    vivado_version="2021.2",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
@@ -822,14 +822,14 @@ def recovery_device_manager(
 
 @task(
     help={
-        "vivado_version": "Vivado tool version. Default: 2021.1.",
+        "vivado_version": "Vivado tool version. Default: 2021.2.",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
 def check_jtag_manager(
     c,
-    vivado_version="2021.1",
+    vivado_version="2021.2",
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
@@ -843,7 +843,7 @@ def check_jtag_manager(
 
 @task(
     help={
-        "vivado_version": "Vivado tool version. Default: 2021.1.",
+        "vivado_version": "Vivado tool version. Default: 2021.2.",
         "system_top_bit_path": "Path to system_top.bit",
         "bootbinpath": "Path to BOOT.BIN.",
         "uimagepath": "Path to kernel image.",
@@ -856,7 +856,7 @@ def check_jtag_manager(
 )
 def update_boot_files_manager(
     c,
-    vivado_version="2021.1",
+    vivado_version="2021.2",
     system_top_bit_path="system_top.bit",
     bootbinpath="BOOT.BIN",
     uimagepath="uImage",
