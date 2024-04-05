@@ -95,27 +95,35 @@ def get_gitsha(url, daily=False, linux=False, hdl=False):
         path = ArtifactoryPath(str(url))
         props = path.properties
         exp = "20[1-2][0-9]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
-        if not daily:
+        try:
+            if not daily:
+                bootpartition = {
+                    "bootpartition_folder": re.findall(exp, url)[0],
+                    "linux_git_sha": props["linux_git_sha"][0],
+                    "hdl_git_sha": props["hdl_git_sha"][0],
+                }
+                yaml.dump(bootpartition, f)
+            else:
+                if hdl:
+                    hdl_props = {
+                        "hdl_folder": re.findall(exp, url)[0],
+                        "hdl_git_sha": props["git_sha"][0],
+                    }
+                    yaml.dump(hdl_props, f)
+                if linux:
+                    linux_props = {
+                        "linux_folder": re.findall(exp, url)[0],
+                        "linux_git_sha": props["git_sha"][0],
+                    }
+                    yaml.dump(linux_props, f)
+        except:
+            # TODO: fetch info.txt and get linux or hdl gitsha from there
             bootpartition = {
-                "bootpartition_folder": re.findall(exp, url)[0],
-                "linux_git_sha": props["linux_git_sha"][0],
-                "hdl_git_sha": props["hdl_git_sha"][0],
-            }
+                    "bootpartition_folder": re.findall(exp, url)[0],
+                    "linux_git_sha": "NA",
+                    "hdl_git_sha": "NA",
+                }
             yaml.dump(bootpartition, f)
-        else:
-            if hdl:
-                hdl_props = {
-                    "hdl_folder": re.findall(exp, url)[0],
-                    "hdl_git_sha": props["git_sha"][0],
-                }
-                yaml.dump(hdl_props, f)
-            if linux:
-                linux_props = {
-                    "linux_folder": re.findall(exp, url)[0],
-                    "linux_git_sha": props["git_sha"][0],
-                }
-                yaml.dump(linux_props, f)
-
 
 def gen_url(ip, branch, folder, filename, addl, url_template):
     if branch == "master":
@@ -270,6 +278,38 @@ def download_matlab_generate_bootbin(
             download_artifact(path, download_folder)
     return paths, rd_names
 
+def sanitize_artifactory_url(url):
+    url = re.sub(r"%2F", "/", url)
+    url = re.sub("/ui/repos/tree/Properties/","/artifactory/",url)
+    return url
+
+def get_info_txt(url):
+    art_path = ArtifactoryPath(sanitize_artifactory_url(url))
+    info_txt_path = None
+    for p in art_path:
+        if "info.txt" in str(p):
+            info_txt_path = p
+            break
+
+    if not info_txt_path:
+        raise Exception("Missing info.txt")
+
+    build_info = {"built_projects":[]}
+    with info_txt_path.open() as fd:
+        with open('info.txt', 'wb') as out:
+            content = fd.read()
+            out.write(content)
+            info_txt = content.decode('utf-8').split("\n")
+            for line in info_txt:
+                match = re.match('[\s-]*(.+):(.+)', line)
+                if match:
+                    build_info.update({match.group(1).strip(): match.group(2).strip()})
+                else:
+                    match = re.match('\s+-\s([-\w]+)', line)
+                    if match:
+                        build_info["built_projects"].append(match.group(1))
+
+    return build_info
 
 class downloader(utils):
     def __init__(self, http_server_ip=None, yamlfilename=None, board_name=None):
@@ -377,8 +417,17 @@ class downloader(utils):
             raise Exception(
                 "No server IP or domain name specified. Must be defined in yaml or provided as input"
             )
-        # get url template base
-        url = gen_url(ip, branch, folder, filename, addl, url_template)
+
+        new_flow = False
+        for pipeline in ["HDL_PRs","Linux_PRs", "HDL_latest_commit", "Linux_latest_commit"]:
+            if bool(re.search(pipeline, url_template)):
+                new_flow = True
+
+        if new_flow:
+            url = url_template.format(folder, filename)
+        else:
+            # get url template base
+            url = gen_url(ip, branch, folder, filename, addl, url_template)
         self.url = url
         filename = os.path.join(dest, filename)
         log.info("URL: " + url)
@@ -410,11 +459,15 @@ class downloader(utils):
         kernel,
         kernel_root,
         dt,
+        url_template=None,
     ):
         if source == "artifactory":
-            url_template = (
-                "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-            )
+            if url_template:
+                url_template = sanitize_artifactory_url(url_template) + "/boot_partition/{}/{}"
+            else:
+                url_template = (
+                    "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+                )
 
         log.info("Getting standard boot files")
         # Get kernel
@@ -715,6 +768,7 @@ class downloader(utils):
         noos=False,
         microblaze=False,
         rpi=False,
+        url_template=None
     ):
         if not kernel:
             kernel = False
@@ -807,6 +861,7 @@ class downloader(utils):
                         kernel,
                         kernel_root,
                         dt,
+                        url_template
                     )
                 elif folder == "hdl_linux":
                     self._get_files_hdl(
@@ -836,6 +891,7 @@ class downloader(utils):
         noos=None,
         microblaze=None,
         rpi=None,
+        url_template=None
     ):
         """download_boot_files Download bootfiles for target design.
         This method can download or move files from different locations
@@ -912,6 +968,7 @@ class downloader(utils):
             noos,
             microblaze,
             rpi,
+            url_template
         )
 
     def download_sdcard_release(self, release="2019_R1"):
