@@ -7,7 +7,6 @@ from re import L
 
 import pynetbox
 import yaml
-from numpy import isin
 
 from nebula.common import utils
 
