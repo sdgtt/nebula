@@ -1,9 +1,10 @@
 import logging
 import time
 
+from pyvesync_v2 import VeSync
+
 from nebula import cyberpower as cpdu
 from nebula.common import utils
-from pyvesync_v2 import VeSync
 
 log = logging.getLogger(__name__)
 
@@ -13,11 +14,11 @@ class pdu(utils):
 
     def __init__(
         self,
-        pduip="192.168.86.10",
-        outlet=1,
-        pdu_type="cyberpower",
-        username="cyber",
-        password="cyber",
+        pduip=None,
+        outlet=None,
+        pdu_type=None,
+        username=None,
+        password=None,
         yamlfilename=None,
         board_name=None,
     ):

@@ -16,10 +16,11 @@ import yaml
 from artifactory import ArtifactoryPath
 from bs4 import BeautifulSoup
 from github import Github
-from nebula.common import utils
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
+
+from nebula.common import utils
 
 log = logging.getLogger(__name__)
 
@@ -283,6 +284,8 @@ class downloader(utils):
         self.devicetree_overlay = None
         self.kernel = None
         self.modules = None
+        self.no_os_project = None
+        self.platform = None
         # update from config
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
@@ -671,6 +674,25 @@ class downloader(utils):
                 module_files = [tarinfo for tarinfo in tf.getmembers()]
             tf.extractall(path=dest, members=module_files)
 
+    def _get_files_noos(self, source, source_root, branch, project, platform):
+        dest = "outs"
+        if not os.path.isdir(dest):
+            os.mkdir(dest)
+        if source == "artifactory":
+            url_template = (
+                "https://{}/artifactory/sdg-generic-development/no-OS/{}/{}/{}/{}"
+            )
+            url = url_template.format(source_root, branch, "", "", "")
+            build_date = get_newest_folder(listFD(url))
+            url = url_template.format(
+                source_root, branch, build_date, platform, project + ".zip"
+            )
+            log.info(url)
+            file = os.path.join(dest, project + ".zip")
+            self.download(url, file)
+            # unzip the files
+            shutil.unpack_archive(file, dest)
+
     def _get_files(
         self,
         design_name,
@@ -686,6 +708,8 @@ class downloader(utils):
         devicetree_overlay,
         kernel,
         modules,
+        noos_project,
+        platform,
         folder=None,
         firmware=False,
         noos=False,
@@ -718,6 +742,8 @@ class downloader(utils):
         elif "RPI" in details["carrier"]:
             kernel = kernel
             modules = modules
+        elif details["carrier"] in ["Maxim", "ADICUP"]:
+            pass
         else:
             raise Exception("Carrier not supported")
 
@@ -738,8 +764,8 @@ class downloader(utils):
                 # design_source_root = os.path.join(source_root, design_name)
 
             if noos:
-                self._get_files_hdl(
-                    hdl_folder, source, source_root, branch, hdl_output=True
+                self._get_files_noos(
+                    source, source_root, branch, noos_project, platform
                 )
 
             if microblaze:
@@ -845,24 +871,10 @@ class downloader(utils):
         devicetree_overlay = self.devicetree_overlay
         kernel = self.kernel
         modules = self.modules
+        noos_project = self.no_os_project
+        platform = self.platform
 
-        if noos:
-            res = os.path.join(path, "resources", "noOS_projects.yaml")
-            with open(res) as f:
-                noos_projects = yaml.load(f, Loader=yaml.FullLoader)
-            val = []
-            for project in noos_projects:
-                hdl_projects = noos_projects[project]
-                if hdl_projects is not None:
-                    for hdl_project in hdl_projects:
-                        if hdl_project == hdl_folder:
-                            val.append(hdl_project)
-                            log.info("No-OS project:" + project)
-
-            if not val:
-                raise Exception("Design has no support!")
-        else:
-            assert design_name in board_configs, "Invalid design name"
+        assert design_name in board_configs, "Invalid design name"
 
         if not firmware:
             matched = re.match("v[0-1].[0-9][0-9]", branch)
@@ -893,6 +905,8 @@ class downloader(utils):
             devicetree_overlay,
             kernel,
             modules,
+            noos_project,
+            platform,
             folder,
             firmware,
             noos,

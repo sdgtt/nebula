@@ -37,6 +37,7 @@ setuptools.setup(
             "resources/noOS_projects.yaml",
             "resources/template_agent_gen.yaml",
             "resources/template_rpi_gen.yaml",
+            "resources/template_noos_gen.yaml",
         ]
     },
     include_package_data=True,
@@ -49,7 +50,7 @@ setuptools.setup(
         "pysnmp",
         "invoke",
         "xmodem",
-        "pytest",
+        "pytest>=7.0.0",
         "pyvesync_v2",
         "pyfiglet",
         "usbsdmux",

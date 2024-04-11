@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import pathlib
@@ -8,8 +9,9 @@ import subprocess
 import time
 
 import fabric
-import nebula.errors as ne
 from fabric import Connection
+
+import nebula.errors as ne
 from nebula.common import utils
 
 log = logging.getLogger(__name__)
@@ -85,7 +87,13 @@ class network(utils):
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
-                ).run("uname -a", hide=True, timeout=self.ssh_timeout)
+                ).run(
+                    "uname -a",
+                    hide=True,
+                    timeout=self.ssh_timeout,
+                    pty=True,
+                    in_stream=False,
+                )
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
@@ -135,9 +143,15 @@ class network(utils):
                     raise Exception("Exception occurred during SSH Reboot", str(ex))
 
     def run_ssh_command(
-        self, command, ignore_exceptions=False, retries=3, show_log=True
+        self,
+        command,
+        ignore_exceptions=False,
+        retries=3,
+        show_log=True,
+        print_result_to_file=True,
     ):
         result = None
+        filename = None
         for t in range(retries):
             log.info(
                 "ssh command:" + command + " to " + self.dutusername + "@" + self.dutip
@@ -146,20 +160,34 @@ class network(utils):
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
-                ).run(command, hide=True, timeout=self.ssh_timeout)
+                ).run(
+                    command,
+                    hide=True,
+                    timeout=self.ssh_timeout,
+                    pty=True,
+                    in_stream=False,
+                )
                 if result.failed:
                     raise Exception("Failed to run command:", command)
+
+                if print_result_to_file:
+                    filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
 
                 if show_log and result.stdout:
                     log.info("result stdout begin -------------------------------")
                     log.info(f"{result.stdout}")
                     log.info("result stdout end -------------------------------")
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_out_{filename}.log", "w") as f:
+                            f.write(result.stdout)
 
                 if show_log and result.stderr:
                     log.info("result stderr begin -------------------------------")
                     log.info(f"{result.stderr}")
                     log.info("result stderr end -------------------------------")
-
+                    if print_result_to_file:
+                        with open(f"{self.board_name}_err_{filename}.log", "w") as f:
+                            f.write(result.stderr)
                 break
             except Exception as ex:
                 log.warning("Exception raised: " + str(ex))
@@ -186,7 +214,13 @@ class network(utils):
                     raise ne.SSHError
 
     def update_boot_partition(
-        self, bootbinpath=None, uimagepath=None, devtreepath=None
+        self,
+        bootbinpath=None,
+        uimagepath=None,
+        devtreepath=None,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
     ):
         """update_boot_partition:
         Update boot files on existing card which from remote files
@@ -214,6 +248,17 @@ class network(utils):
             self.copy_file_to_remote(uimagepath, "/tmp/sdcard/")
         if devtreepath:
             self.copy_file_to_remote(devtreepath, "/tmp/sdcard/")
+        if extlinux_path:
+            self.run_ssh_command("mkdir -p /tmp/sdcard/extlinux")
+            self.copy_file_to_remote(extlinux_path, "/tmp/sdcard/extlinux/")
+        if scr_path:
+            self.copy_file_to_remote(scr_path, "/tmp/sdcard/")
+        if preloader_path:
+            preloader_file = os.path.basename(preloader_path)
+            self.copy_file_to_remote(preloader_path, "/tmp/sdcard/")
+            self.run_ssh_command(
+                f"dd if=/tmp/sdcard/{preloader_file} of=/dev/mmcblk0p3 bs=512 && sync"
+            )
         self.run_ssh_command("sudo reboot", ignore_exceptions=True)
 
     def update_boot_partition_existing_files(self, subfolder=None):
