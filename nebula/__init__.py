@@ -21,5 +21,5 @@ from nebula.uart import uart
 if os.name in ["nt", "posix"] and os.path.exists(LINUX_DEFAULT_PATH):
     from nebula.usbmux import usbmux
 
-__version__ = "0.0.1"
+__version__ = "v1.0.0"
 name = "Nebula: Embedded Development Tools"
