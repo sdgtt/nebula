@@ -8,5 +8,7 @@ It generally tries to be as cross-platform as possible and relies on very few ex
 
 Installation
 ```
-sudo python3 setup.py install
+git clone https://github.com/sdgtt/nebula.git
+cd nebula
+sudo python3 -m pip install .
 ```
