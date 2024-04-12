@@ -1,4 +1,4 @@
-name: Nebula build test
+name: Nebula Build Test
 
 on: [push, pull_request]
 

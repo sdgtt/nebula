@@ -1,4 +1,4 @@
-name: Nebula non-HW Test
+name: Nebula Non-HW Test
 
 on: [push, pull_request]
 
