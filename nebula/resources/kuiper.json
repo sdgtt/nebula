@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "platforms": [
     {
       "platform": "intel",
@@ -47,9 +48,6 @@
             },
             {
               "board" : "ccfmc"
-            },
-            {
-              "board" : "ccpackrf"
             }
           ]
         },
@@ -112,25 +110,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_daq2/u-boot.img"
-        }
-      ]
-    },
-    {
-      "name": "ad_fmclidar1_ebz",
-      "platform": "intel",
-      "architecture": "arria10",
-      "board": "socdk",
-      "kernel": "/boot/socfpga_arria10_common/zImage",
-      "preloader": "/boot/socfpga_arria10_socdk_fmclidar1/u-boot-splx4.sfp",
-      "files": [
-        {
-          "path": "/boot/socfpga_arria10_socdk_fmclidar1/fit_spl_fpga.itb"
         },
         {
-          "path": "/boot/socfpga_arria10_socdk_fmclidar1/socfpga_arria10_socdk_sdmmc.dtb"
-        },
-        {
-          "path": "/boot/socfpga_arria10_socdk_fmclidar1/u-boot.img"
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -150,6 +132,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_ad9081/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -169,6 +154,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_ad9081/np12/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -188,6 +176,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_adrv9002/socfpga_arria10_socdk_adrv9002_rx2tx2/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -207,10 +198,12 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_adrv9002/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
-
     {
       "name": "adrv9009",
       "platform": "intel",
@@ -227,6 +220,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_adrv9009/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -246,25 +242,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_adrv9371/u-boot.img"
-        }
-      ]
-    },
-    {
-      "name": "cn0506_mii",
-      "platform": "intel",
-      "architecture": "arria10",
-      "board": "socdk",
-      "kernel": "/boot/socfpga_arria10_common/zImage",
-      "preloader": "/boot/socfpga_arria10_socdk_cn0506_mii/u-boot-splx4.sfp",
-      "files": [
-        {
-          "path": "/boot/socfpga_arria10_socdk_cn0506_mii/fit_spl_fpga.itb"
         },
         {
-          "path": "/boot/socfpga_arria10_socdk_cn0506_mii/socfpga_arria10_socdk_sdmmc.dtb"
-        },
-        {
-          "path": "/boot/socfpga_arria10_socdk_cn0506_mii/u-boot.img"
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -284,6 +264,9 @@
         },
         {
           "path": "/boot/socfpga_arria10_socdk_fmcomms8/u-boot.img"
+        },
+        {
+          "path": "/boot/socfpga_arria10_common/extlinux.conf"
         }
       ]
     },
@@ -303,6 +286,75 @@
         },
         {
           "path": "/boot/socfpga_cyclone5_de10_nano_cn0540/u-boot.scr"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_common/extlinux.conf"
+        }
+      ]
+    },
+    {
+      "name": "cn0579",
+      "platform": "intel",
+      "architecture": "cyclone5",
+      "board": "de10nano",
+      "kernel": "/boot/socfpga_cyclone5_common/zImage",
+      "preloader": "/boot/socfpga_cyclone5_de10_nano_cn0579_i2c/u-boot-with-spl.sfp",
+      "files": [
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_cn0579_i2c/soc_system.rbf"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_cn0579_i2c/socfpga.dtb"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_cn0579_i2c/u-boot.scr"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_common/extlinux.conf"
+        }
+      ]
+    },
+    {
+      "name": "de10nano_without_bitfile",
+      "platform": "intel",
+      "architecture": "cyclone5",
+      "board": "de10nano",
+      "kernel": "/boot/socfpga_cyclone5_common/zImage",
+      "preloader": "/boot/socfpga_cyclone5_de10_nano_hps/u-boot-with-spl.sfp",
+      "files": [
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_hps/soc_system.rbf"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_hps/socfpga.dtb"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_de10_nano_hps/u-boot.scr"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_common/extlinux.conf"
+        }
+      ]
+    },
+    {
+      "name": "sockit_arradio",
+      "platform": "intel",
+      "architecture": "cyclone5",
+      "board": "sockit",
+      "kernel": "/boot/socfpga_cyclone5_common/zImage",
+      "preloader": "/boot/socfpga_cyclone5_sockit_arradio/u-boot-with-spl.sfp",
+      "files": [
+        {
+          "path": "/boot/socfpga_cyclone5_sockit_arradio/soc_system.rbf"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_sockit_arradio/socfpga.dtb"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_sockit_arradio/u-boot.scr"
+        },
+        {
+          "path": "/boot/socfpga_cyclone5_common/extlinux.conf"
         }
       ]
     },
@@ -337,6 +389,21 @@
       ]
     },
     {
+      "name": "ad9082",
+      "platform": "xilinx",
+      "architecture": "zynq",
+      "board": "zc706",
+      "kernel": "/boot/zynq-common/uImage",
+      "files": [
+        {
+          "path": "/boot/zynq-zc706-adv7511-ad9082/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynq-zc706-adv7511-ad9082/devicetree.dtb"
+        }
+      ]
+    },
+    {
       "name": "ad9081_np12",
       "platform": "xilinx",
       "architecture": "zynq",
@@ -348,66 +415,6 @@
         },
         {
           "path": "/boot/zynq-zc706-adv7511-ad9081/np12/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "ad9265_fmc",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "zc706",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9265-fmc-125ebz/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9265-fmc-125ebz/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "ad9434_fmc",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "zc706",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9434-fmc-500ebz/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9434-fmc-500ebz/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "ad9739a_fmc",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "zc706",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9739a-fmc/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9739a-fmc/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "ad_fmclidar1_ebz",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "zc706",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-zc706-adv7511-fmclidar1/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-zc706-adv7511-fmclidar1/devicetree.dtb"
         }
       ]
     },
@@ -603,21 +610,6 @@
         },
         {
           "path": "/boot/zynq-zc706-adv7511-fmcdaq3-revC/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "fmcadc2",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "zc706",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9625-fmcadc2/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-zc706-adv7511-ad9625-fmcadc2/devicetree.dtb"
         }
       ]
     },
@@ -907,51 +899,21 @@
       ]
     },
     {
-      "name": "adrv9361z7035_lvds",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "ccpackrf",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-adrv9361-z7035-packrf/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-adrv9361-z7035-packrf/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "adrv9364z7020_lvds",
-      "platform": "xilinx",
-      "architecture": "zynq",
-      "board": "ccpackrf",
-      "kernel": "/boot/zynq-common/uImage",
-      "files": [
-        {
-          "path": "/boot/zynq-adrv9364-z7020-packrf/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynq-adrv9364-z7020-packrf/devicetree.dtb"
-        }
-      ]
-    },
-    {
-      "name": "cn0501",
+      "name": "cn0579",
       "platform": "xilinx",
       "architecture": "zynq",
       "board": "coraz7s",
       "kernel": "/boot/zynq-common/uImage",
       "files": [
         {
-          "path": "/boot/zynq-coraz7s-cn0501/BOOT.BIN"
+          "path": "/boot/zynq-coraz7s-cn0579_i2c/BOOT.BIN"
         },
         {
-          "path": "/boot/zynq-coraz7s-cn0501/devicetree.dtb"
+          "path": "/boot/zynq-coraz7s-cn0579_i2c/devicetree.dtb"
         }
       ]
-    },
-    {
+   },
+   {
       "name": "cn0540",
       "platform": "xilinx",
       "architecture": "zynq",
@@ -978,6 +940,21 @@
         },
         {
           "path": "/boot/zynq-zed-adv7511-ad4020/devicetree.dtb"
+        }
+      ]
+    },
+    {
+      "name": "ad4630_fmc",
+      "platform": "xilinx",
+      "architecture": "zynq",
+      "board": "zed",
+      "kernel": "/boot/zynq-common/uImage",
+      "files": [
+        {
+          "path": "/boot/zynq-zed-adv7511-ad4630-24/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynq-zed-adv7511-ad4630-24/devicetree.dtb"
         }
       ]
     },
@@ -1019,10 +996,25 @@
       "kernel": "/boot/zynq-common/uImage",
       "files": [
         {
-          "path": "/boot/zynq-zed-adv7511-ad7768/BOOT.BIN"
+          "path": "/boot/zynq-zed-adv7511-ad7768-axi-adc/BOOT.BIN"
         },
         {
-          "path": "/boot/zynq-zed-adv7511-ad7768/devicetree.dtb"
+          "path": "/boot/zynq-zed-adv7511-ad7768-axi-adc/devicetree.dtb"
+        }
+      ]
+    },
+    {
+      "name": "ad7768-4",
+      "platform": "xilinx",
+      "architecture": "zynq",
+      "board": "zed",
+      "kernel": "/boot/zynq-common/uImage",
+      "files": [
+        {
+          "path": "/boot/zynq-zed-adv7511-ad7768-4-axi-adc/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynq-zed-adv7511-ad7768-4-axi-adc/devicetree.dtb"
         }
       ]
     },
@@ -1038,6 +1030,21 @@
         },
         {
           "path": "/boot/zynq-zed-adv7511-ad9467-fmc-250ebz/devicetree.dtb"
+        }
+      ]
+    },
+    {
+      "name": "adaq8092",
+      "platform": "xilinx",
+      "architecture": "zynq",
+      "board": "zed",
+      "kernel": "/boot/zynq-common/uImage",
+      "files": [
+        {
+          "path": "/boot/zynq-zed-adv7511-adaq8092/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynq-zed-adv7511-adaq8092/devicetree.dtb"
         }
       ]
     },
@@ -1128,6 +1135,21 @@
         },
         {
           "path": "/boot/zynq-zed-adv7511-cn0506-rmii/devicetree.dtb"
+        }
+      ]
+    },
+    {
+      "name": "cn0577",
+      "platform": "xilinx",
+      "architecture": "zynq",
+      "board": "zed",
+      "kernel": "/boot/zynq-common/uImage",
+      "files": [
+        {
+          "path": "/boot/zynq-zed-adv7511-cn0577/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynq-zed-adv7511-cn0577/devicetree.dtb"
         }
       ]
     },
@@ -1282,6 +1304,51 @@
       ]
     },
     {
+      "name": "fmcomms8_using_clockdist",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "adrv9009zu11eg_adrv2crr",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-using-clockdist/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "fmcomms8_using_clockdist_primary",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "adrv9009zu11eg_adrv2crr",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-multisom-primary-clockdist/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "fmcomms8_using_clockdist_secondary",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "adrv9009zu11eg_adrv2crr",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-sync-fmcomms8-multisom-secondary-clockdist/system.dtb"
+        }
+      ]
+    },
+    {
       "name": "fmcomms8_multisom_primary",
       "platform": "xilinx",
       "architecture": "zynqmp",
@@ -1327,6 +1394,21 @@
       ]
     },
     {
+      "name": "fmcbridge",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "adrv9009zu11eg_adrv2crr",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-fmcbridge/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-adrv9009-zu11eg-revb-adrv2crr-fmc-revb-fmcbridge/system.dtb"
+        }
+      ]
+    },
+   {
       "name": "ad9081_m8_l4",
       "platform": "xilinx",
       "architecture": "zynqmp",
@@ -1402,6 +1484,66 @@
       ]
     },
     {
+      "name": "stingray",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "zcu102",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "stingray_vcxo100",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "zcu102",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/vcxo100/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "stingray_vcxo100_direct_clk",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "zcu102",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/vcxo100-direct-clk/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "stingray_direct_clk",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "zcu102",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-stingray/direct-clk/system.dtb"
+        }
+      ]
+    },
+    {
       "name": "ad9082_m4_l8",
       "platform": "xilinx",
       "architecture": "zynqmp",
@@ -1428,21 +1570,6 @@
         },
         {
           "path": "/boot/zynqmp-zcu102-rev10-ad9083-fmc-ebz/system.dtb"
-        }
-      ]
-    },
-    {
-      "name": "fmclidar",
-      "platform": "xilinx",
-      "architecture": "zynqmp",
-      "board": "zcu102",
-      "kernel": "/boot/zynqmp-common/Image",
-      "files": [
-        {
-          "path": "/boot/zynqmp-zcu102-rev10-fmclidar1/BOOT.BIN"
-        },
-        {
-          "path": "/boot/zynqmp-zcu102-rev10-fmclidar1/system.dtb"
         }
       ]
     },
@@ -1791,6 +1918,21 @@
         },
         {
           "path": "/boot/versal-vck190-reva-ad9081/system.dtb"
+        }
+      ]
+    },
+    {
+      "name": "adrv9025",
+      "platform": "xilinx",
+      "architecture": "zynqmp",
+      "board": "zcu102",
+      "kernel": "/boot/zynqmp-common/Image",
+      "files": [
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-adrv9025/BOOT.BIN"
+        },
+        {
+          "path": "/boot/zynqmp-zcu102-rev10-adrv9025/system.dtb"
         }
       ]
     }
