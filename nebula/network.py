@@ -293,7 +293,7 @@ class network(utils):
         self.run_ssh_command("mount /dev/mmcblk0p1 /tmp/sdcard")
 
         # extract needed boot files from the kuiper descriptor file
-        h = helper.helper()
+        h = helper()
         descriptor_path = "nebula/resources/kuiper.json"
         try:
             self._dl_file("/tmp/sdcard/kuiper.json")
