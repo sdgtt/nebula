@@ -908,7 +908,7 @@ def update_boot_files_manager(
             bootbinpath=bootbinpath,
             uimagepath=uimagepath,
             devtreepath=devtreepath,
-            sdcard=sdcard
+            sdcard=sdcard,
         )
     else:
         m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)

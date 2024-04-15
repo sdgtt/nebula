@@ -11,8 +11,8 @@ import time
 import fabric
 from fabric import Connection
 
-import nebula.helper as helper
 import nebula.errors as ne
+import nebula.helper as helper
 from nebula.common import utils
 
 log = logging.getLogger(__name__)

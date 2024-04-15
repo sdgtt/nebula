@@ -431,7 +431,7 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
-        sdcard=False
+        sdcard=False,
     ):
         """Manager when UART, PDU, and Network are available"""
         self._check_files_exist(
@@ -892,7 +892,7 @@ class manager:
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
                     preloader_path=preloader_path,
-                    sdcard=sdcard
+                    sdcard=sdcard,
                 )
 
     def shutdown_powerdown_board(self):
