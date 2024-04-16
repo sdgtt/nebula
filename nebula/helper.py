@@ -516,4 +516,8 @@ class helper:
             for f in files:
                 boot_files.append((project["name"], f["path"]))
 
+        # check if project is supported
+        if not boot_files:
+            raise Exception("Project not supported in this nebula version.")
+
         return boot_files
