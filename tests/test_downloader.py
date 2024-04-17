@@ -128,5 +128,25 @@ def test_image_downloader():
     assert os.path.isfile("2019_R1-2020_02_04.img")
 
 
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    ],
+)
+def test_get_info_txt(url):
+    from nebula.downloader import get_info_txt
+
+    build_info = get_info_txt(url)
+    assert os.path.isfile("info.txt")
+    assert "BRANCH" in build_info.keys()
+    assert "PR_ID" in build_info.keys()
+    assert "TIMESTAMP" in build_info.keys()
+    assert "DIRECTION" in build_info.keys()
+    assert "Triggered by" in build_info.keys()
+    assert "COMMIT SHA" in build_info.keys()
+    assert "COMMIT_DATE" in build_info.keys()
+
+
 if __name__ == "__main__":
     test_image_downloader()
