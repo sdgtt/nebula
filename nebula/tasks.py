@@ -405,13 +405,13 @@ def download_sdcard(c, release="2019_R1"):
         "source_root": "Location of source boot files. Dependent on source.\nFor artifactory sources this is the domain name",
         "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "filetype": '''Selects type of related files to be downloaded. Options:
+        "filetype": """Selects type of related files to be downloaded. Options:
                     boot_partition (boot_partition files),
                     hdl_linux (old: separate hdl and linux),
-                    noos (no-OS files), 
+                    noos (no-OS files),
                     microblaze (microblaze files),
-                    rpi (rpi files), firmware . 
-                    Default: boot''',
+                    rpi (rpi files), firmware .
+                    Default: boot""",
         "url_template": "Custom URL template for Artifactory sources",
     },
 )
@@ -423,7 +423,7 @@ def download_boot_files(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     filetype="boot_partition",
-    url_template=None
+    url_template=None,
 ):
     """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
@@ -451,7 +451,7 @@ def download_boot_files(
         noos=file["noos"],
         microblaze=file["microblaze"],
         rpi=file["rpi"],
-        url_template=url_template
+        url_template=url_template,
     )
 
 
@@ -522,7 +522,8 @@ def download_generate_bootbin_map_file(
 @task(
     help={
         "url": "Artifactory url to path with info.txt",
-        "field": "Field to show. Will show all if None.",
+        "field": "Field to show. Will show all if None."
+        + " Available: built_projects, BRANCH,PR_ID,TIMESTAMP,DIRECTION,Triggered by, COMMIT SHA, COMMIT_DATE",
         "csv": "Print to console as csv",
     },
 )
@@ -534,24 +535,28 @@ def download_info_txt(
 ):
     """Download info.txt and print value to console"""
     from nebula.downloader import get_info_txt
+
     build_info = get_info_txt(url)
     to_show = build_info
     if field:
         if field in build_info.keys():
-            to_show = {field:build_info[field]}
+            to_show = {field: build_info[field]}
         else:
             print(f"'{field}' not a valid field")
             return
     if csv:
         if "built_projects" in to_show.keys():
             if len(to_show.keys()) == 1:
-                to_show['built_projects'] = ",".join(to_show['built_projects'])
+                to_show["built_projects"] = ",".join(to_show["built_projects"])
             else:
-                to_show['built_projects'] = "#".join(to_show['built_projects'])
-        print(",".join(to_show.keys()))
+                to_show["built_projects"] = "#".join(to_show["built_projects"])
+
+        if len(to_show.keys()) != 1:
+            print(",".join(to_show.keys()))
         print(",".join(to_show.values()))
     else:
         print(to_show)
+
 
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
