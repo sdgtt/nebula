@@ -86,7 +86,7 @@ def get_newest_folder(links):
         return dates[-1]
 
 
-def get_gitsha(url, daily=False, linux=False, hdl=False):
+def get_gitsha(url, daily=False, linux=False, hdl=False, build_info=None):
     dest = "outs"
     if not os.path.isdir(dest):
         os.mkdir(dest)
@@ -95,6 +95,15 @@ def get_gitsha(url, daily=False, linux=False, hdl=False):
         path = ArtifactoryPath(str(url))
         props = path.properties
         exp = "20[1-2][0-9]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
+
+        if build_info:
+            if build_info["Triggered by"] == "hdl":
+                props["linux_git_sha"] = ["NA"]
+                props["hdl_git_sha"] = [build_info["COMMIT SHA"]]
+            elif build_info["Triggered by"] == "linux":
+                props["linux_git_sha"] = [build_info["COMMIT SHA"]]
+                props["hdl_git_sha"] = ["NA"]
+
         try:
             if not daily:
                 bootpartition = {
@@ -283,6 +292,8 @@ def download_matlab_generate_bootbin(
 def sanitize_artifactory_url(url):
     url = re.sub(r"%2F", "/", url)
     url = re.sub("/ui/repos/tree/Properties/", "/artifactory/", url)
+    # rebase url
+    url = re.sub("/boot_partition/.*$", "",url)
     return url
 
 
@@ -297,6 +308,7 @@ def get_info_txt(url):
     if not info_txt_path:
         raise Exception("Missing info.txt")
 
+    log.info("Parsing info.txt")
     build_info = {"built_projects": []}
     with info_txt_path.open() as fd:
         with open("info.txt", "wb") as out:
@@ -526,7 +538,13 @@ class downloader(utils):
         )
 
         if source == "artifactory":
-            get_gitsha(self.url, daily=False)
+            # check if info_txt is present
+            try:
+                build_info = get_info_txt(url_template)
+            except Exception as e:
+                log.warn(e)
+                build_info = None
+            get_gitsha(self.url, daily=False, build_info=build_info)
 
     def _get_files_hdl(self, hdl_folder, source, source_root, branch, hdl_output=False):
         design_source_root = hdl_folder
