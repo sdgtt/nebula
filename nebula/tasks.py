@@ -820,7 +820,7 @@ def board_diagnostics_manager(
     yamlfilename="/etc/default/nebula",
     board_name=None,
 ):
-    """Recover JTAG device"""
+    """Diagnose board using nebula classes"""
     nebula.manager(
         configfilename=yamlfilename,
         board_name=board_name,
