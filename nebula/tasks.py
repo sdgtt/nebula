@@ -814,7 +814,7 @@ def recovery_device_manager(
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     },
 )
-def check_jtag_manager(
+def board_diagnostics_manager(
     c,
     vivado_version="2021.1",
     yamlfilename="/etc/default/nebula",
@@ -867,7 +867,7 @@ manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
-manager.add_task(check_jtag_manager, name="check_jtag")
+manager.add_task(board_diagnostics_manager, name="board_diagnostics")
 
 
 #############################################
