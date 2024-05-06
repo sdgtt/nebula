@@ -186,21 +186,24 @@ def test_usbmux_backup_update_modules(power_off_dut, config):
 
 @pytest.mark.hardware
 @pytest.mark.parametrize(
-    "field", [
+    "field",
+    [
         "",
         "built_projects",
         "BRANCH",
         "PR_ID",
         "TIMESTAMP",
         "DIRECTION",
-        "\"Triggered by\"",
-        "\"COMMIT SHA\"",
-        "COMMIT_DATE"
-    ]
+        '"Triggered by"',
+        '"COMMIT SHA"',
+        "COMMIT_DATE",
+    ],
 )
 def test_download_info_txt(field):
-    url = "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"+\
-         "%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    url = (
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"
+        + "%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    )
     cmd = f"nebula dl.info-txt --url {url}"
     if field:
         cmd = cmd + f" --field {field}"

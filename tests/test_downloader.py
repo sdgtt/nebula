@@ -1,16 +1,18 @@
 import os
+import pathlib
 import shutil
+from unittest.mock import Mock, patch
 
 import pytest
-import pathlib
-from unittest.mock import Mock, patch
 
 from nebula import downloader
 
 # Must be connected to analog VPN
 
 
-def downloader_test(board_name, branch, filetype, source="artifactory", url_template=None):
+def downloader_test(
+    board_name, branch, filetype, source="artifactory", url_template=None
+):
     file = {
         "firmware": None,
         "boot_partition": None,
@@ -22,7 +24,7 @@ def downloader_test(board_name, branch, filetype, source="artifactory", url_temp
         file["boot_partition"] = False
     else:
         file[filetype] = True
-    yaml = os.path.join(os.path.dirname(__file__),"nebula_config", "nebula.yaml")
+    yaml = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
     d = downloader(yamlfilename=yaml, board_name=board_name)
     d.download_boot_files(
         board_name,
@@ -34,7 +36,7 @@ def downloader_test(board_name, branch, filetype, source="artifactory", url_temp
         noos=file["noos"],
         microblaze=file["microblaze"],
         rpi=file["rpi"],
-        url_template=url_template
+        url_template=url_template,
     )
 
 
@@ -122,14 +124,20 @@ def test_firmware_downloader(test_downloader, board_name, branch, filetype, sour
     else:
         assert len(os.listdir("outs")) == 1
 
+
 @pytest.mark.parametrize("board_name", ["zynq-zed-adv7511-ad7768-1-evb"])
 @pytest.mark.parametrize("branch", ["main"])
 @pytest.mark.parametrize("filetype", ["boot_partition"])
-@pytest.mark.parametrize("url_template", [
-                            "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"+\
-                            "%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
-                        ])
-def test_boot_downloader_new_flow(test_downloader, board_name, branch, filetype, url_template):
+@pytest.mark.parametrize(
+    "url_template",
+    [
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"
+        + "%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    ],
+)
+def test_boot_downloader_new_flow(
+    test_downloader, board_name, branch, filetype, url_template
+):
     test_downloader(board_name, branch, filetype, url_template=url_template)
     assert os.path.isfile("outs/BOOT.BIN")
     assert os.path.isfile("outs/uImage")
