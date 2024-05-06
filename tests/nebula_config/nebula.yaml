@@ -43,6 +43,18 @@ zynq-zc706-adv7511-fmcomms11:
     - adf4355
     - axi-ad9625-hpc
     - axi-ad9162-hpc
+zynq-zed-adv7511-ad7768-1-evb:
+  board-config:
+  - board-name: zynq-zed-adv7511-ad7768-1-evb
+  - carrier: ZED
+  - daughter: AD7768-1-EVB
+  - monitoring-interface: uart
+  - allow-jtag: True
+  - serial: ''
+  - instr-serial: NA
+  downloader-config:
+  - reference_boot_folder: zynq-zed-adv7511-ad7768-1-evb
+  - hdl_folder: ad77681evb_zed
 eval-adxrs290-pmdz:
   board-config:
   - board-name: eval-adxrs290-pmdz
