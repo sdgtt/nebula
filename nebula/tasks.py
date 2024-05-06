@@ -542,8 +542,7 @@ def download_info_txt(
         if field in build_info.keys():
             to_show = {field: build_info[field]}
         else:
-            print(f"'{field}' not a valid field")
-            return
+            raise Exception(f"'{field}' not a valid field")
     if csv:
         if "built_projects" in to_show.keys():
             if len(to_show.keys()) == 1:
