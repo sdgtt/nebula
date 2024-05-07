@@ -49,6 +49,7 @@ class manager:
         self.power = None
         if "pdu-config" in configs:
             self.power = pdu(yamlfilename=configfilename, board_name=board_name)
+            log.info("PDU initialized")
 
         self.jtag_use = False
         self.jtag = False
@@ -75,6 +76,7 @@ class manager:
                                 board_name=board_name,
                                 vivado_version=vivado_version,
                             )
+                        log.info("JTAG initialized")
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
@@ -89,12 +91,14 @@ class manager:
             self.monitor = [u]
 
             self.driver = driver(yamlfilename=configfilename, board_name=board_name)
+        log.info("Monitoring initialized")
 
         if "network-config" not in configs:
             configfilename = None
         else:
             configfilename = self.configfilename
         self.net = network(yamlfilename=configfilename, board_name=board_name)
+        log.info("Networking initialized")
 
         self.reference_boot_folder = None
         self.devicetree_subfolder = None
@@ -107,7 +111,7 @@ class manager:
                     self.devicetree_subfolder = config["devicetree_subfolder"]
                 if "boot_subfolder" in config:
                     self.boot_subfolder = config["boot_subfolder"]
-
+            log.info("Downloader initialized")
         # self.boot_src = tftpboot()
 
         self.tftp = False
@@ -116,6 +120,7 @@ class manager:
             self.usbsdmux = usbmux(
                 yamlfilename=self.configfilename, board_name=board_name
             )
+            log.info("USB-SD mux initialized")
         else:
             self.usbsdmux = None
 
