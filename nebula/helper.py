@@ -465,10 +465,12 @@ class helper:
             ("ad9083-fmc-ebz", "ad9083"),
             ("adrv9008-1", "adrv9008-1"),
             ("adrv9008-2", "adrv9008-2"),
-            ("adrv9002-vcmos", "adrv9002_cmos"),
-            ("adrv9002-vlvds", "adrv9002_lvds"),
-            ("adrv9002-rx2tx2-vcmos", "adrv9002_rx2tx2_cmos"),
-            ("adrv9002-rx2tx2-vlvds", "adrv9002_rx2tx2_lvds"),
+            ("adv7511-adrv9002-vcmos", "adrv9002"),
+            ("rev10-adrv9002-vcmos", "adrv9002_cmos"),
+            ("rev10-adrv9002-vlvds", "adrv9002_lvds"),
+            ("adv7511-adrv9002-rx2tx2-vcmos", "adrv9002_rx2tx2"),
+            ("rev10-adrv9002-rx2tx2-vcmos", "adrv9002_rx2tx2_cmos"),
+            ("rev10-adrv9002-rx2tx2-vlvds", "adrv9002_rx2tx2_lvds"),
             ("ad9172-fmc-ebz-mode4", "ad9172_mode4"),
             ("arradio", "sockit_arradio"),
             ("adrv9025", "adrv9025"),
@@ -517,6 +519,7 @@ class helper:
                 boot_files.append((project["name"], f["path"]))
 
         # check if project is supported
+        log.info("path:" + str(boot_files))
         if not boot_files:
             raise Exception("Project not supported in this nebula version.")
 
