@@ -405,8 +405,14 @@ def download_sdcard(c, release="2019_R1"):
         "source_root": "Location of source boot files. Dependent on source.\nFor artifactory sources this is the domain name",
         "branch": "Name of branches to get related files. Default: release",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
-        "filetype": "Selects type of related files to be downloaded. Options: boot (boot_partition files), noos (no-OS files), microblaze (microblaze files), rpi (rpi files), firmware . Default: boot",
-        # "boot_partition": "If filetype is boot and boot_partition is True, boot files are downloaded from boot partition folder, else from hdl and linux folders. Default: True "
+        "filetype": """Selects type of related files to be downloaded. Options:
+                    boot_partition (boot_partition files),
+                    hdl_linux (old: separate hdl and linux),
+                    noos (no-OS files),
+                    microblaze (microblaze files),
+                    rpi (rpi files), firmware .
+                    Default: boot""",
+        "url_template": "Custom URL template for Artifactory sources",
     },
 )
 def download_boot_files(
@@ -417,21 +423,21 @@ def download_boot_files(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     filetype="boot_partition",
+    url_template=None,
 ):
     """Download bootfiles for a specific development system"""
     d = nebula.downloader(yamlfilename=yamlfilename, board_name=board_name)
     try:
         file = {
             "firmware": None,
-            "boot_partition": True,
+            "boot_partition": None,
+            "hdl_linux": None,
+            "hdl_linux_ci": None,
             "noos": None,
             "microblaze": None,
             "rpi": None,
         }
-        if filetype == "hdl_linux":
-            file["boot_partition"] = False
-        else:
-            file[filetype] = True
+        file[filetype] = True
     except Exception:
         raise Exception("Filetype no supported.")
 
@@ -445,6 +451,7 @@ def download_boot_files(
         noos=file["noos"],
         microblaze=file["microblaze"],
         rpi=file["rpi"],
+        url_template=url_template,
     )
 
 
@@ -512,11 +519,50 @@ def download_generate_bootbin_map_file(
     print("Mapping file saved to mapping.txt")
 
 
+@task(
+    help={
+        "url": "Artifactory url to path with info.txt",
+        "field": "Field to show. Will show all if None."
+        + " Available: built_projects, BRANCH,PR_ID,TIMESTAMP,DIRECTION,Triggered by, COMMIT SHA, COMMIT_DATE",
+        "csv": "Print to console as csv",
+    },
+)
+def download_info_txt(
+    c,
+    url,
+    field=None,
+    csv=True,
+):
+    """Download info.txt and print value to console"""
+    from nebula.downloader import get_info_txt
+
+    build_info = get_info_txt(url)
+    to_show = build_info
+    if field:
+        if field in build_info.keys():
+            to_show = {field: build_info[field]}
+        else:
+            raise Exception(f"'{field}' not a valid field")
+    if csv:
+        if "built_projects" in to_show.keys():
+            if len(to_show.keys()) == 1:
+                to_show["built_projects"] = ",".join(to_show["built_projects"])
+            else:
+                to_show["built_projects"] = "#".join(to_show["built_projects"])
+
+        if len(to_show.keys()) != 1:
+            print(",".join(to_show.keys()))
+        print(",".join(to_show.values()))
+    else:
+        print(to_show)
+
+
 dl = Collection("dl")
 dl.add_task(download_sdcard, "sdcard")
 dl.add_task(download_boot_files, "bootfiles")
 dl.add_task(download_generate_matlab_bootbins, "matlab_bootbins")
 dl.add_task(download_generate_bootbin_map_file, "bootbin_map")
+dl.add_task(download_info_txt, "info_txt")
 
 
 #############################################

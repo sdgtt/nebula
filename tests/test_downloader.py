@@ -1,5 +1,7 @@
 import os
+import pathlib
 import shutil
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -8,7 +10,9 @@ from nebula import downloader
 # Must be connected to analog VPN
 
 
-def downloader_test(board_name, branch, filetype, source="artifactory"):
+def downloader_test(
+    board_name, branch, filetype, source="artifactory", url_template=None
+):
     file = {
         "firmware": None,
         "boot_partition": None,
@@ -20,7 +24,7 @@ def downloader_test(board_name, branch, filetype, source="artifactory"):
         file["boot_partition"] = False
     else:
         file[filetype] = True
-    yaml = os.path.join("nebula_config", "nebula.yaml")
+    yaml = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
     d = downloader(yamlfilename=yaml, board_name=board_name)
     d.download_boot_files(
         board_name,
@@ -32,6 +36,7 @@ def downloader_test(board_name, branch, filetype, source="artifactory"):
         noos=file["noos"],
         microblaze=file["microblaze"],
         rpi=file["rpi"],
+        url_template=url_template,
     )
 
 
@@ -120,12 +125,53 @@ def test_firmware_downloader(test_downloader, board_name, branch, filetype, sour
         assert len(os.listdir("outs")) == 1
 
 
+@pytest.mark.parametrize("board_name", ["zynq-zed-adv7511-ad7768-1-evb"])
+@pytest.mark.parametrize("branch", ["main"])
+@pytest.mark.parametrize("filetype", ["boot_partition"])
+@pytest.mark.parametrize(
+    "url_template",
+    [
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"
+        + "%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    ],
+)
+def test_boot_downloader_new_flow(
+    test_downloader, board_name, branch, filetype, url_template
+):
+    test_downloader(board_name, branch, filetype, url_template=url_template)
+    assert os.path.isfile("outs/BOOT.BIN")
+    assert os.path.isfile("outs/uImage")
+    assert os.path.isfile("outs/bootgen_sysfiles.tgz")
+    assert os.path.isfile("outs/devicetree.dtb")
+    assert os.path.isfile("outs/properties.yaml")
+
+
 @pytest.mark.skip(reason="filesize")
 def test_image_downloader():
     d = downloader()
     d.download_sdcard_release()
     assert os.path.isfile("2019_R1-2020_02_04.img.xz")
     assert os.path.isfile("2019_R1-2020_02_04.img")
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development%2Ftest_upload%2Fmain%2FHDL_PRs%2Fpr_1251%2F2024_02_27-08_40_22"
+    ],
+)
+def test_get_info_txt(url):
+    from nebula.downloader import get_info_txt
+
+    build_info = get_info_txt(url)
+    assert os.path.isfile("info.txt")
+    assert "BRANCH" in build_info.keys()
+    assert "PR_ID" in build_info.keys()
+    assert "TIMESTAMP" in build_info.keys()
+    assert "DIRECTION" in build_info.keys()
+    assert "Triggered by" in build_info.keys()
+    assert "COMMIT SHA" in build_info.keys()
+    assert "COMMIT_DATE" in build_info.keys()
 
 
 if __name__ == "__main__":

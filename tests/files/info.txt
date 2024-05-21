@@ -1,0 +1,15 @@
+Boot partition created with arguments:
+  - BRANCH: main
+  - PR_ID: 1251
+  - TIMESTAMP: 2024_02_27-08_40_22
+  - DIRECTION: hdl_to_linux
+
+Triggered by: hdl
+  - COMMIT SHA: 7539df769
+  - COMMIT_DATE: 2024-02-27-17-38-45-
+
+Built projects:
+  - zynq-coraz7s-cn0540
+  - zynq-zed-adv7511-ad4020
+  - zynq-zed-adv7511-ad7768-1-evb
+  - zynq-zed-adv7511-cn0363
