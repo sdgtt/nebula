@@ -555,6 +555,7 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
+        sdcard=False
     ):
         """Manager when sdcardmux, pdu is available"""
 
@@ -590,16 +591,19 @@ class manager:
                 )
 
             log.info("Update board over usb-sd-mux")
-            self.usbsdmux.update_boot_files_from_external(
-                bootbin_loc=bootbinpath,
-                kernel_loc=uimagepath,
-                devicetree_loc=devtreepath,
-                devicetree_overlay_loc=devtree_overlay_path,
-                devicetree_overlay_config_loc=devtree_overlay_config_path,
-                extlinux_loc=extlinux_path,
-                scr_loc=scr_path,
-                preloader_loc=preloader_path,
-            )
+            if sdcard:
+                self.usbsdmux.update_boot_files_from_sdcard_itself()
+            else:
+                self.usbsdmux.update_boot_files_from_external(
+                    bootbin_loc=bootbinpath,
+                    kernel_loc=uimagepath,
+                    devicetree_loc=devtreepath,
+                    devicetree_overlay_loc=devtree_overlay_path,
+                    devicetree_overlay_config_loc=devtree_overlay_config_path,
+                    extlinux_loc=extlinux_path,
+                    scr_loc=scr_path,
+                    preloader_loc=preloader_path,
+                )
             # if devtreepath:
             #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
             self.usbsdmux.set_mux_mode("dut")
@@ -879,6 +883,7 @@ class manager:
                         extlinux_path=extlinux_path,
                         scr_path=scr_path,
                         preloader_path=preloader_path,
+                        sdcard=sdcard,
                     )
                 else:
                     raise Exception("SD Card Mux not Supported")
