@@ -555,7 +555,7 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
-        sdcard=False
+        sdcard=False,
     ):
         """Manager when sdcardmux, pdu is available"""
 

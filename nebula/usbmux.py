@@ -9,9 +9,9 @@ import time
 from pathlib import Path
 
 import pyudev
-import nebula.helper as helper
 from usbsdmux import usbsdmux
 
+import nebula.helper as helper
 from nebula.common import utils
 
 log = logging.getLogger(__name__)
@@ -305,9 +305,10 @@ class usbmux(utils):
             preloader_loc (str): The path to the preloader file (.sfp) on the SD card (Intel boards).
         """
         args = locals()
-        #check if if all loc are still None
-        if 'self' in args: del args['self']
-        args_status = all(loc==None for loc in args.values())
+        # check if if all loc are still None
+        if "self" in args:
+            del args["self"]
+        args_status = all(loc is None for loc in args.values())
 
         folder, boot_p = self._mount_sd_card()
         preloader_p = f"{self._target_sdcard}3"
@@ -321,24 +322,33 @@ class usbmux(utils):
                 os.replace("kuiper.json", descriptor_path)
             except Exception:
                 log.warning("Cannot find project descriptor on target")
-            boot_files_path = h.get_boot_files_from_descriptor(descriptor_path, self.board_name)
-            mount_path = os.path.join("/tmp/", folder )
+            boot_files_path = h.get_boot_files_from_descriptor(
+                descriptor_path, self.board_name
+            )
+            mount_path = os.path.join("/tmp/", folder)
             # update items to args
             for boot_file in boot_files_path:
-                file_path = os.path.join(mount_path, boot_file[1].lstrip('/boot'))
-                loc_map = {'bootbin_loc': 'BIN', 'kernel_loc': 'Image', 'devicetree_loc': 'dtb', 'extlinux_loc': 'conf', 'scr_loc': 'scr', 'preloader_loc': 'sfp'}
+                file_path = os.path.join(mount_path, boot_file[1].lstrip("/boot"))
+                loc_map = {
+                    "bootbin_loc": "BIN",
+                    "kernel_loc": "Image",
+                    "devicetree_loc": "dtb",
+                    "extlinux_loc": "conf",
+                    "scr_loc": "scr",
+                    "preloader_loc": "sfp",
+                }
                 for key, val in loc_map.items():
                     if val in file_path:
                         args.update({key: file_path})
-        
+
         # filter: remove None loc
-        args_filtered = dict(filter(lambda item: item[1] is not None, args.items()))   
+        args_filtered = dict(filter(lambda item: item[1] is not None, args.items()))
 
         try:
             for field, bootfile_loc in args_filtered.items():
                 if field in ["self"]:
                     continue
-                if 'tmp' in bootfile_loc:
+                if "tmp" in bootfile_loc:
                     bootfile_loc = bootfile_loc
                 else:
                     bootfile_loc = os.path.join("/tmp/", folder, bootfile_loc)
