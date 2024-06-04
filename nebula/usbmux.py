@@ -348,10 +348,10 @@ class usbmux(utils):
             for field, bootfile_loc in args_filtered.items():
                 if field in ["self"]:
                     continue
-                if "tmp" in bootfile_loc:
+                if mount_path in bootfile_loc:
                     bootfile_loc = bootfile_loc
                 else:
-                    bootfile_loc = os.path.join("/tmp/", folder, bootfile_loc)
+                    bootfile_loc = os.path.join(mount_path, bootfile_loc)
                 if not os.path.isfile(bootfile_loc):
                     options = os.listdir(f"/tmp/{folder}")
                     options = [
