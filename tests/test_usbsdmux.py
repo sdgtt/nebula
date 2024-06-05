@@ -96,44 +96,48 @@ def test_backup_files_to_external(power_off_dut, param):
 
 
 @pytest.mark.hardware
+@pytest.mark.parametrize("board", ["socfpga_cyclone5_de10_nano_cn0540"])
+@pytest.mark.parametrize("config", [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml")])
 @pytest.mark.parametrize(
     "param",
     [
         {
-            "board": "socfpga_cyclone5_de10_nano_cn0540",
-            "config": os.path.join(
-                os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
-            ),
-            "files": {
-                "bootbin_loc": os.path.join(
-                    "socfpga_cyclone5_de10_nano_cn0540", "soc_system.rbf"
+            "bootbin_loc": os.path.join(
+                "socfpga_cyclone5_de10_nano_cn0540", "soc_system.rbf"
                 ),
-                "kernel_loc": os.path.join("socfpga_cyclone5_common", "zImage"),
-                "devicetree_loc": os.path.join(
+            "kernel_loc": os.path.join("socfpga_cyclone5_common", "zImage"),
+            "devicetree_loc": os.path.join(
                     "socfpga_cyclone5_de10_nano_cn0540", "socfpga.dtb"
                 ),
-                "extlinux_loc": os.path.join(
+            "extlinux_loc": os.path.join(
                     "socfpga_cyclone5_de10_nano_cn0540", "extlinux.conf"
                 ),
-                "scr_loc": os.path.join(
+            "scr_loc": os.path.join(
                     "socfpga_cyclone5_de10_nano_cn0540", "u-boot.scr"
                 ),
-                "preloader_loc": os.path.join(
+            "preloader_loc": os.path.join(
                     "socfpga_cyclone5_de10_nano_cn0540", "u-boot-with-spl.sfp"
                 ),
-            },
         },
+        {
+            "bootbin_loc": None,
+            "kernel_loc": None,
+            "devicetree_loc": None,
+            "extlinux_loc": None,
+            "scr_loc": None,
+            "preloader_loc": None,
+        }
     ],
 )
-def test_update_boot_files_from_sdcard_itself(power_off_dut, param):
+def test_update_boot_files_from_sdcard_itself(power_off_dut, board, config, param):
     sd = usbmux(
-        board_name=param["board"],
-        yamlfilename=param["config"],
+        board_name=board,
+        yamlfilename=config,
     )
     try:
         sd.find_muxed_sdcard()
         assert sd._target_sdcard
-        sd.update_boot_files_from_sdcard_itself(**param["files"])
+        sd.update_boot_files_from_sdcard_itself(**param)
     finally:
         sd.set_mux_mode("off")
 
