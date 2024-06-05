@@ -2,6 +2,7 @@
 import glob
 import logging
 import os
+import pathlib
 import random
 import re
 import string
@@ -287,6 +288,7 @@ class usbmux(utils):
 
     def update_boot_files_from_sdcard_itself(
         self,
+        descriptor_path=None,
         bootbin_loc=None,
         kernel_loc=None,
         devicetree_loc=None,
@@ -297,6 +299,7 @@ class usbmux(utils):
         """Update the boot files from the SD card itself.
 
         Args:
+            descriptor_path (str): The path to the kuiper.json.
             bootbin_loc (str): The path to the boot.bin file on the SD card.
             kernel_loc (str): The path to the kernel file on the SD card.
             devicetree_loc (str): The path to the devicetree file on the SD card.
@@ -306,8 +309,8 @@ class usbmux(utils):
         """
         args = locals()
         # check if if all loc are still None
-        if "self" in args:
-            del args["self"]
+        del args["self"]
+        del args["descriptor_path"]
         args_status = all(loc is None for loc in args.values())
 
         folder, boot_p = self._mount_sd_card()
@@ -315,7 +318,11 @@ class usbmux(utils):
 
         if args_status:
             h = helper()
-            descriptor_path = "nebula/resources/kuiper.json"
+            if descriptor_path:
+                descriptor_path=descriptor_path
+            else:
+                path = pathlib.Path(__file__).parent.absolute()
+                descriptor_path = os.path.join(path, "resources", "kuiper.json")
             try:
                 kuiperjson_loc = os.path.join("/tmp/", folder, "kuiper.json")
                 os.path.isfile(kuiperjson_loc)

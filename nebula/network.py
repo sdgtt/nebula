@@ -294,7 +294,8 @@ class network(utils):
 
         # extract needed boot files from the kuiper descriptor file
         h = helper()
-        descriptor_path = "nebula/resources/kuiper.json"
+        path = pathlib.Path(__file__).parent.absolute()
+        descriptor_path = os.path.join(path, "resources", "kuiper.json")
         try:
             self._dl_file("/tmp/sdcard/kuiper.json")
             os.replace("kuiper.json", descriptor_path)
