@@ -315,24 +315,25 @@ class usbmux(utils):
 
         folder, boot_p = self._mount_sd_card()
         preloader_p = f"{self._target_sdcard}3"
+        mount_path = os.path.join("/tmp/", folder)
 
         if args_status:
             h = helper()
             if descriptor_path:
-                descriptor_path=descriptor_path
+                descriptor_path = descriptor_path
             else:
                 path = pathlib.Path(__file__).parent.absolute()
                 descriptor_path = os.path.join(path, "resources", "kuiper.json")
             try:
-                kuiperjson_loc = os.path.join("/tmp/", folder, "kuiper.json")
+                kuiperjson_loc = os.path.join(mount_path, "kuiper.json")
                 os.path.isfile(kuiperjson_loc)
-                os.replace("kuiper.json", descriptor_path)
+                os.replace(kuiperjson_loc, descriptor_path)
             except Exception:
                 log.warning("Cannot find project descriptor on target")
             boot_files_path = h.get_boot_files_from_descriptor(
                 descriptor_path, self.board_name
             )
-            mount_path = os.path.join("/tmp/", folder)
+
             # update items to args
             for boot_file in boot_files_path:
                 file_path = os.path.join(mount_path, boot_file[1].lstrip("/boot"))
