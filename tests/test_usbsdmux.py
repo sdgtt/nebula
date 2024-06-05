@@ -97,27 +97,32 @@ def test_backup_files_to_external(power_off_dut, param):
 
 @pytest.mark.hardware
 @pytest.mark.parametrize("board", ["socfpga_cyclone5_de10_nano_cn0540"])
-@pytest.mark.parametrize("config", [os.path.join(os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml")])
+@pytest.mark.parametrize(
+    "config",
+    [
+        os.path.join(
+            os.path.dirname(__file__), "nebula_config", "nebula-manager-usbmux.yml"
+        )
+    ],
+)
 @pytest.mark.parametrize(
     "param",
     [
         {
             "bootbin_loc": os.path.join(
                 "socfpga_cyclone5_de10_nano_cn0540", "soc_system.rbf"
-                ),
+            ),
             "kernel_loc": os.path.join("socfpga_cyclone5_common", "zImage"),
             "devicetree_loc": os.path.join(
-                    "socfpga_cyclone5_de10_nano_cn0540", "socfpga.dtb"
-                ),
+                "socfpga_cyclone5_de10_nano_cn0540", "socfpga.dtb"
+            ),
             "extlinux_loc": os.path.join(
-                    "socfpga_cyclone5_de10_nano_cn0540", "extlinux.conf"
-                ),
-            "scr_loc": os.path.join(
-                    "socfpga_cyclone5_de10_nano_cn0540", "u-boot.scr"
-                ),
+                "socfpga_cyclone5_de10_nano_cn0540", "extlinux.conf"
+            ),
+            "scr_loc": os.path.join("socfpga_cyclone5_de10_nano_cn0540", "u-boot.scr"),
             "preloader_loc": os.path.join(
-                    "socfpga_cyclone5_de10_nano_cn0540", "u-boot-with-spl.sfp"
-                ),
+                "socfpga_cyclone5_de10_nano_cn0540", "u-boot-with-spl.sfp"
+            ),
         },
         {
             "bootbin_loc": None,
@@ -126,7 +131,7 @@ def test_backup_files_to_external(power_off_dut, param):
             "extlinux_loc": None,
             "scr_loc": None,
             "preloader_loc": None,
-        }
+        },
     ],
 )
 def test_update_boot_files_from_sdcard_itself(power_off_dut, board, config, param):
