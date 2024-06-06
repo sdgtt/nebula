@@ -431,17 +431,19 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
+        sdcard=False,
     ):
         """Manager when UART, PDU, and Network are available"""
-        self._check_files_exist(
-            system_top_bit_path,
-            bootbinpath,
-            uimagepath,
-            devtreepath,
-            extlinux_path,
-            scr_path,
-            preloader_path,
-        )
+        if not sdcard:
+            self._check_files_exist(
+                system_top_bit_path,
+                bootbinpath,
+                uimagepath,
+                devtreepath,
+                extlinux_path,
+                scr_path,
+                preloader_path,
+            )
         try:
             # Flush UART
             self.monitor[0]._read_until_stop()  # Flush
@@ -475,14 +477,17 @@ class manager:
 
             # Update board over SSH and reboot
             log.info("Update board over SSH and reboot")
-            self.net.update_boot_partition(
-                bootbinpath=bootbinpath,
-                uimagepath=uimagepath,
-                devtreepath=devtreepath,
-                extlinux_path=extlinux_path,
-                scr_path=scr_path,
-                preloader_path=preloader_path,
-            )
+            if sdcard:
+                self.net.update_boot_partition_existing_files(self.board_name)
+            else:
+                self.net.update_boot_partition(
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path,
+                )
             log.info("Waiting for reboot to complete")
 
             # Verify uboot anad linux are reached
@@ -550,6 +555,7 @@ class manager:
         extlinux_path=None,
         scr_path=None,
         preloader_path=None,
+        sdcard=False,
     ):
         """Manager when sdcardmux, pdu is available"""
 
@@ -585,16 +591,19 @@ class manager:
                 )
 
             log.info("Update board over usb-sd-mux")
-            self.usbsdmux.update_boot_files_from_external(
-                bootbin_loc=bootbinpath,
-                kernel_loc=uimagepath,
-                devicetree_loc=devtreepath,
-                devicetree_overlay_loc=devtree_overlay_path,
-                devicetree_overlay_config_loc=devtree_overlay_config_path,
-                extlinux_loc=extlinux_path,
-                scr_loc=scr_path,
-                preloader_loc=preloader_path,
-            )
+            if sdcard:
+                self.usbsdmux.update_boot_files_from_sdcard_itself()
+            else:
+                self.usbsdmux.update_boot_files_from_external(
+                    bootbin_loc=bootbinpath,
+                    kernel_loc=uimagepath,
+                    devicetree_loc=devtreepath,
+                    devicetree_overlay_loc=devtree_overlay_path,
+                    devicetree_overlay_config_loc=devtree_overlay_config_path,
+                    extlinux_loc=extlinux_path,
+                    scr_loc=scr_path,
+                    preloader_loc=preloader_path,
+                )
             # if devtreepath:
             #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
             self.usbsdmux.set_mux_mode("dut")
@@ -822,6 +831,7 @@ class manager:
                     system_top_bit_path=bit,
                     uimagepath=kernel,
                     devtreepath=dt,
+                    sdcard=sdcard,
                 )
             else:
                 self.board_reboot_auto(
@@ -873,6 +883,7 @@ class manager:
                         extlinux_path=extlinux_path,
                         scr_path=scr_path,
                         preloader_path=preloader_path,
+                        sdcard=sdcard,
                     )
                 else:
                     raise Exception("SD Card Mux not Supported")
@@ -887,6 +898,7 @@ class manager:
                     extlinux_path=extlinux_path,
                     scr_path=scr_path,
                     preloader_path=preloader_path,
+                    sdcard=sdcard,
                 )
 
     def shutdown_powerdown_board(self):
