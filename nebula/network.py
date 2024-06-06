@@ -298,7 +298,7 @@ class network(utils):
         descriptor_path = os.path.join(path, "resources", "kuiper.json")
         try:
             self._dl_file("/tmp/sdcard/kuiper.json")
-            os.replace("kuiper.json", descriptor_path)
+            descriptor_path = "kuiper.json"
         except Exception:
             log.warning("Cannot find project descriptor on target")
 

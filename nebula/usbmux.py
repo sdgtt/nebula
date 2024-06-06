@@ -327,7 +327,7 @@ class usbmux(utils):
             try:
                 kuiperjson_loc = os.path.join(mount_path, "kuiper.json")
                 os.path.isfile(kuiperjson_loc)
-                os.replace(kuiperjson_loc, descriptor_path)
+                descriptor_path = kuiperjson_loc
             except Exception:
                 log.warning("Cannot find project descriptor on target")
             boot_files_path = h.get_boot_files_from_descriptor(
@@ -385,7 +385,7 @@ class usbmux(utils):
                     bootfile_name = "extlinux/" + bootfile_name
                 log.info(f"Copying {bootfile_name} from {bootfile_loc} to {mount_path}")
                 os.system(f"cp -f {bootfile_loc} /tmp/{folder}/{bootfile_name}")
-                os.system(f"sync")
+                os.system("sync")
                 time.sleep(0.5)
 
             log.info("Updated boot files successfully... unmounting")
