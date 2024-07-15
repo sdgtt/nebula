@@ -385,7 +385,6 @@ class usbmux(utils):
                     bootfile_name = "extlinux/" + bootfile_name
                 log.info(f"Copying {bootfile_name} from {bootfile_loc} to {mount_path}")
                 os.system(f"cp -f {bootfile_loc} /tmp/{folder}/{bootfile_name}")
-                os.system("sync")
                 time.sleep(0.5)
 
             log.info("Updated boot files successfully... unmounting")
