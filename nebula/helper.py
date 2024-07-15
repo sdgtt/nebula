@@ -1,7 +1,10 @@
 import glob
+import json
 import logging
 import os
 import pathlib
+import re
+from functools import partial
 
 import click
 import netifaces
@@ -75,6 +78,16 @@ def get_nics():
             default = nic
     str = str[:-2] + ") "
     return (str, default)
+
+
+def project_filter(project_dict, filters):
+    match = True
+    for k, v in filters.items():
+        if k in project_dict.keys():
+            if not project_dict[k] == v:
+                match = False
+                break
+    return match
 
 
 class helper:
@@ -342,3 +355,172 @@ class helper:
         file1 = open(filename, "w")
         file1.writelines(lines)
         file1.close()
+
+    def get_boot_files_from_descriptor(self, descriptor_file, project):
+        """
+        Extracts the project bootfiles defined on the kuiper desctriptor file.
+        i.e kuiper.json
+        """
+
+        boot_files = (
+            list()
+        )  # contains all files needed to be moved to the boot partition
+
+        common_architectures = [
+            ("arria10_", "arria10"),
+            ("cyclone5_", "cyclone5"),
+            ("zynq-", "zynq"),
+            ("zynq-", "zynq"),
+            ("zynqmp-", "zynqmp"),
+            ("versal-", "versal"),
+        ]
+        common_boards = [
+            ("socdk_", "socdk"),
+            ("de10_nano_", "de10nano"),
+            ("sockit_", "sockit"),
+            ("coraz7s-", "coraz7s"),
+            ("zc702-", "zc702"),
+            ("zc706-", "zc706"),
+            ("zed-", "zed"),
+            ("zcu102-", "zcu102"),
+            ("adrv9009-zu11eg-", "adrv9009zu11eg_adrv2crr"),
+            ("vck190-", "vck190"),
+            ("-bob", "ccbob"),
+            ("z7035-fmc", "ccfmc"),
+            ("z7035-packrf", "ccpackrf"),
+            ("z7020-packrf", "ccpackrf"),
+        ]
+        common_names = [
+            ("ad9081$", "ad9081"),
+            ("adv7511$", "adv7511"),
+            ("ad9695", "ad9695"),
+            ("ad9783", "ad9783"),
+            ("adrv9002$", "adrv9002"),
+            ("adrv9009", "adrv9009"),
+            ("adrv9371", "adrv9371"),
+            ("adrv9375", "adrv9375"),
+            ("cn0540", "cn0540"),
+            ("cn0579", "cn0579"),
+            ("_daq2", "daq2"),
+            ("fmcdaq2", "daq2"),
+            ("fmcdaq3", "daq3"),
+            ("fmcadc2", "fmcadc2"),
+            ("fmcadc3", "fmcadc3"),
+            ("fmcjesdadc1", "fmcjesdadc1"),
+            ("fmcomms11", "fmcomms11"),
+            ("fmcomms2", "fmcomms2"),
+            ("fmcomms3", "fmcomms3"),
+            ("fmcomms4", "fmcomms4"),
+            ("fmcomms5", "fmcomms5"),
+            ("fmcomms8", "fmcomms8"),
+            ("cn0501", "cn0501"),
+            ("ad4020", "ad4020"),
+            ("cn0363", "cn0363"),
+            ("cn0577", "cn0577"),
+            ("imageon", "imageon"),
+            ("ad4630-24", "ad4630_fmc"),
+            ("ad7768-axi-adc", "ad7768"),
+            ("ad7768-1-evb", "ad77681_evb"),
+            ("ad7768-4-axi-adc", "ad7768-4"),
+            ("adaq8092", "adaq8092"),
+            ("socdk_fmclidar1", "ad_fmclidar1_ebz"),
+            ("adv7511-fmclidar1", "ad_fmclidar1_ebz"),
+            ("rev10-fmclidar1", "fmclidar"),
+            ("adrv9002[-_]rx2tx2", "adrv9002_rx2tx2"),
+            ("cn0506[-_]mii", "cn0506_mii"),
+            ("cn0506[-_]rgmii", "cn0506_rgmii"),
+            ("cn0506[-_]rmii", "cn0506_rmii"),
+            ("ad6676-fmc", "ad6676evb"),
+            ("ad9265-fmc-125ebz", "ad9265_fmc"),
+            ("ad9434-fmc", "ad9434_fmc"),
+            ("ad9739a-fmc", "ad9739a_fmc"),
+            ("adrv9008-1", "adrv9008-1"),
+            ("adrv9008-2", "adrv9008-2"),
+            ("ad9172-fmc-ebz", "ad9172_fmc"),
+            ("fmcomms5-ext-lo-adf5355", "fmcomms5-ext-lo-adf5355"),
+            ("z7035-bob-vcmos", "adrv9361z7035_cmos"),
+            ("z7035-bob-vlvds", "adrv9361z7035_lvds"),
+            ("z7020-bob-vcmos", "adrv9364z7020_cmos"),
+            ("z7020-bob-vlvds", "adrv9364z7020_lvds"),
+            ("z7035-fmc", "adrv9361z7035_lvds"),
+            ("z7035-packrf", "adrv9361z7035_lvds"),
+            ("z7020-packrf", "adrv9364z7020_lvds"),
+            ("ad9467-fmc-250ebz", "ad9467-fmc"),
+            ("otg", "adv7511_without_bitstream"),
+            ("hps", "de10nano_without_bitfile"),
+            ("adrv2crr-fmc-revb", "adrv9009zu11eg_adrv2crr"),
+            ("multisom-primary", "multisom-primary"),
+            ("multisom-secondary", "multisom-secondary"),
+            ("fmcomms8-multisom-primary", "fmcomms8_multisom_primary"),
+            ("fmcomms8-multisom-secondary", "fmcomms8_multisom_secondary"),
+            ("xmicrowave", "xmicrowave"),
+            ("ad9081-vm8-l4", "ad9081_m8_l4"),
+            ("ad9081-vm4-l8", "ad9081_m4_l8"),
+            ("ad9081[-_]vnp12", "ad9081_np12"),
+            ("ad9081-vm8-l4-vcxo122p88", "ad9081_m8_l4_vcxo122p88"),
+            ("ad9081-v204b-txmode9-rxmode4", "ad9081_204b_txmode9_rxmode4"),
+            ("ad9081-v204c-txmode0-rxmode1", "ad9081_204c_txmode0_rxmode1"),
+            ("ad9082-m4-l8", "ad9082_m4_l8"),
+            ("ad9082$", "ad9082"),
+            ("ad9083-fmc-ebz", "ad9083"),
+            ("adrv9008-1", "adrv9008-1"),
+            ("adrv9008-2", "adrv9008-2"),
+            ("adv7511-adrv9002-vcmos", "adrv9002"),
+            ("rev10-adrv9002-vcmos", "adrv9002_cmos"),
+            ("rev10-adrv9002-vlvds", "adrv9002_lvds"),
+            ("adv7511-adrv9002-rx2tx2-vcmos", "adrv9002_rx2tx2"),
+            ("rev10-adrv9002-rx2tx2-vcmos", "adrv9002_rx2tx2_cmos"),
+            ("rev10-adrv9002-rx2tx2-vlvds", "adrv9002_rx2tx2_lvds"),
+            ("ad9172-fmc-ebz-mode4", "ad9172_mode4"),
+            ("arradio", "sockit_arradio"),
+            ("adrv9025", "adrv9025"),
+        ]
+
+        with open(descriptor_file, "r") as f:
+            descriptor = json.load(f)
+
+        assert descriptor
+
+        # for platform in
+
+        p_architecture = None
+        p_board = None
+        p_name = None
+
+        for ar in common_architectures:
+            if re.search(ar[0], project):
+                p_architecture = ar[1]
+
+        for br in common_boards:
+            if re.search(br[0], project):
+                p_board = br[1]
+
+        for pn in common_names:
+            if re.search(pn[0], project):
+                p_name = pn[1]
+
+        projects = descriptor["projects"]
+
+        # filter project
+        if project:
+            filter_dict = dict(
+                {"architecture": p_architecture, "board": p_board, "name": p_name}
+            )
+            projects = filter(partial(project_filter, filters=filter_dict), projects)
+
+        for project in projects:
+            # if not project['kernel'] in [ bt[1] for bt in boot_files]:
+            # boot_files.append((project['name'],project['kernel']))
+            boot_files.append((project["name"], project["kernel"]))
+            if "preloader" in project:
+                boot_files.append((project["name"], project["preloader"]))
+            files = project["files"]
+            for f in files:
+                boot_files.append((project["name"], f["path"]))
+
+        # check if project is supported
+        log.info("path:" + str(boot_files))
+        if not boot_files:
+            raise Exception("Project not supported in this nebula version.")
+
+        return boot_files

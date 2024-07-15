@@ -4,6 +4,7 @@ import time
 
 import pytest
 
+from nebula import helper as helper
 from nebula import network, pdu, uart
 
 
@@ -87,6 +88,28 @@ def test_dmesg_read():
     assert os.path.isfile("dmesg.log")
     assert os.path.isfile("dmesg_warn.log")
     assert os.path.isfile("dmesg_err.log")
+
+
+def test_update_boot_partition_existing_files():
+    # generate nebula config for zynq-adrv9361-z7035-fmc
+    outfile = "resources/nebula-zynq-adrv9361-z7035-fmc.yml"
+    board_name = "zynq-adrv9361-z7035-fmc"
+    h = helper()
+    h.create_config_from_netbox(
+        outfile=outfile,
+        netbox_ip="192.168.10.11",
+        netbox_port="8000",
+        netbox_baseurl="netbox",
+        netbox_token="0123456789abcdef0123456789abcdef01234567",
+        board_name=board_name,
+    )
+
+    # initialize network object
+    n = network(yamlfilename=outfile, board_name=board_name)
+    n.check_board_booted()
+    n.update_boot_partition_existing_files(subfolder=board_name)
+    time.sleep(60)
+    n.check_board_booted()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 import glob
 import logging
 import os
+import pathlib
 import random
 import re
 import string
@@ -11,6 +12,7 @@ from pathlib import Path
 import pyudev
 from usbsdmux import usbsdmux
 
+import nebula.helper as helper
 from nebula.common import utils
 
 log = logging.getLogger(__name__)
@@ -35,6 +37,7 @@ class usbmux(utils):
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
+        self.board_name = board_name
         self.find_mux_device()
         self._mux = usbsdmux.UsbSdMux(self._mux_in_use)
 
@@ -285,6 +288,7 @@ class usbmux(utils):
 
     def update_boot_files_from_sdcard_itself(
         self,
+        descriptor_path=None,
         bootbin_loc=None,
         kernel_loc=None,
         devicetree_loc=None,
@@ -295,6 +299,7 @@ class usbmux(utils):
         """Update the boot files from the SD card itself.
 
         Args:
+            descriptor_path (str): The path to the kuiper.json.
             bootbin_loc (str): The path to the boot.bin file on the SD card.
             kernel_loc (str): The path to the kernel file on the SD card.
             devicetree_loc (str): The path to the devicetree file on the SD card.
@@ -303,15 +308,58 @@ class usbmux(utils):
             preloader_loc (str): The path to the preloader file (.sfp) on the SD card (Intel boards).
         """
         args = locals()
+        # check if if all loc are still None
+        del args["self"]
+        del args["descriptor_path"]
+        args_status = all(loc is None for loc in args.values())
 
         folder, boot_p = self._mount_sd_card()
         preloader_p = f"{self._target_sdcard}3"
+        mount_path = os.path.join("/tmp/", folder)
+
+        if args_status:
+            h = helper()
+            if descriptor_path:
+                descriptor_path = descriptor_path
+            else:
+                path = pathlib.Path(__file__).parent.absolute()
+                descriptor_path = os.path.join(path, "resources", "kuiper.json")
+            try:
+                kuiperjson_loc = os.path.join(mount_path, "kuiper.json")
+                os.path.isfile(kuiperjson_loc)
+                descriptor_path = kuiperjson_loc
+            except Exception:
+                log.warning("Cannot find project descriptor on target")
+            boot_files_path = h.get_boot_files_from_descriptor(
+                descriptor_path, self.board_name
+            )
+
+            # update items to args
+            for boot_file in boot_files_path:
+                file_path = os.path.join(mount_path, boot_file[1].lstrip("/boot"))
+                loc_map = {
+                    "bootbin_loc": "BIN",
+                    "kernel_loc": "Image",
+                    "devicetree_loc": "dtb",
+                    "extlinux_loc": "conf",
+                    "scr_loc": "scr",
+                    "preloader_loc": "sfp",
+                }
+                for key, val in loc_map.items():
+                    if val in file_path:
+                        args.update({key: file_path})
+
+        # filter: remove None loc
+        args_filtered = dict(filter(lambda item: item[1] is not None, args.items()))
 
         try:
-            for field, bootfile_loc in args.items():
+            for field, bootfile_loc in args_filtered.items():
                 if field in ["self"]:
                     continue
-                bootfile_loc = os.path.join("/tmp/", folder, bootfile_loc)
+                if mount_path in bootfile_loc:
+                    bootfile_loc = bootfile_loc
+                else:
+                    bootfile_loc = os.path.join(mount_path, bootfile_loc)
                 if not os.path.isfile(bootfile_loc):
                     options = os.listdir(f"/tmp/{folder}")
                     options = [
@@ -335,7 +383,9 @@ class usbmux(utils):
                 if field == "extlinux_loc":
                     os.system(f"mkdir -p /tmp/{folder}/extlinux")
                     bootfile_name = "extlinux/" + bootfile_name
-                os.system(f"cp {bootfile_loc} /tmp/{folder}/{bootfile_name}")
+                log.info(f"Copying {bootfile_name} from {bootfile_loc} to {mount_path}")
+                os.system(f"cp -f {bootfile_loc} /tmp/{folder}/{bootfile_name}")
+                time.sleep(0.5)
 
             log.info("Updated boot files successfully... unmounting")
         finally:
