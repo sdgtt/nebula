@@ -95,6 +95,51 @@ class netbox(utils):
     def interface(self):
         return self.nb
 
+    def get_device(self, id=None, name=None, slug=None):
+        return self.nb.dcim.devices.get(id=id, name=name, slug=slug)
+
+    def get_devices(self, **filters):
+        if not filters:
+            return [dict(device) for device in self.nb.dcim.devices.all()]
+        return [dict(device) for device in self.nb.dcim.devices.filter(**filters)]
+
+    def update_device(self, id, fields):
+        device = self.get_device(id)
+        for key, value in fields.items():
+            if getattr(device, key):
+                setattr(device, key, value)
+        self.nb.dcim.devices.update([device])
+
+    def get_tag(self, id=None, name=None, slug=None):
+        return self.nb.extras.tags.get(id=id, name=name, slug=slug)
+
+    def add_tag(self, device_id, tag):
+        device = self.get_device(id=device_id)
+        tag = self.get_tag(slug=tag)
+        if tag.name == "active":
+            status = "active"
+        else:
+            status = device.status
+        new_tags = device.tags + [tag]
+        self.update_device(id=device.id, fields={"tags": new_tags, "status": status})
+        updated_device = self.get_device(id=device_id)
+        assert tag.id in [t.id for t in updated_device.tags]
+
+    def remove_tag(self, device_id, tag):
+        device = self.get_device(id=device_id)
+        tag = self.get_tag(slug=tag)
+        if tag.name == "active":
+            status = "offline"
+        else:
+            status = device.status
+        new_tags = []
+        for t in device.tags:
+            if not tag.id == t.id:
+                new_tags.append(t)
+        self.update_device(id=device.id, fields={"tags": new_tags, "status": status})
+        updated_device = self.get_device(id=device_id)
+        assert tag.id not in [t.id for t in updated_device.tags]
+
     def get_mac_from_asset_tag(self, asset_tag):
         dev = self.nb.dcim.devices.get(asset_tag=asset_tag)
         if not dev:
@@ -134,11 +179,6 @@ class netbox(utils):
                     continue
             devices_names.append(device_dict["name"])
         return devices_names
-
-    def get_devices(self, **filters):
-        if not filters:
-            return [dict(device) for device in self.nb.dcim.devices.all()]
-        return [dict(device) for device in self.nb.dcim.devices.filter(**filters)]
 
     def get_console_ports(self, **filters):
         if not filters:
