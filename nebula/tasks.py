@@ -1404,6 +1404,7 @@ net.add_task(check_board_booted)
 
 #############################################
 
+
 @task(
     help={
         "tag": "Tag to be removed",
@@ -1434,10 +1435,11 @@ def remove_tag(
         base_url=netbox_baseurl,
         yamlfilename=yamlfilename,
         board_name=board_name,
-        load_config=load_config
+        load_config=load_config,
     )
     device = nb.get_device(name=board_name)
     nb.remove_tag(device.id, tag)
+
 
 @task(
     help={
@@ -1469,16 +1471,19 @@ def add_tag(
         base_url=netbox_baseurl,
         yamlfilename=yamlfilename,
         board_name=board_name,
-        load_config=load_config
+        load_config=load_config,
     )
     device = nb.get_device(name=board_name)
     nb.add_tag(device.id, tag)
+
 
 netbox = Collection("netbox")
 netbox.add_task(remove_tag)
 netbox.add_task(add_tag)
 
 #############################################
+
+
 @task(
     help={
         "level": "Set log level. Default is DEBUG",
