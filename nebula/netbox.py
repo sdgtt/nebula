@@ -116,19 +116,27 @@ class netbox(utils):
     def add_tag(self, device_id, tag):
         device = self.get_device(id=device_id)
         tag = self.get_tag(slug=tag)
+        if tag.name == "active":
+            status = "active"
+        else:
+            status = device.status
         new_tags = device.tags + [tag]
-        self.update_device(id=device.id, fields={"tags": new_tags})
+        self.update_device(id=device.id, fields={"tags": new_tags, "status":status})
         updated_device = self.get_device(id=device_id)
         assert tag.id in [ t.id for t in updated_device.tags ]
         
     def remove_tag(self, device_id, tag):
         device = self.get_device(id=device_id)
         tag = self.get_tag(slug=tag)
+        if tag.name == "active":
+            status = "offline"
+        else:
+            status = device.status
         new_tags = []
         for t in device.tags:
             if not tag.id == t.id:
                 new_tags.append(t)
-        self.update_device(id=device.id, fields={"tags": new_tags})
+        self.update_device(id=device.id, fields={"tags": new_tags, "status":status})
         updated_device = self.get_device(id=device_id)
         assert tag.id not in [ t.id for t in updated_device.tags ]
 
