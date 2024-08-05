@@ -1402,6 +1402,81 @@ net.add_task(run_diagnostics)
 net.add_task(run_command)
 net.add_task(check_board_booted)
 
+#############################################
+
+@task(
+    help={
+        "tag": "Tag to be removed",
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def remove_tag(
+    c,
+    tag,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+):
+    """Remove tag from a Netbox device entity"""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config
+    )
+    device = nb.get_device(name=board_name)
+    nb.remove_tag(device.id, tag)
+
+@task(
+    help={
+        "tag": "Tag to be added",
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def add_tag(
+    c,
+    tag,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+):
+    """Remove tag from a Netbox device entity"""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config
+    )
+    device = nb.get_device(name=board_name)
+    nb.add_tag(device.id, tag)
+
+netbox = Collection("netbox")
+netbox.add_task(remove_tag)
+netbox.add_task(add_tag)
 
 #############################################
 @task(
@@ -1438,3 +1513,4 @@ ns.add_collection(driver)
 ns.add_collection(info)
 ns.add_collection(jtag)
 ns.add_collection(usbsdmux)
+ns.add_collection(netbox)
