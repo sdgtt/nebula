@@ -1414,6 +1414,7 @@ net.add_task(check_board_booted)
         "netbox_baseurl": "URL base for the netbox service",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
     }
 )
 def remove_tag(
@@ -1450,6 +1451,7 @@ def remove_tag(
         "netbox_baseurl": "URL base for the netbox service",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
     }
 )
 def add_tag(
