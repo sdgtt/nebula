@@ -1407,7 +1407,7 @@ net.add_task(check_board_booted)
 
 @task(
     help={
-        "tag": "Tag to be removed",
+        "reason": "Reason why board wil be disabled",
         "netbox_ip": "IP address of netbox instance",
         "netbox_port": "Network port of netbox instance",
         "netbox_token": "Netbox access token",
@@ -1417,9 +1417,9 @@ net.add_task(check_board_booted)
         "load_config": "Load configuration parameters from yamlfilename. Default: true",
     }
 )
-def remove_tag(
+def disable_board(
     c,
-    tag,
+    reason,
     netbox_ip=None,
     netbox_port=None,
     netbox_token=None,
@@ -1428,7 +1428,7 @@ def remove_tag(
     board_name=None,
     load_config=True,
 ):
-    """Remove tag from a Netbox device entity"""
+    """Remove Active Tag, change status to offline and log reason to journal"""
     nb = nebula.netbox(
         ip=netbox_ip,
         port=netbox_port,
@@ -1438,13 +1438,13 @@ def remove_tag(
         board_name=board_name,
         load_config=load_config,
     )
-    device = nb.get_device(name=board_name)
-    nb.remove_tag(device.id, tag)
+    device = nebula.NetboxDevice(nb)
+    device.disable(reason)
 
 
 @task(
     help={
-        "tag": "Tag to be added",
+        "reason": "Reason why board wil be enabled",
         "netbox_ip": "IP address of netbox instance",
         "netbox_port": "Network port of netbox instance",
         "netbox_token": "Netbox access token",
@@ -1454,9 +1454,9 @@ def remove_tag(
         "load_config": "Load configuration parameters from yamlfilename. Default: true",
     }
 )
-def add_tag(
+def enable_board(
     c,
-    tag,
+    reason,
     netbox_ip=None,
     netbox_port=None,
     netbox_token=None,
@@ -1465,7 +1465,7 @@ def add_tag(
     board_name=None,
     load_config=True,
 ):
-    """Remove tag from a Netbox device entity"""
+    """Add Active Tag, change status to active and log reason to journal"""
     nb = nebula.netbox(
         ip=netbox_ip,
         port=netbox_port,
@@ -1475,13 +1475,13 @@ def add_tag(
         board_name=board_name,
         load_config=load_config,
     )
-    device = nb.get_device(name=board_name)
-    nb.add_tag(device.id, tag)
+    device = nebula.NetboxDevice(nb)
+    device.enable(reason)
 
 
 netbox = Collection("netbox")
-netbox.add_task(remove_tag)
-netbox.add_task(add_tag)
+netbox.add_task(enable_board)
+netbox.add_task(disable_board)
 
 #############################################
 
