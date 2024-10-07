@@ -1,7 +1,7 @@
 # from pyfiglet import Figlet
 # f = Figlet(font="slant")
 # print(f.renderText("Nebula"))
-import os
+import platform
 
 from nebula.builder import builder
 from nebula.common import LINUX_DEFAULT_PATH, utils
@@ -18,7 +18,7 @@ from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
 
-if os.name in ["nt", "posix"] and os.path.exists(LINUX_DEFAULT_PATH):
+if platform.system() == "Linux":
     from nebula.usbmux import usbmux
 
 __version__ = "v1.0.0"
