@@ -919,14 +919,27 @@ class manager:
             # force shutdown boards via pdu
             self.power.power_down_board()
 
+    def verify_checksum(self, folder):
+        log.info(f"Verifying bootfiles checksum for {self.board_name}")
+        # find hashes.txt on the folder
+        hash_file = None
+        for root, dirs, files in os.walk(folder):
+            if "hashes.txt" in files:
+                hash_file = os.path.join(root, "hashes.txt")
 
-if __name__ == "__main__":
-    # import pathlib
+        if not hash_file:
+            log.warning("Hash file not found, will not proceed with verification")
+            return
+        
+        with open(hash_file, 'r') as file:
+            for line in file:
+                fname, hash = line.strip().split(",")
+                # exclude some files
+                if fname in ["bootgen_sysfiles.tgz"]:
+                    continue
+                self.net.verify_checksum(
+                    file_path=os.path.join("/boot",fname), 
+                    reference=hash
+                )
 
-    # p = pathlib.Path(__file__).parent.absolute()
-    # p = os.path.split(p)
-    # p = os.path.join(p[0], "resources", "nebula-zed-fmcomms2.yaml")
 
-    # m = manager(configfilename=p)
-    # m.run_test()
-    pass

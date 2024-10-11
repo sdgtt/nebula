@@ -1046,8 +1046,9 @@ class downloader(utils):
     def download(self, url, fname):
         resp = self.retry_session().get(url, stream=True)
         if not resp.ok:
-            raise Exception(fname.lstrip("outs/") + " - File not found!")
+            raise Exception(os.path.basename(fname) + " - File not found!")
         total = int(resp.headers.get("content-length", 0))
+        sha256_hash = hashlib.sha256()
         with open(fname, "wb") as file, tqdm(
             desc=fname,
             total=total,
@@ -1057,7 +1058,11 @@ class downloader(utils):
         ) as bar:
             for data in resp.iter_content(chunk_size=1024):
                 size = file.write(data)
+                sha256_hash.update(data)
                 bar.update(size)
+        hash = sha256_hash.hexdigest()
+        with open(os.path.join(os.path.dirname(fname),"hashes.txt"),"a") as h:
+            h.write(f"{os.path.basename(fname)},{hash}\n")
 
     def check(self, fname, ref):
         hash_md5 = hashlib.md5()
@@ -1103,7 +1108,3 @@ class downloader(utils):
                     data = ifile.read(1024)
 
 
-if __name__ == "__main__":
-    d = downloader()
-    # d.download_sdcard_release()
-    d.download_boot_files("zynq-adrv9361-z7035-fmc")

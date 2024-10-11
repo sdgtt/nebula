@@ -36,7 +36,6 @@ class network(utils):
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
-        props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
         for prop in props:
             if eval(prop) is not None:
                 setattr(self, prop, eval(prop))
@@ -405,3 +404,15 @@ class network(utils):
         # fetch file
         self._dl_file(report_file_name)
         log.info("Diagnostic report {} collected".format(report_file_name))
+
+    def verify_checksum(self, file_path, reference, algo="sha256"):
+        if algo == "sha256":
+            ssh_command = "python -c \"import hashlib;"
+            ssh_command += f" print(hashlib.sha256(open('{file_path}', 'rb').read()).hexdigest())\""
+            result = self.run_ssh_command(
+                command=ssh_command,
+                print_result_to_file=False,
+                show_log=False
+            )
+            if not reference == result.stdout.strip():
+                raise Exception(f"Checksum for {file_path} does not match {result.stdout.strip()}")

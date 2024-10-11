@@ -15,7 +15,6 @@ class MyFilter(logging.Filter):
     def filter(self, record):
         return "nebula" in record.name
 
-
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
@@ -913,12 +912,29 @@ def update_boot_files_manager(
     else:
         m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
 
+@task(
+    help={
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def verify_checksum_manager(
+    c,
+    folder=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Checks if bootfiles checksum is expected"""
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m.verify_checksum(folder)
 
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 manager.add_task(board_diagnostics_manager, name="board_diagnostics")
+manager.add_task(verify_checksum_manager, name="verify_checksum")
 
 
 #############################################
