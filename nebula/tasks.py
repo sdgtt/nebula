@@ -15,6 +15,7 @@ class MyFilter(logging.Filter):
     def filter(self, record):
         return "nebula" in record.name
 
+
 LINUX_DEFAULT_PATH = "/etc/default/nebula"
 WINDOWS_DEFAULT_PATH = "C:\\nebula\\nebula.yaml"
 
@@ -912,6 +913,7 @@ def update_boot_files_manager(
     else:
         m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
 
+
 @task(
     help={
         "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
@@ -928,6 +930,7 @@ def verify_checksum_manager(
     """Checks if bootfiles checksum is expected"""
     m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
     m.verify_checksum(folder)
+
 
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
@@ -1423,7 +1426,7 @@ net.add_task(check_board_booted)
 
 @task(
     help={
-        "reason": "Reason why board wil be disabled",
+        "reason": "Reason why board will be disabled",
         "netbox_ip": "IP address of netbox instance",
         "netbox_port": "Network port of netbox instance",
         "netbox_token": "Netbox access token",
@@ -1460,7 +1463,7 @@ def disable_board(
 
 @task(
     help={
-        "reason": "Reason why board wil be enabled",
+        "reason": "Reason why board will be enabled",
         "netbox_ip": "IP address of netbox instance",
         "netbox_port": "Network port of netbox instance",
         "netbox_token": "Netbox access token",

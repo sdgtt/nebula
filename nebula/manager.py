@@ -930,16 +930,13 @@ class manager:
         if not hash_file:
             log.warning("Hash file not found, will not proceed with verification")
             return
-        
-        with open(hash_file, 'r') as file:
+
+        with open(hash_file, "r") as file:
             for line in file:
                 fname, hash = line.strip().split(",")
                 # exclude some files
                 if fname in ["bootgen_sysfiles.tgz"]:
                     continue
                 self.net.verify_checksum(
-                    file_path=os.path.join("/boot",fname), 
-                    reference=hash
+                    file_path=os.path.join("/boot", fname), reference=hash
                 )
-
-

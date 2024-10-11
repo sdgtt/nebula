@@ -11,7 +11,7 @@ from nebula.driver import driver
 from nebula.helper import helper
 from nebula.jtag import jtag
 from nebula.manager import manager
-from nebula.netbox import netbox, NetboxDevice, NetboxDevices
+from nebula.netbox import NetboxDevice, NetboxDevices, netbox
 from nebula.netconsole import netconsole
 from nebula.network import network
 from nebula.pdu import pdu

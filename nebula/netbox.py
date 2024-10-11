@@ -95,24 +95,23 @@ class netbox(utils):
 
     def interface(self):
         return self.nb
-    
-    def get_user_from_token(self,token=None):
+
+    def get_user_from_token(self, token=None):
         if not token:
             token = self.netbox_api_token
-        users = [ _token.user for _token in self.nb.users.tokens.filter(key=token)]
+        users = [_token.user for _token in self.nb.users.tokens.filter(key=token)]
         if len(users) != 1:
             raise IndexError("Token not matched")
         return users[0]
 
-
     def get_device(self, id=None, name=None, slug=None):
         kwargs = dict()
         if id:
-            kwargs.update({"id":id})
+            kwargs.update({"id": id})
         elif name:
-            kwargs.update({"name":name})
+            kwargs.update({"name": name})
         elif slug:
-            kwargs.update({"slug":slug})
+            kwargs.update({"slug": slug})
         return self.nb.dcim.devices.get(**kwargs)
 
     def get_devices(self, **filters):
@@ -131,28 +130,23 @@ class netbox(utils):
         self.nb.dcim.devices.update([device])
 
     def update_status(self, device_id, status):
-        statuses = [
-            "offline",
-            "active",
-            "planned",
-            "staged",
-            "failed",
-            "inventory"
-        ]
+        statuses = ["offline", "active", "planned", "staged", "failed", "inventory"]
         if status not in statuses:
             raise ValueError(f"Status {status} is not supported")
         self.update_device(id=device_id, fields={"status": status})
 
-    def log_journal(self, device_id, author_id, kind="info", comments="Automated journal entry"):
-        kinds = ["info","success", "warning", "danger "]
-        if not kind in kinds:
+    def log_journal(
+        self, device_id, author_id, kind="info", comments="Automated journal entry"
+    ):
+        kinds = ["info", "success", "warning", "danger "]
+        if kind not in kinds:
             raise ValueError(f"kind only accepts {kinds}")
         self.nb.extras.journal_entries.create(
-            assigned_object_type = "dcim.device",
-            assigned_object_id = device_id,
-            created_by = author_id,
-            kind = kind,
-            comments = comments,
+            assigned_object_type="dcim.device",
+            assigned_object_id=device_id,
+            created_by=author_id,
+            kind=kind,
+            comments=comments,
         )
 
     def add_tag(self, device_id, tag):
@@ -307,11 +301,11 @@ class NetboxDevice:
     ):
 
         self.data = dict()
-        if type(netbox_interface) == netbox:
+        if isinstance(netbox_interface, netbox):
             self.nbi = netbox_interface
         else:
             raise TypeError("Must be of type Netbox interface (netbox)")
-        
+
         if not device_name:
             device_name = netbox_interface.board_name
 
@@ -566,18 +560,19 @@ class NetboxDevice:
         return template_dict_list
 
     def enable(self, reason="nebula: Enable device"):
-        device_id =self.data["devices"]["id"]
+        device_id = self.data["devices"]["id"]
         author = self.nbi.get_user_from_token()
         self.nbi.add_tag(device_id=device_id, tag="active")
         self.nbi.update_status(device_id=device_id, status="active")
         self.nbi.log_journal(device_id=device_id, author_id=author.id, comments=reason)
 
-    def disable(self,reason="nebula: Disable device"):
-        device_id =self.data["devices"]["id"]
+    def disable(self, reason="nebula: Disable device"):
+        device_id = self.data["devices"]["id"]
         author = self.nbi.get_user_from_token()
         self.nbi.remove_tag(device_id=device_id, tag="active")
         self.nbi.update_status(device_id=device_id, status="offline")
         self.nbi.log_journal(device_id=device_id, author_id=author.id, comments=reason)
+
 
 class NetboxDevices:
     """List of NetboxDevice"""

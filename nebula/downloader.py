@@ -1061,7 +1061,7 @@ class downloader(utils):
                 sha256_hash.update(data)
                 bar.update(size)
         hash = sha256_hash.hexdigest()
-        with open(os.path.join(os.path.dirname(fname),"hashes.txt"),"a") as h:
+        with open(os.path.join(os.path.dirname(fname), "hashes.txt"), "a") as h:
             h.write(f"{os.path.basename(fname)},{hash}\n")
 
     def check(self, fname, ref):
@@ -1106,5 +1106,3 @@ class downloader(utils):
                         size = file.write(result)
                         bar.update(size)
                     data = ifile.read(1024)
-
-
