@@ -753,8 +753,8 @@ def gen_config_netbox(
     board_name=None,
     include_variants=True,
     include_children=True,
-    devices_status=None,
-    devices_role=None,
+    devices_status="active",
+    devices_role="fpga-dut",
     devices_tag=None,
     template=None,
 ):
