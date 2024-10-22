@@ -414,5 +414,6 @@ class network(utils):
             )
             if not reference == result.stdout.strip():
                 raise Exception(
-                    f"Checksum for {file_path} does not match {result.stdout.strip()}"
+                    f"Checksum does not match for {file_path}:\
+                         Ref: {reference} Actual: {result.stdout.strip()}"
                 )
