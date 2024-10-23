@@ -122,6 +122,10 @@ class netbox(utils):
     def get_tag(self, id=None, name=None, slug=None):
         return self.nb.extras.tags.get(id=id, name=name, slug=slug)
 
+    def get_status(self, id):
+        device = self.get_device(id)
+        return device.status
+
     def update_device(self, id, fields):
         device = self.get_device(id)
         for key, value in fields.items():
@@ -573,6 +577,10 @@ class NetboxDevice:
         else:
             self.nbi.update_status(device_id=device_id, status="offline")
         self.nbi.log_journal(device_id=device_id, author_id=author.id, comments=reason)
+
+    def status(self):
+        device_id = self.data["devices"]["id"]
+        return self.nbi.get_status(device_id)
 
 
 class NetboxDevices:
