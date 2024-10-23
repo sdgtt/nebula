@@ -1427,6 +1427,7 @@ net.add_task(check_board_booted)
 @task(
     help={
         "reason": "Reason why board will be disabled",
+        "failure": "Set to true to set device status to Failure rather than Offline",
         "netbox_ip": "IP address of netbox instance",
         "netbox_port": "Network port of netbox instance",
         "netbox_token": "Netbox access token",
@@ -1439,6 +1440,7 @@ net.add_task(check_board_booted)
 def disable_board(
     c,
     reason,
+    failure=False,
     netbox_ip=None,
     netbox_port=None,
     netbox_token=None,
@@ -1447,7 +1449,7 @@ def disable_board(
     board_name=None,
     load_config=True,
 ):
-    """Remove Active Tag, change status to offline and log reason to journal"""
+    """Change status to offline and log reason to journal"""
     nb = nebula.netbox(
         ip=netbox_ip,
         port=netbox_port,
@@ -1458,7 +1460,7 @@ def disable_board(
         load_config=load_config,
     )
     device = nebula.NetboxDevice(nb)
-    device.disable(reason)
+    device.disable(reason, failure)
 
 
 @task(
@@ -1484,7 +1486,7 @@ def enable_board(
     board_name=None,
     load_config=True,
 ):
-    """Add Active Tag, change status to active and log reason to journal"""
+    """Change status to active and log reason to journal"""
     nb = nebula.netbox(
         ip=netbox_ip,
         port=netbox_port,
