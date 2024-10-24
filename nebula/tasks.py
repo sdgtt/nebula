@@ -1435,6 +1435,7 @@ net.add_task(check_board_booted)
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "power_off": "Power off the board using PDU. Default: False",
     }
 )
 def disable_board(
@@ -1448,6 +1449,7 @@ def disable_board(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     load_config=True,
+    power_off=False,
 ):
     """Change status to offline and log reason to journal"""
     nb = nebula.netbox(
@@ -1462,6 +1464,14 @@ def disable_board(
     device = nebula.NetboxDevice(nb)
     device.disable(reason, failure)
 
+    # power off board
+    if power_off:
+        p = nebula.pdu(
+            yamlfilename=yamlfilename,
+            board_name=board_name,
+        )
+        p.power_down_board()
+
 
 @task(
     help={
@@ -1473,6 +1483,7 @@ def disable_board(
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "power_on": "Power on the board using PDU. Default: False",
     }
 )
 def enable_board(
@@ -1485,6 +1496,7 @@ def enable_board(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     load_config=True,
+    power_on=False,
 ):
     """Change status to active and log reason to journal"""
     nb = nebula.netbox(
@@ -1498,6 +1510,14 @@ def enable_board(
     )
     device = nebula.NetboxDevice(nb)
     device.enable(reason)
+
+    # power on board
+    if power_on:
+        p = nebula.pdu(
+            yamlfilename=yamlfilename,
+            board_name=board_name,
+        )
+        p.power_up_board()
 
 
 @task(
