@@ -9,6 +9,7 @@ from invoke import Collection, task
 import nebula
 
 logging.getLogger().setLevel(logging.WARNING)
+log = logging.getLogger(__name__)
 
 
 class MyFilter(logging.Filter):
@@ -1529,6 +1530,7 @@ def enable_board(
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
         "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "fail_if_inactive": "Raise exception if board is not active",
     }
 )
 def board_status(
@@ -1540,8 +1542,9 @@ def board_status(
     yamlfilename="/etc/default/nebula",
     board_name=None,
     load_config=True,
+    fail_if_inactive=False,
 ):
-    """Get device status"""
+    """Get device status."""
     nb = nebula.netbox(
         ip=netbox_ip,
         port=netbox_port,
@@ -1552,7 +1555,11 @@ def board_status(
         load_config=load_config,
     )
     device = nebula.NetboxDevice(nb)
-    return device.status()
+    log.info(f"{board_name} status is {device.status()}")
+    if fail_if_inactive:
+        if not str(device.status()) == "Active":
+            raise Exception(f"{board_name} not Active")
+    return
 
 
 netbox = Collection("netbox")
