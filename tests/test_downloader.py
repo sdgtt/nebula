@@ -77,6 +77,7 @@ def test_boot_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
     assert os.path.isfile("outs/devicetree.dtb")
     assert os.path.isfile("outs/properties.yaml")
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.parametrize("board_name", ["max32650_adxl355"])
@@ -86,6 +87,7 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
     file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
     assert len(file) >= 1
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.skip(reason="Not built")
@@ -100,6 +102,7 @@ def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
         assert os.path.isfile("outs/system_top.xsa")
     assert os.path.isfile("outs/simpleImage.kc705_fmcomms4.strip")
     assert os.path.isfile("outs/properties.yaml")
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
@@ -110,6 +113,7 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
     assert os.path.isfile("outs/kernel7l.img")
     assert os.path.isfile("outs/rpi-adxrs290.dtbo")
     assert os.path.isfile("outs/properties.txt")
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.parametrize("board_name", ["pluto"])
@@ -119,10 +123,9 @@ def test_rpi_downloader(test_downloader, board_name, branch, filetype):
 @pytest.mark.parametrize("filetype", ["firmware"])
 def test_firmware_downloader(test_downloader, board_name, branch, filetype, source):
     test_downloader(board_name, branch, filetype, source=source)
-    if branch == "v0.33":
-        assert os.path.isfile("outs/plutosdr-fw-v0.33.zip")
-    else:
-        assert len(os.listdir("outs")) >= 1
+    file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
+    assert len(file) == 1
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.parametrize("board_name", ["zynq-zed-adv7511-ad7768-1-evb"])
@@ -144,6 +147,7 @@ def test_boot_downloader_new_flow(
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
     assert os.path.isfile("outs/devicetree.dtb")
     assert os.path.isfile("outs/properties.yaml")
+    assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.skip(reason="filesize")
