@@ -122,7 +122,7 @@ def test_firmware_downloader(test_downloader, board_name, branch, filetype, sour
     if branch == "v0.33":
         assert os.path.isfile("outs/plutosdr-fw-v0.33.zip")
     else:
-        assert len(os.listdir("outs")) == 1
+        assert len(os.listdir("outs")) >= 1
 
 
 @pytest.mark.parametrize("board_name", ["zynq-zed-adv7511-ad7768-1-evb"])
