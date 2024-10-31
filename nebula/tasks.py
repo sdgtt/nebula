@@ -1556,6 +1556,7 @@ def board_status(
     )
     device = nebula.NetboxDevice(nb)
     log.info(f"{board_name} status is {device.status()}")
+    print(device.status())
     if fail_if_inactive:
         if not str(device.status()) == "Active":
             raise Exception(f"{board_name} not Active")
