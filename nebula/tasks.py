@@ -9,6 +9,7 @@ from invoke import Collection, task
 import nebula
 
 logging.getLogger().setLevel(logging.WARNING)
+log = logging.getLogger(__name__)
 
 
 class MyFilter(logging.Filter):
@@ -914,11 +915,30 @@ def update_boot_files_manager(
         m.board_reboot_auto_folder(folder=folder, sdcard=sdcard, design_name=board_name)
 
 
+@task(
+    help={
+        "folder": "Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    },
+)
+def verify_checksum_manager(
+    c,
+    folder=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+):
+    """Checks if bootfiles checksum is expected"""
+    m = nebula.manager(configfilename=yamlfilename, board_name=board_name)
+    m.verify_checksum(folder)
+
+
 manager = Collection("manager")
 manager.add_task(update_boot_files_manager, name="update_boot_files")
 manager.add_task(update_boot_files_jtag_manager, name="update_boot_files_jtag")
 manager.add_task(recovery_device_manager, name="recovery_device_manager")
 manager.add_task(board_diagnostics_manager, name="board_diagnostics")
+manager.add_task(verify_checksum_manager, name="verify_checksum")
 
 
 #############################################
@@ -1402,8 +1422,155 @@ net.add_task(run_diagnostics)
 net.add_task(run_command)
 net.add_task(check_board_booted)
 
+#############################################
+
+
+@task(
+    help={
+        "reason": "Reason why board will be disabled",
+        "failure": "Set to true to set device status to Failure rather than Offline",
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "power_off": "Power off the board using PDU. Default: False",
+    }
+)
+def disable_board(
+    c,
+    reason,
+    failure=False,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+    power_off=False,
+):
+    """Change status to offline and log reason to journal"""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config,
+    )
+    device = nebula.NetboxDevice(nb)
+    device.disable(reason, failure)
+
+    # power off board
+    if power_off:
+        p = nebula.pdu(
+            yamlfilename=yamlfilename,
+            board_name=board_name,
+        )
+        p.power_down_board()
+
+
+@task(
+    help={
+        "reason": "Reason why board will be enabled",
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "power_on": "Power on the board using PDU. Default: False",
+    }
+)
+def enable_board(
+    c,
+    reason,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+    power_on=False,
+):
+    """Change status to active and log reason to journal"""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config,
+    )
+    device = nebula.NetboxDevice(nb)
+    device.enable(reason)
+
+    # power on board
+    if power_on:
+        p = nebula.pdu(
+            yamlfilename=yamlfilename,
+            board_name=board_name,
+        )
+        p.power_up_board()
+
+
+@task(
+    help={
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
+        "fail_if_inactive": "Raise exception if board is not active",
+    }
+)
+def board_status(
+    c,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+    fail_if_inactive=False,
+):
+    """Get device status."""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config,
+    )
+    device = nebula.NetboxDevice(nb)
+    log.info(f"{board_name} status is {device.status()}")
+    print(device.status())
+    if fail_if_inactive:
+        if not str(device.status()) == "Active":
+            raise Exception(f"{board_name} not Active")
+    return
+
+
+netbox = Collection("netbox")
+netbox.add_task(enable_board)
+netbox.add_task(disable_board)
+netbox.add_task(board_status)
 
 #############################################
+
+
 @task(
     help={
         "level": "Set log level. Default is DEBUG",
@@ -1438,3 +1605,4 @@ ns.add_collection(driver)
 ns.add_collection(info)
 ns.add_collection(jtag)
 ns.add_collection(usbsdmux)
+ns.add_collection(netbox)
