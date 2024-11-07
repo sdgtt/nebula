@@ -1599,7 +1599,8 @@ def log_journal(
         load_config=load_config,
     )
     device = nebula.NetboxDevice(nb)
-    device.log_journal(kind=kind, comment=comment)
+    device.write_journal(kind=kind, comments=comment)
+
 
 netbox = Collection("netbox")
 netbox.add_task(enable_board)
