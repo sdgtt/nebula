@@ -582,6 +582,13 @@ class NetboxDevice:
         device_id = self.data["devices"]["id"]
         return self.nbi.get_status(device_id)
 
+    def write_journal(self, kind="info", comments="Automated journal entry"):
+        device_id = self.data["devices"]["id"]
+        author = self.nbi.get_user_from_token()
+        self.nbi.log_journal(
+            device_id=device_id, author_id=author.id, kind=kind, comments=comments
+        )
+
 
 class NetboxDevices:
     """List of NetboxDevice"""
