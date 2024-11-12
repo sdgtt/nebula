@@ -1563,10 +1563,50 @@ def board_status(
     return
 
 
+@task(
+    help={
+        "kind": "Kind of comment, can be info, success, warning, danger",
+        "comment": "Comment to be logged to board journal",
+        "netbox_ip": "IP address of netbox instance",
+        "netbox_port": "Network port of netbox instance",
+        "netbox_token": "Netbox access token",
+        "netbox_baseurl": "URL base for the netbox service",
+        "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+        "load_config": "Load configuration parameters from yamlfilename. Default: true",
+    }
+)
+def log_journal(
+    c,
+    kind,
+    comment,
+    netbox_ip=None,
+    netbox_port=None,
+    netbox_token=None,
+    netbox_baseurl=None,
+    yamlfilename="/etc/default/nebula",
+    board_name=None,
+    load_config=True,
+):
+    """Log comment to journal"""
+    nb = nebula.netbox(
+        ip=netbox_ip,
+        port=netbox_port,
+        token=netbox_token,
+        base_url=netbox_baseurl,
+        yamlfilename=yamlfilename,
+        board_name=board_name,
+        load_config=load_config,
+    )
+    device = nebula.NetboxDevice(nb)
+    device.write_journal(kind=kind, comments=comment)
+
+
 netbox = Collection("netbox")
 netbox.add_task(enable_board)
 netbox.add_task(disable_board)
 netbox.add_task(board_status)
+netbox.add_task(log_journal)
 
 #############################################
 
