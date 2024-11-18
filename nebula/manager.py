@@ -528,11 +528,12 @@ class manager:
 
             else:
                 # Load boot files
-                self.monitor[0].load_system_uart(
-                    system_top_bit_filename=system_top_bit_path,
-                    kernel_filename=uimagepath,
+                self.monitor[0].load_system_uart_copy_to_sdcard(
+                    bootbin=system_top_bit_path,
                     devtree_filename=devtreepath,
+                    kernel_filename=uimagepath,
                 )
+
             # NEED A CHECK HERE OR SOMETHING
             log.info("Waiting for boot to complete")
             time.sleep(60)
