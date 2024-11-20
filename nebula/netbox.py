@@ -572,11 +572,14 @@ class NetboxDevice:
     def disable(self, reason="nebula: Disable device", failed=False):
         device_id = self.data["devices"]["id"]
         author = self.nbi.get_user_from_token()
+        kind = "info"
         if failed:
             self.nbi.update_status(device_id=device_id, status="failed")
+            kind = "danger"
         else:
             self.nbi.update_status(device_id=device_id, status="offline")
-        self.nbi.log_journal(device_id=device_id, author_id=author.id, comments=reason)
+
+        self.nbi.log_journal(device_id=device_id, author_id=author.id, kind=kind, comments=reason)
 
     def status(self):
         device_id = self.data["devices"]["id"]
