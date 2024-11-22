@@ -84,7 +84,6 @@ class manager:
                                 log.info(str(e2))
                                 log.info("JTAG initialization failed.")
                                 self.jtag_use = False
-                        
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
