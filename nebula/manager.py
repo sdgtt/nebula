@@ -65,6 +65,7 @@ class manager:
                                 board_name=board_name,
                                 vivado_version=vivado_version,
                             )
+                            log.info("JTAG initialized")
                         except Exception as e:
                             log.info(str(e))
                             log.info(
@@ -78,11 +79,12 @@ class manager:
                                     board_name=board_name,
                                     vivado_version=vivado_version,
                                 )
+                                log.info("JTAG initialized")
                             except Exception as e2:
                                 log.info(str(e2))
                                 log.info("JTAG initialization failed.")
                                 self.jtag_use = False
-                        log.info("JTAG initialized")
+                        
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
