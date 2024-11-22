@@ -579,7 +579,9 @@ class NetboxDevice:
         else:
             self.nbi.update_status(device_id=device_id, status="offline")
 
-        self.nbi.log_journal(device_id=device_id, author_id=author.id, kind=kind, comments=reason)
+        self.nbi.log_journal(
+            device_id=device_id, author_id=author.id, kind=kind, comments=reason
+        )
 
     def status(self):
         device_id = self.data["devices"]["id"]
