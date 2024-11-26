@@ -293,7 +293,7 @@ def sanitize_artifactory_url(url):
     url = re.sub(r"%2F", "/", url)
     url = re.sub("/ui/repos/tree/Properties/", "/artifactory/", url)
     # rebase url
-    url = re.sub("/boot_partition/.*$", "", url)
+    # url = re.sub("/boot_partition/.*$", "", url)
     return url
 
 
