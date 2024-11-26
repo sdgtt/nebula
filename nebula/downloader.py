@@ -517,6 +517,7 @@ class downloader(utils):
             source_root,
             branch,
             url_template=url_template,
+            new_flow=new_flow,
         )
         # Get support files (bootgen_sysfiles.tgz)
         log.info("Getting support files")
@@ -527,6 +528,7 @@ class downloader(utils):
             source_root,
             branch,
             url_template=url_template,
+            new_flow=new_flow,
         )
 
         # Get device tree
@@ -542,6 +544,7 @@ class downloader(utils):
             source_root,
             branch,
             url_template=url_template,
+            new_flow=new_flow,
         )
 
         if source == "artifactory":
