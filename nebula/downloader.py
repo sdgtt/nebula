@@ -403,10 +403,11 @@ class downloader(utils):
         branch,
         addl=None,
         url_template=None,
+        new_flow=False
     ):
         if source == "artifactory":
             self._get_artifactory_file(
-                filename, design_source_root, source_root, branch, addl, url_template
+                filename, design_source_root, source_root, branch, addl, url_template, new_flow
             )
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
@@ -423,7 +424,7 @@ class downloader(utils):
         else:
             raise Exception("File not found: " + src)
 
-    def _get_artifactory_file(self, filename, folder, ip, branch, addl, url_template):
+    def _get_artifactory_file(self, filename, folder, ip, branch, addl, url_template, new_flow):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -433,16 +434,6 @@ class downloader(utils):
             raise Exception(
                 "No server IP or domain name specified. Must be defined in yaml or provided as input"
             )
-
-        new_flow = False
-        for pipeline in [
-            "HDL_PRs",
-            "Linux_PRs",
-            "HDL_latest_commit",
-            "Linux_latest_commit",
-        ]:
-            if bool(re.search(pipeline, url_template)):
-                new_flow = True
 
         if new_flow:
             url = url_template.format(folder, filename)
@@ -482,11 +473,13 @@ class downloader(utils):
         dt,
         url_template=None,
     ):
+        new_flow = False
         if source == "artifactory":
             if url_template:
                 url_template = (
                     sanitize_artifactory_url(url_template) + "/boot_partition/{}/{}"
                 )
+                new_flow = True
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
 
@@ -494,7 +487,7 @@ class downloader(utils):
         # Get kernel
         log.info("Getting " + kernel)
         self._get_file(
-            kernel, source, kernel_root, source_root, branch, url_template=url_template
+            kernel, source, kernel_root, source_root, branch, url_template=url_template, new_flow
         )
 
         if boot_subfolder is not None:
