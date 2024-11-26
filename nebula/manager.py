@@ -737,11 +737,16 @@ class manager:
         if not os.path.isdir(folder):
             raise Exception("Boot files folder not found")
         files = os.listdir(folder)
+
+        # check for empty files
         res = []
         for file in files:
             path = os.path.join(folder, file)
             filesize = os.stat(path).st_size
+            exemption = ["properties.yaml","hashes.txt"]
             if filesize <= 80:
+                if file in exemption:
+                    continue
                 res.append(file)
         if len(res) != 0:
             raise Exception("Empty files:" + str(res))
