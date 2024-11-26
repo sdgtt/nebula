@@ -403,11 +403,17 @@ class downloader(utils):
         branch,
         addl=None,
         url_template=None,
-        new_flow=False
+        new_flow=False,
     ):
         if source == "artifactory":
             self._get_artifactory_file(
-                filename, design_source_root, source_root, branch, addl, url_template, new_flow
+                filename,
+                design_source_root,
+                source_root,
+                branch,
+                addl,
+                url_template,
+                new_flow,
             )
         elif source == "local_fs":
             self._get_local_file(filename, design_source_root)
@@ -424,7 +430,9 @@ class downloader(utils):
         else:
             raise Exception("File not found: " + src)
 
-    def _get_artifactory_file(self, filename, folder, ip, branch, addl, url_template, new_flow):
+    def _get_artifactory_file(
+        self, filename, folder, ip, branch, addl, url_template, new_flow
+    ):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
@@ -487,7 +495,13 @@ class downloader(utils):
         # Get kernel
         log.info("Getting " + kernel)
         self._get_file(
-            kernel, source, kernel_root, source_root, branch, url_template=url_template, new_flow
+            kernel,
+            source,
+            kernel_root,
+            source_root,
+            branch,
+            url_template=url_template,
+            new_flow=new_flow,
         )
 
         if boot_subfolder is not None:
