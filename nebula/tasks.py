@@ -870,11 +870,14 @@ def board_diagnostics_manager(
     board_name=None,
 ):
     """Diagnose board using nebula classes"""
-    nebula.manager(
+    m = nebula.manager(
         configfilename=yamlfilename,
         board_name=board_name,
         vivado_version=vivado_version,
     )
+    if board_name not in ["m2k", "pluto"]:
+        if not m.jtag_use:
+            raise Exception("JTAG not initialized")
 
 
 @task(

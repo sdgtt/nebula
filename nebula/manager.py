@@ -51,6 +51,7 @@ class manager:
             self.power = pdu(yamlfilename=configfilename, board_name=board_name)
             log.info("PDU initialized")
 
+        # initialize JTAG
         self.jtag_use = False
         self.jtag = False
         if "board-config" in configs:
@@ -64,6 +65,7 @@ class manager:
                                 board_name=board_name,
                                 vivado_version=vivado_version,
                             )
+                            log.info("JTAG initialized")
                         except Exception as e:
                             log.info(str(e))
                             log.info(
@@ -71,12 +73,17 @@ class manager:
                             )
                             self.power.power_cycle_board()
                             time.sleep(60)
-                            self.jtag = jtag(
-                                yamlfilename=configfilename,
-                                board_name=board_name,
-                                vivado_version=vivado_version,
-                            )
-                        log.info("JTAG initialized")
+                            try:
+                                self.jtag = jtag(
+                                    yamlfilename=configfilename,
+                                    board_name=board_name,
+                                    vivado_version=vivado_version,
+                                )
+                                log.info("JTAG initialized")
+                            except Exception as e2:
+                                log.info(str(e2))
+                                log.info("JTAG initialization failed.")
+                                self.jtag_use = False
 
         if "netconsole" in monitor_type.lower():
             monitor_uboot = netconsole(port=6666, logfilename="uboot.log")
