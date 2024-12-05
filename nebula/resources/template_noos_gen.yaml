@@ -41,6 +41,13 @@ board-config:
     help: "Select example to load to target"
     optional: False
     netbox_field: devices.custom_fields.example
+  field_6:
+    name: allow-jtag
+    default: False
+    help: "Allow use of JTAG"
+    options: ["True", "False"]
+    optional: False
+    netbox_field: devices.custom_fields.allow_jtag
 network-config:
   field_1:
     name: dutip
