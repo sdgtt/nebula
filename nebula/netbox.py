@@ -142,7 +142,7 @@ class netbox(utils):
     def log_journal(
         self, device_id, author_id, kind="info", comments="Automated journal entry"
     ):
-        kinds = ["info", "success", "warning", "danger "]
+        kinds = ["info", "success", "warning", "danger"]
         if kind not in kinds:
             raise ValueError(f"kind only accepts {kinds}")
         self.nb.extras.journal_entries.create(
