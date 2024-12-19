@@ -94,7 +94,9 @@ def get_gitsha(url, daily=False, linux=False, hdl=False, build_info=None):
     with open(file, "a+") as f:
         path = ArtifactoryPath(str(url))
         props = path.properties
-        exp = "20[1-2][0-9]_[0-3][0-9]_[0-3][0-9]-[0-2][0-9]_[0-6][0-9]_[0-6][0-9]"
+        exp = (
+            "20[1-2][0-9]_[0-1][0-9]_[0-3][0-9][-_][0-2][0-9]_[0-5][0-9](_[0-5][0-9])?"
+        )
 
         if build_info:
             if build_info["Triggered by"] == "hdl":
