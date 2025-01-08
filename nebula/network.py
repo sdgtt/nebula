@@ -375,7 +375,7 @@ class network(utils):
             log = re.sub(r"^\[[\s\.\d]*\] ", "", i)
             log_no_ws = log.replace(" ", "").replace("\n", "")
 
-            if log not in error_rejects and log_no_ws not in error_rejects_no_ws:
+            if log_no_ws not in error_rejects_no_ws:
                 error_log_filetered.append(i)
 
         with open("dmesg_err_filtered.log", "w") as outfile:
