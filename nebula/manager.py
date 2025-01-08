@@ -740,7 +740,8 @@ class manager:
         res = []
         for file in files:
             path = os.path.join(folder, file)
-            if os.stat(path).st_size == 0:
+            filesize = os.stat(path).st_size
+            if filesize <= 80:
                 res.append(file)
         if len(res) != 0:
             raise Exception("Empty files:" + str(res))
