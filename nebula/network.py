@@ -366,12 +366,17 @@ class network(utils):
         res = os.path.join(path, "resources", "err_rejects.txt")
         with open(res) as f:
             error_rejects = f.readlines()
-
-        error_log_filetered = [
-            i
-            for i in error_log
-            if re.sub(r"^\[[\s\.\d]*\] ", "", i) not in error_rejects
+        error_rejects_no_ws = [
+            s.replace(" ", "").replace("\n", "") for s in error_rejects
         ]
+
+        error_log_filetered = []
+        for i in error_log:
+            log = re.sub(r"^\[[\s\.\d]*\] ", "", i)
+            log_no_ws = log.replace(" ", "").replace("\n", "")
+
+            if log_no_ws not in error_rejects_no_ws:
+                error_log_filetered.append(i)
 
         with open("dmesg_err_filtered.log", "w") as outfile:
             if error_log_filetered:
