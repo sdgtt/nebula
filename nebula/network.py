@@ -372,8 +372,8 @@ class network(utils):
 
         error_log_filetered = []
         for i in error_log:
-            log = re.sub(r"^\[[\s\.\d]*\] ", "", i)
-            log_no_ws = log.replace(" ", "").replace("\n", "")
+            msg_log = re.sub(r"^\[[\s\.\d]*\] ", "", i)
+            log_no_ws = msg_log.replace(" ", "").replace("\n", "")
 
             if log_no_ws not in error_rejects_no_ws:
                 error_log_filetered.append(i)
