@@ -12,15 +12,15 @@
 #
 import os
 import sys
-
-import sphinx_rtd_theme
+import datetime
 
 sys.path.insert(0, os.path.abspath("../.."))
 
 # -- Project information -----------------------------------------------------
 
 project = "nebula"
-copyright = "2020, Travis F. Collins"
+todays_year = datetime.datetime.now().year
+copyright = f"2020-{todays_year}, Travis F. Collins"
 author = "Travis F. Collins"
 
 # The full version, including alpha/beta/rc tags
@@ -37,7 +37,6 @@ master_doc = "index"
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.githubpages",
-    "sphinx_rtd_theme",
     "sphinx.ext.graphviz",
 ]
 
@@ -55,7 +54,7 @@ templates_path = ["_templates"]
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = "furo"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
