@@ -179,6 +179,8 @@ class uart(utils):
                 data = str(data[:-1].decode("ASCII"))
                 self.pipe_to_log_file(str(data))
             except Exception as ex:
+                if "codec can't decode byte" in str(ex):
+                    continue
                 log.warning("Exception occurred during data decode")
                 log.warning(str(ex))
                 continue
