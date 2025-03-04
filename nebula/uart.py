@@ -184,8 +184,8 @@ class uart(utils):
                 log.warning("Exception occurred during data decode")
                 log.warning(str(ex))
                 continue
-            # if self.print_to_console:
-            #     print(data)
+            if self.print_to_console:
+                print(data)
             buffer.append(data)
         return buffer
 
