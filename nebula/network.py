@@ -137,6 +137,11 @@ class network(utils):
                     raise Exception("PDU reset not implemented yet")
 
             except Exception as ex:
+                if "Encountered a bad command exit code" in str(ex):
+                    log.info("Rebooting board with SSH")
+                    if not bypass_sleep:
+                        time.sleep(30)
+                    break
                 log.warning("Exception raised: " + str(ex))
                 time.sleep(3)
                 if t >= (retries - 1):
