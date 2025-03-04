@@ -7,7 +7,6 @@ import re
 from functools import partial
 
 import click
-import netifaces
 import yaml
 
 import nebula.errors as ne
@@ -69,6 +68,7 @@ def get_uarts():
 
 
 def get_nics():
+    raise Exception("Deprecated")
     filter = ["docker0", "lo"]
     default = None
     str = "\n(Found: "
