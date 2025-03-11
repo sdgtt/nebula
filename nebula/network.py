@@ -146,7 +146,7 @@ class network(utils):
         self,
         command,
         ignore_exceptions=False,
-        retries=3,
+        retries=1,
         show_log=True,
         print_result_to_file=True,
     ):
