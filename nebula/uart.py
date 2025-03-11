@@ -531,7 +531,9 @@ class uart(utils):
                 if self._check_for_string_console(data, done_string, verbose=False):
                     log.info(done_string + " found in data")
                     found[index] = True
-            if all(found):
+            # if all found or last element is found, set all to True
+            if all(found) or found[-1]:
+                found = [True] * len(found)
                 if restart_log:
                     self.start_log(logappend=True)
                 return found
