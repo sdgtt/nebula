@@ -17,6 +17,7 @@ from nebula.network import network
 from nebula.pdu import pdu
 from nebula.tftpboot import tftpboot
 from nebula.uart import uart
+from nebula.daemon import app
 
 if platform.system() == "Linux":
     from nebula.usbmux import usbmux

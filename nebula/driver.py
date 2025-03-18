@@ -2,10 +2,12 @@ import logging
 
 from nebula.common import utils
 
+log = logging.getLogger(__name__)
+
 try:
     import iio
 except ImportError:
-    print(
+    log.warning(
         "--WARNING: IIO bindings not on-path, libIIO dependent operations will not work"
     )
 
