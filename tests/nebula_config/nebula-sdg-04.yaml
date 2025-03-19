@@ -1,0 +1,84 @@
+zynq-zed-adv7511-ad4630-24-precision:
+  board-config:
+  - board-name: zynq-zed-adv7511-ad4630-24-precision
+  - carrier: ZED
+  - daughter: AD4630-24
+  - monitoring-interface: uart
+  - allow-jtag: True
+  - serial: ''
+  - instr-serial: 1044734a420b000decff2200ee9e670f01
+  downloader-config:
+  - reference_boot_folder: zynq-zed-adv7511-ad4630-24
+  - hdl_folder: ad4630_fmc_zed
+  driver-config:
+  - iio_device_names:
+    - xadc
+    - ad4630-24
+  jtag-config:
+  - vivado_version: '2021.2'
+  - jtag_cable_id: 210248B78200
+  - jtag_cpu_target_name: ARM*#0
+  netbox-config:
+  - netbox_server: primary.englab
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 4d6a33918d555e6d1e5539b9e3329d3ccb1bc6a5
+  network-config:
+  - dutip: 192.168.10.171
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.171
+  - dutusername: root
+  - dutpassword: analog
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.25
+  - outlet: '2'
+  - username: cyber
+  - password: cyber1
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:8.3.3:1.0
+  - baudrate: 115200
+  - logfilename: zynq-zed-adv7511-ad4630-24-precision.log
+zynq-zed-adv7511-ad7768-axi-adc-precision:
+  board-config:
+  - board-name: zynq-zed-adv7511-ad7768-axi-adc-precision
+  - carrier: ZED
+  - daughter: AD7768
+  - monitoring-interface: uart
+  - allow-jtag: True
+  - serial: ''
+  - instr-serial: 1044734a420b000d1c000900ee9e676e3c
+  downloader-config:
+  - reference_boot_folder: zynq-zed-adv7511-ad7768-axi-adc
+  - hdl_folder: ad7768evb_zed
+  driver-config:
+  - iio_device_names:
+    - cf_axi_adc
+    - xadc
+  jtag-config:
+  - vivado_version: '2021.2'
+  - jtag_cable_id: 210248B780B5
+  - jtag_cpu_target_name: ARM*#0
+  netbox-config:
+  - netbox_server: primary.englab
+  - netbox_server_port: '8000'
+  - netbox_base_url: netbox
+  - netbox_api_token: 4d6a33918d555e6d1e5539b9e3329d3ccb1bc6a5
+  network-config:
+  - dutip: 192.168.10.172
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.172
+  - dutusername: root
+  - dutpassword: analog
+  pdu-config:
+  - pdu_type: cyberpower
+  - pduip: 192.168.10.25
+  - outlet: '8'
+  - username: cyber
+  - password: cyber1
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:8.1.1:1.0
+  - baudrate: '115200'
+  - logfilename: zynq-zed-adv7511-ad7768-axi-adc-precision.log

@@ -34,3 +34,20 @@ def update_config(board: str, config: dict):
         return JSONResponse(status_code=500, content={"message": result.stderr})
     return {"result": result.stdout}
         
+
+@app.post("/api/{board}/power-cycle")
+def power_cycle(board: str, config: dict):
+    # get params
+    configfilename = config.get("configfilename", "/etc/default/nebula")
+    board_name = board
+
+    # execute command
+    result = subprocess.run(
+        ["nebula", "pdu.power-cycle", "--yamlfilename", configfilename, "--board-name", board_name],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        return JSONResponse(status_code=500, content={"message": result.stderr})
+    return {"result": result.stdout}
