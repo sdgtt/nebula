@@ -106,15 +106,19 @@ class jtag(utils):
         # DAP (Cannot open JTAG port: AP transaction error, DAP status 0x30000021)
         pass
 
-    def target_set_str(self, target_name):
-        return (
-            "targets -set -filter {jtag_cable_name =~ {*"
-            + self.jtag_cable_id
-            + "} && name =~ {"
-            + target_name
-            + "}} ; "
-        )
-
+    def target_set_str(self, target_name=None):
+        cmd = "targets -set -filter {jtag_cable_name =~ *" + self.jtag_cable_id
+        if target_name:
+            return (
+                cmd + " && name =~ "
+                + target_name
+                + "} ; "
+            )
+        else:
+            return (
+                cmd + "} ; "
+            )
+        
     def boot_to_uboot(self, fsblpath="fsbl.elf", ubootpath="u-boot.elf"):
         """From JTAG reset board and load up FSBL and uboot
         This should be followed by uboot interaction to stop it"""
