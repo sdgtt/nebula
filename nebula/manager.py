@@ -886,23 +886,19 @@ class manager:
                 sdcard=sdcard,
             )
         else:
-            try:
-                if self.usbsdmux:
-                    log.info("Updating bootfiles using SD Card Mux")
-                    self.board_reboot_sdmux_pdu(
-                        system_top_bit_path=system_top_bit_path,
-                        bootbinpath=bootbinpath,
-                        uimagepath=uimagepath,
-                        devtreepath=devtreepath,
-                        extlinux_path=extlinux_path,
-                        scr_path=scr_path,
-                        preloader_path=preloader_path,
-                        sdcard=sdcard,
-                    )
-                else:
-                    raise Exception("SD Card Mux not Supported")
-            except Exception as ex:
-                log.info(ex)
+            if self.usbsdmux:
+                log.info("Updating bootfiles using SD Card Mux")
+                self.board_reboot_sdmux_pdu(
+                    system_top_bit_path=system_top_bit_path,
+                    bootbinpath=bootbinpath,
+                    uimagepath=uimagepath,
+                    devtreepath=devtreepath,
+                    extlinux_path=extlinux_path,
+                    scr_path=scr_path,
+                    preloader_path=preloader_path,
+                    sdcard=sdcard,
+                )
+            else:
                 log.info("Updating bootfiles via Network/UART/PDU")
                 self.board_reboot_uart_net_pdu(
                     system_top_bit_path=system_top_bit_path,

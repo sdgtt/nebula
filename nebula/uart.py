@@ -514,56 +514,35 @@ class uart(utils):
             self.stop_log()
         else:
             restart_log = False
-        data = []
+
+        if not isinstance(done_strings, list):
+            raise Exception("Expecting done_strings to be a list")
+
         mt = max_time or self.max_read_time
-        founds = []
-        lastd = ""
-        for indx, done_string in enumerate(done_strings):
-            log.info("Looking for: " + done_string)
-            for t in range(mt):
-                breakbreak = False
-                data = self._read_until_stop()
-                if isinstance(data, list):
-                    for d in data:
-                        d = lastd + d
-                        lastd = ""
-                        if done_string in d:
-                            log.info(done_string + " found in data")
-                            founds.append(True)
-                            if indx == len(done_strings) - 1:
-                                if restart_log:
-                                    self.start_log(logappend=True)
-                                return founds
-                            lastd = d[d.find(done_string) :]
-                            breakbreak = True
-                            break
-                    if breakbreak:
-                        break
-                elif done_string in lastd + data:
+
+        # initialize found list
+        found = []
+        for done_string in done_strings:
+            found.append(False)
+
+        for _ in range(mt):
+            data = self._read_until_stop()
+            for index, done_string in enumerate(done_strings, start=0):
+                if self._check_for_string_console(data, done_string, verbose=False):
                     log.info(done_string + " found in data")
-                    founds.append(True)
-                    if indx == len(done_strings) - 1:
-                        if restart_log:
-                            self.start_log(logappend=True)
-                        return founds
-                    else:
-                        lastd = lastd + data
-                        lastd = lastd[lastd.find(done_string) :]
-                        break
-                else:
-                    lastd = ""
-                    log.info("Still waiting")
-                time.sleep(1)
-            if t == mt - 1:
-                log.info(done_string + " not found in time")
+                    found[index] = True
+            # if all found or last element is found, set all to True
+            if all(found) or found[-1]:
+                found = [True] * len(found)
                 if restart_log:
                     self.start_log(logappend=True)
-                founds.append(False)
-                return founds
-        # if restart_log:
-        #     self.start_log()
-        # founds.append(False)
-        # return founds
+                return found
+            log.info("Still waiting")
+            time.sleep(1)
+
+        if restart_log:
+            self.start_log(logappend=True)
+        return found
 
     def _read_until_done(self, done_string="done", max_time=None):
         if self.listen_thread_run:
@@ -602,7 +581,7 @@ class uart(utils):
             self.start_log(logappend=True)
         return False
 
-    def _check_for_string_console(self, console_out, string):
+    def _check_for_string_console(self, console_out, string, verbose=True):
         if not isinstance(string, list):
             string_list = [string]
         else:
@@ -615,7 +594,8 @@ class uart(utils):
                 for c in d:
                     c = c.replace("\r", "")
                     for string in string_list:
-                        log.info("RAW: " + str(c) + " | Looking for: " + string)
+                        if verbose:
+                            log.info("RAW: " + str(c) + " | Looking for: " + string)
                         if string in c:
                             return True
         return False
