@@ -928,12 +928,12 @@ class downloader(utils):
             design_name: Target design name (same as boot file folder on SD card)
             source: Source location type. Options: local_fs, http, artifactory
             source_root: Root location of files. Dependent on source parameter
-                For local_fs this is a system path
-                For http this is a IP or domain name (no http://)
-                For artifactory this is a domain name of the artifactory server
-                (ex. artifactory.analog.com, no http://)
+            For local_fs this is a system path
+            For http this is a IP or domain name (no http://)
+            For artifactory this is a domain name of the artifactory server
+            (ex. artifactory.analog.com, no http://)
             branch: Name of branch to get related files. This is only used for
-                http and artifactory sources. Default is master
+            http and artifactory sources. Default is master
 
         Returns:
             A folder with name outs is created with the downloaded boot files
