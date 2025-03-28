@@ -1,3 +1,11 @@
 sphinx
 sphinx-rtd-theme
 graphviz
+myst-parser
+furo
+sphinx-remove-toctrees
+sphinx-favicon
+sphinxcontrib-mermaid
+sphinx-simplepdf
+pillow
+sphinx-click
