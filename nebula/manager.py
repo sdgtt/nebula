@@ -635,6 +635,99 @@ class manager:
         print("Home sweet home")
         self.monitor[0].stop_log()
 
+    @_release_thread_lock  # type: ignore
+    def board_reboot_sdmux_net_pdu(
+        self,
+        system_top_bit_path=None,
+        bootbinpath=None,
+        uimagepath=None,
+        devtreepath=None,
+        devtree_overlay_path=None,
+        devtree_overlay_config_path=None,
+        extlinux_path=None,
+        scr_path=None,
+        preloader_path=None,
+        sdcard=False,
+    ):
+        """Manager when sdcardmux, network, pdu is available"""
+
+        # Flush UART
+        self.monitor[0]._read_until_stop()  # Flush
+        self.monitor[0].start_log(logappend=True)
+        # Check if Linux is accessible
+        log.info("Checking if Linux is accessible")
+        try:
+            out = self.monitor[0].get_uart_command_for_linux("uname -a", "Linux")
+            if not out:
+                raise ne.LinuxNotReached
+        except Exception as e:
+            # raise LinuxNotReached for other exceptions
+            log.info(str(e))
+            raise ne.LinuxNotReached
+
+        # Get IP over UART
+        ip = self.monitor[0].get_ip_address()
+        if not ip:
+            self.monitor[0].request_ip_dhcp()
+            ip = self.monitor[0].get_ip_address()
+        if not ip:
+            raise ne.NetworkNotFunctional
+        if ip != self.net.dutip:
+            log.info("DUT IP changed to: " + str(ip))
+            self.net.dutip = ip
+            self.driver.uri = "ip:" + ip
+            # Update config file
+            self.help.update_yaml(
+                self.configfilename, "network-config", "dutip", ip, self.board_name
+            )
+
+        try:
+            log.info("Update board over usb-sd-mux")
+            if sdcard:
+                try:
+                    self.usbsdmux.update_boot_files_from_sdcard_itself()
+                except Exception as e:
+                    log.error("Updating boot files using usbsdmux failed to complete")
+                    log.info("Trying network update")
+                    self.net.update_boot_partition_existing_files(self.board_name)
+            else:
+                try:
+                    self.usbsdmux.update_boot_files_from_external(
+                        bootbin_loc=bootbinpath,
+                        kernel_loc=uimagepath,
+                        devicetree_loc=devtreepath,
+                        devicetree_overlay_loc=devtree_overlay_path,
+                        devicetree_overlay_config_loc=devtree_overlay_config_path,
+                        extlinux_loc=extlinux_path,
+                        scr_loc=scr_path,
+                        preloader_loc=preloader_path,
+                    )
+                except Exception as e:
+                        self.net.update_boot_partition(
+                        bootbinpath=bootbinpath,
+                        uimagepath=uimagepath,
+                        devtreepath=devtreepath,
+                        extlinux_path=extlinux_path,
+                        scr_path=scr_path,
+                        preloader_path=preloader_path,
+                    )
+            # if devtreepath:
+            #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
+        except Exception as e:
+            log.error("Updating boot files using usbsdmux failed to complete")
+            raise e
+        finally:
+            self.usbsdmux.set_mux_mode("dut")
+            # powercycle board
+            log.info("Power cycling to boot")
+            self.power_cycle_to_boot()
+        
+        # Check is networking is working
+        self.network_check()
+
+        print("Home sweet home")
+        self.monitor[0].stop_log()
+
     def board_reboot(self):
         # Try to reboot over SSH first
         try:
@@ -888,7 +981,7 @@ class manager:
         else:
             if self.usbsdmux:
                 log.info("Updating bootfiles using SD Card Mux")
-                self.board_reboot_sdmux_pdu(
+                self.board_reboot_sdmux_net_pdu(
                     system_top_bit_path=system_top_bit_path,
                     bootbinpath=bootbinpath,
                     uimagepath=uimagepath,
