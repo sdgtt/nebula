@@ -714,7 +714,7 @@ class manager:
             # if devtreepath:
             #     self.usbsdmux.update_devicetree_for_mux(devtreepath)
         except Exception as e:
-            log.error("Updating boot files using usbsdmux failed to complete")
+            log.error("Failed to update boot files using usbsdmux and network")
             raise e
         finally:
             self.usbsdmux.set_mux_mode("dut")
