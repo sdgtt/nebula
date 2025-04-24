@@ -83,7 +83,7 @@ class usbmux(utils):
         time.sleep(5)
         context = pyudev.Context()
         for device in context.list_devices(subsystem="block"):
-            log.info(device)
+            log.info(device.get("ID_SERIAL_SHORT"))
             if device.get("ID_SERIAL_SHORT") == os.path.basename(
                 self._mux_in_use
             ).strip("id-"):
