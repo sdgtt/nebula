@@ -91,7 +91,7 @@ class network(utils):
                     "uname -a",
                     hide=True,
                     timeout=self.ssh_timeout,
-                    pty=True,
+                    pty=False, # State is maintained if this is True
                     in_stream=False,
                 )
                 break
