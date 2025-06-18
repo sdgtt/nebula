@@ -1,5 +1,6 @@
 failed to register cpuidle driver
 systemd[1]: Failed to lookup module alias 'autofs4': Function not implemented
+systemd[1]: Failed to find module 'autofs4'
 mtdoops: mtd device (mtddev=name/number) must be supplied
 CPUidle arm: Failed to register cpuidle driver
 OF: graph: no port node found in /amba/zynqmp-display@fd4a0000
