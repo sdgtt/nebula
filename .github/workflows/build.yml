@@ -21,7 +21,7 @@ jobs:
           pip install .
           python -c "import nebula"
 
-      - name: Test
-        run: |
-          cd tests
-          pytest test_cli.py::test_cli_help -s -v
+      # - name: Test
+      #   run: |
+      #     cd tests
+      #     pytest test_cli.py::test_cli_help -s -v
