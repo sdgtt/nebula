@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nebula"
-version = "v1.0.0"
+version = "v1.2.1"
 description = "FPGA Development Board Testing Harness"
 authors = ["Travis F. Collins <travis.collins@analog.com>"]
 
