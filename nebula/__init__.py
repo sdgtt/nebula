@@ -21,5 +21,10 @@ from nebula.uart import uart
 if platform.system() == "Linux":
     from nebula.usbmux import usbmux
 
-__version__ = "v1.0.0"
+import importlib.metadata
+
+try:
+    __version__ = importlib.metadata.version("nebula")
+except importlib.metadata.PackageNotFoundError:
+    __version__ = "unknown"
 name = "Nebula: Embedded Development Tools"
