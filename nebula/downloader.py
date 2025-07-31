@@ -167,7 +167,9 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
         if branch == "main":
-            folder = get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
+            folder = (
+                get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
+            )
         else:
             folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
         return url_template.format(ip, release_folder, folder, filename)
