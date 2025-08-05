@@ -68,7 +68,7 @@ def test_downloader():
 
 
 @pytest.mark.parametrize("board_name", ["zynq-zc706-adv7511-fmcomms11"])
-@pytest.mark.parametrize("branch", ["release", "master"])
+@pytest.mark.parametrize("branch", ["release", "master", "main"])
 @pytest.mark.parametrize("filetype", ["boot_partition"])
 def test_boot_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
