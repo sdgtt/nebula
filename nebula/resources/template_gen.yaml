@@ -67,13 +67,6 @@ network-config:
     options: ["True", "False"]
     requires: False:nic,nicip
     netbox_field: devices.interfaces.mgmt.custom_fields.dhcp
-  field_3:
-    name: nic
-    default: eth0
-    help: "NIC used to talk to development board"
-    optional: depends
-    callback: get_nics
-    netbox_field: devices.interfaces.mgmt.label
   field_4:
     name: nicip
     default: 192.168.10.1
