@@ -7,7 +7,6 @@ import re
 from functools import partial
 
 import click
-import netifaces
 import yaml
 
 import nebula.errors as ne
@@ -66,18 +65,6 @@ def get_uarts():
             strs = strs[:-2] + ") "
             return (strs, default)
     return (None, default)
-
-
-def get_nics():
-    filter = ["docker0", "lo"]
-    default = None
-    str = "\n(Found: "
-    for nic in netifaces.interfaces():
-        if nic not in filter:
-            str = str + nic + ", "
-            default = nic
-    str = str[:-2] + ") "
-    return (str, default)
 
 
 def project_filter(project_dict, filters):
