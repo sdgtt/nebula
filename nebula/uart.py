@@ -520,52 +520,42 @@ class uart(utils):
         mt = max_time or self.max_read_time
         founds = []
         lastd = ""
+        all_data = "" # Debug only
+        all_data_from_last_found = ""
         for indx, done_string in enumerate(done_strings):
             log.info("Looking for: " + done_string)
             for t in range(mt):
-                breakbreak = False
                 data = self._read_until_stop()
                 if isinstance(data, list):
                     for d in data:
-                        d = lastd + d
-                        lastd = ""
-                        if done_string in d:
-                            log.info(done_string + " found in data")
-                            founds.append(True)
-                            if indx == len(done_strings) - 1:
-                                if restart_log:
-                                    self.start_log(logappend=True)
-                                return founds
-                            lastd = d[d.find(done_string) :]
-                            breakbreak = True
-                            break
-                    if breakbreak:
-                        break
-                elif done_string in lastd + data:
+                        all_data = all_data + d
+                        all_data_from_last_found = all_data_from_last_found + d
+                else:
+                    all_data = all_data + data
+                    all_data_from_last_found = all_data_from_last_found + data
+
+                if done_string in all_data_from_last_found:
                     log.info(done_string + " found in data")
                     founds.append(True)
                     if indx == len(done_strings) - 1:
                         if restart_log:
                             self.start_log(logappend=True)
                         return founds
-                    else:
-                        lastd = lastd + data
-                        lastd = lastd[lastd.find(done_string) :]
-                        break
-                else:
-                    lastd = ""
-                    log.info("Still waiting")
+                    all_data_from_last_found = all_data_from_last_found[all_data_from_last_found.find(done_string) :]
+                    break # Go to next done string
+                # Timeout
+                if t == (mt - 1):
+                    log.info(f"Max time reached for {done_string}. Going to next one")
+                    founds.append(False)
+                    break # Go to next done string
+
+                log.info(f"Still waiting for '{done_string}'")
                 time.sleep(1)
-            if t == mt - 1:
-                log.info(done_string + " not found in time")
-                if restart_log:
-                    self.start_log(logappend=True)
-                founds.append(False)
-                return founds
-        # if restart_log:
-        #     self.start_log()
-        # founds.append(False)
-        # return founds
+
+        if restart_log:
+            self.start_log(logappend=True)
+
+        return founds
 
     def _read_until_done(self, done_string="done", max_time=None):
         if self.listen_thread_run:

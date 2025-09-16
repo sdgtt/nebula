@@ -126,7 +126,7 @@ class network(utils):
                 result = fabric.Connection(
                     self.dutusername + "@" + self.dutip,
                     connect_kwargs={"password": self.dutpassword},
-                ).run("/sbin/reboot", hide=False, pty=False)
+                ).run("/sbin/reboot", hide=True, pty=False)
                 if result.ok:
                     print("Rebooting board with SSH")
                     if not bypass_sleep:
@@ -205,7 +205,7 @@ class network(utils):
 
     def copy_file_to_remote(self, src, dest):
         retries = 3
-        log.info("Copying file to remote: " + src)
+        log.info("Copying file to remote\nSRC:" + src +"\nDEST:" + dest)
         for t in range(retries):
             try:
                 Connection(
@@ -427,3 +427,41 @@ class network(utils):
                     f"Checksum does not match for {file_path}:\
                          Ref: {reference} Actual: {result.stdout.strip()}"
                 )
+
+    def monitor_dmesg(self, find_string, max_timeout_seconds=60, enable_log=True):
+        """monitor_dmesg:
+        Monitor dmesg for specific strings
+
+        return:
+            status: 0 if no errors found, 1 otherwise
+        """
+        if not isinstance(find_string, str):
+            raise Exception("find_string must be a string")
+        log.info(f"Monitoring dmesg for string {find_string}")
+        start_time = time.time()
+        connection = fabric.Connection(
+            self.dutusername + "@" + self.dutip,
+            connect_kwargs={"password": self.dutpassword},
+        )
+        with connection as c:
+            while True:
+                time.sleep(5)
+                dmesg_stream = c.run("dmesg", hide=True, pty=False)
+                if not isinstance(dmesg_stream.stdout, list):
+                    stdout = dmesg_stream.stdout.splitlines()
+                else:
+                    stdout = dmesg_stream.stdout
+                for line in stdout:
+                    if enable_log:
+                        log.info(f"Got: {line}")
+                    if find_string in line:
+                        log.info(f"Found string {find_string} in dmesg")
+                        return True
+                if (time.time() - start_time) > max_timeout_seconds:
+                    log.info(f"Timeout waiting for string {find_string} in dmesg")
+                    if isinstance(stdout, list):
+                        stdout = "\n".join(stdout)
+                    log.debug(f"Full log:\n{stdout}")
+                    break
+        time.sleep(2) # wait a bit before returning to close ssh connection
+        return False
