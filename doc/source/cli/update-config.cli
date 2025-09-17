@@ -4,7 +4,7 @@ Docstring:
   Update or read field of existing yaml config file
 
 Options:
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files
   -f STRING, --field=STRING          Field of section of yaml to update
   -s STRING, --section=STRING        Section of yaml to update
   -v STRING, --value=STRING          New field value. If none if given field is

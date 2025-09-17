@@ -5,9 +5,10 @@ Docstring:
 
 
 Options:
-  -b STRING, --board_name=STRING
+  -b STRING, --board_name=STRING           Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). 
+                                           Require for multi-device config files
   -c STRING, --custom-vivado-path=STRING   Full path to vivado settings64 file.
                                            When set ignores vivado version
-  -v STRING, --vivado-version=STRING       Set vivado version. Defaults to 2019.1
+  -v STRING, --vivado-version=STRING       Set vivado version. Defaults to 2021.2
   -y STRING, --yamlfilename=STRING         Path to yaml config file. Default:
                                            /etc/default/nebula
