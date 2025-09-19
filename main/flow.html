@@ -206,16 +206,12 @@
 <li class="toctree-l1"><a class="reference internal" href="pytest.html">pytest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="yml.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hw_devs.html">Hardware Specific Configurations</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tests/index.html">Built-In Tests</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Built-In Tests</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tests/driver.html">Driver Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests/os.html">Operating System Tests</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="tests/index.html">Built-In Tests</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/kernel_coverage.html">Kernel Coverage Testing</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="core/nebula.html">nebula package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of nebula package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="core/nebula.html">nebula package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nebula package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.builder.html">nebula.builder module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.common.html">nebula.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.coverage.html">nebula.coverage module</a></li>
@@ -287,33 +283,109 @@
 <section id="boot-flow">
 <h2>Boot Flow<a class="headerlink" href="#boot-flow" title="Permalink to this heading"></a></h2>
 <p>Below is the logic used to effectively load a boot files (bitstream, kernel, device tree) and test if the board is ready for driver specific or other tests that require a booted board.</p>
-<div class="graphviz"><img src="_images/graphviz-f894e212e2a576641e43e88e008d5c81e4b02a98.png" alt="digraph {
-    &quot;POWERUP BOARD&quot;
-    &quot;GET IP\n(UART)&quot;
-    &quot;Run pytest&quot; [peripheries=3]
-    &quot;Network\nBroken&quot; [peripheries=2,shape=square]
-    &quot;Kernel/Bitstream\nFailed&quot; [peripheries=2]
-    &quot;UBOOT\nBroken&quot; [peripheries=2,shape=square]
+<p class="plantuml">
+<img src="_images/plantuml-dd99e5a8e7cada42c33c557b88e033025ff1d0d9.png" alt="&#64;startuml Nebula Manager Device Recovery
+start
+title Nebula Manager Device Recovery
+if (Is Linux is accessible?) then (yes)
+  partition &quot;Verify IP Address&quot; {
+    :(1)get ip address via uart,
+        if none assign one via dhcp
+     (2)if address is not expected,
+        update nebula config to new address;
+  }
+  #palegreen: Home sweet home;
+  kill
+else (no)
 
-    &quot;POWERUP BOARD&quot; -&gt; &quot;GET IP\n(UART)&quot;
-    &quot;GET IP\n(UART)&quot; -&gt; &quot;Update BOOT\nFrom Linux (NET)&quot; [label=&quot;Found IP&quot;]
-    &quot;GET IP\n(UART)&quot; -&gt; &quot;Power\nCycle (PDU)&quot; [label=&quot;Not accessible&quot;]
-    &quot;GET IP\n(UART)&quot; -&gt; &quot;Network\nBroken&quot; [label=&quot;No IP&quot;]
+  if (usbsdmux enabled) then (yes)
+    partition #yellow &quot;SD Card Mux&quot;{
+      : power down board using PDU
+      __power.power_down_board()__;
+      if (SD card mode) then (yes)
+        : update boot files
+        from within sdcard
+        via usb-sd-mux;
+      else (no)
+        : update boot files
+        from external sources
+        via usb-sd-mux;
+      endif
+      : Update device tree
+      via usb-sd-mux;
+    }
+    #Gray: Power cycle using PDU;
+    kill
+  else
+    if (JTAG enabled) then (yes)
+      : Restart board via JTAG;
+    else (no)
+    : Restart board via PDU;
+    endif
 
-    &quot;Update BOOT\nFrom Linux (NET)&quot; -&gt; &quot;Restart\n(NET)&quot;
-    &quot;Restart\n(NET)&quot; -&gt; &quot;Check PING\n(NET)&quot;
-    &quot;Check PING\n(NET)&quot; -&gt; &quot;Check SSH\n(NET)&quot; [label=&quot;Passed&quot;]
-    &quot;Check PING\n(NET)&quot; -&gt; &quot;Update IP\n(UART)&quot; [label=&quot;Failed&quot;]
-    &quot;Update IP\n(UART)&quot; -&gt; &quot;Check SSH\n(NET)&quot; [label=&quot;Passed&quot;]
-    &quot;Update IP\n(UART)&quot; -&gt; &quot;Kernel/Bitstream\nFailed&quot; [label=&quot;Failed&quot;]
-    &quot;Check SSH\n(NET)&quot;-&gt; &quot;Kernel/Bitstream\nFailed&quot; [label=&quot;Failed&quot;]
-    &quot;Check SSH\n(NET)&quot;-&gt; &quot;Run pytest&quot; [label=&quot;Passed&quot;]
+    if (if uboot menu reached) then (yes)
+      if (if tftp enabled) then (yes)
+        : load boot files
+        from tftp via uart;
+        #Gray: Power cycle using PDU;
+        kill
+      else (no)
+        if (SD card mode) then (yes)
+          : copy bootfiles
+          from within sdcard via uart;
+        else (no)
+          : copy bootfiles
+          from external sources via uart;
+        endif
+        #Gray: Power cycle using PDU;
+        kill
+      endif
+    else (no)
+      #orange: Second Stage;
+      kill
+    endif
+  endif
 
-    &quot;Power\nCycle (PDU)&quot; -&gt; &quot;Enter UBOOT\nMenu (UART)&quot;
-    &quot;Enter UBOOT\nMenu (UART)&quot; -&gt; &quot;Load Bootfiles\n(UART/TFTP)&quot; [label=&quot;Passed&quot;]
-    &quot;Enter UBOOT\nMenu (UART)&quot; -&gt; &quot;UBOOT\nBroken&quot; [label=&quot;Failed&quot;]
-    &quot;Load Bootfiles\n(UART/TFTP)&quot; -&gt; &quot;Check PING\n(NET)&quot;
-}" class="graphviz" /></div>
+  #Gray: Power cycle using PDU;
+  if (Linux prompt reached) then (yes)
+    partition &quot;Network check&quot;{
+      if (is Network (IP) functional) then (yes)
+        if (is SSH  functional) then (yes)
+          #palegreen: Home sweet home;
+          kill
+        else (no)
+          #orange: Second Stage;
+          kill
+        endif
+      else (no)
+        #orange: Second Stage;
+        kill
+      endif
+    }
+  else (no)
+    #orange: Second Stage;
+    kill
+  endif
+  #orange :Second Stage;
+  : TO FIX JTAG Recovery
+  __manager.board_reboot_jtag_uart()__;
+  :__manager.power_cycle_to_boot()__;
+  if (power_cycle_to_boot ok) then (yes)
+    :__manager.network_check()__;
+    if (network check ok) then (yes)
+      #palegreen: Home sweet home;
+      kill
+    else (no)
+      #red: Recovery Failed;
+    endif
+  else (no)
+    #red: Recovery Failed;
+  endif
+endif
+end
+&#64;enduml
+"/>
+</p>
 </section>
 </section>
 

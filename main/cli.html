@@ -206,16 +206,12 @@
 <li class="toctree-l1"><a class="reference internal" href="pytest.html">pytest</a></li>
 <li class="toctree-l1"><a class="reference internal" href="yml.html">Configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="hw_devs.html">Hardware Specific Configurations</a></li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="tests/index.html">Built-In Tests</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Built-In Tests</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
-<li class="toctree-l2"><a class="reference internal" href="tests/driver.html">Driver Tests</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tests/os.html">Operating System Tests</a></li>
-</ul>
-</li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1"><a class="reference internal" href="tests/index.html">Built-In Tests</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="examples.html">Examples</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Examples</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="examples/kernel_coverage.html">Kernel Coverage Testing</a></li>
 </ul>
 </li>
-<li class="toctree-l1 has-children"><a class="reference internal" href="core/nebula.html">nebula package</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of nebula package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="core/nebula.html">nebula package</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of nebula package</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.builder.html">nebula.builder module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.common.html">nebula.common module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="core/nebula.coverage.html">nebula.coverage module</a></li>
@@ -353,7 +349,7 @@ Docstring:
   Update or read field of existing yaml config file
 
 Options:
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files
   -f STRING, --field=STRING          Field of section of yaml to update
   -s STRING, --section=STRING        Section of yaml to update
   -v STRING, --value=STRING          New field value. If none if given field is
@@ -373,15 +369,12 @@ Docstring:
 Options:
   -b STRING, --bootbinpath=STRING           Path to BOOT.BIN.
   -d STRING, --devtreepath=STRING           Path to devicetree.
-  -f STRING, --folder=STRING                Resource folder containing
-                                            BOOT.BIN, kernel, device tree, and
-                                            system_top.bit. Overrides other
-                                            setting
-  -o STRING, --board-name=STRING
-  -s STRING, --system-top-bit-path=STRING
+  -f STRING, --folder=STRING                Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit.\nOverrides other setting
+  -o STRING, --board-name=STRING            Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files
+  -s STRING, --system-top-bit-path=STRING   Path to system_top.bit
   -u STRING, --uimagepath=STRING            Path to kernel image.
-  -y STRING, --yamlfilename=STRING          Path to yaml config file. Default:
-                                            /etc/default/nebula
+  -y STRING, --yamlfilename=STRING          Path to yaml config file. Default: /etc/default/nebula
+  -c         --sdcard                       Get boot files from the sdcard
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Usage: nebula [--core-opts] manager.update-boot-files-jtag [--options] [other tasks here ...]
@@ -397,6 +390,7 @@ Options:
   -s STRING, --system-top-bit-path=STRING   Path to system_top.bit
   -u STRING, --uimagepath=STRING            Path to kernel image.
   -y STRING, --yamlfilename=STRING          Path to yaml config file. Default: /etc/default/nebula
+  -c         --sdcard                       Get boot files from the sdcard
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Usage: nebula [--core-opts] manager.recovery-device-manager [--options] [other tasks here ...]
@@ -409,7 +403,7 @@ Options:
   -c         --sdcard                       No arguments required. If set, reference files is obtained from SD card.
   -d STRING, --devtreepath=STRING           Path to devicetree.
   -f STRING, --folder=STRING                Resource folder containing BOOT.BIN, kernel, device tree, and system_top.bit. Overrides other setting
-  -o STRING, --board-name=STRING
+  -o STRING, --board-name=STRING            Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files
   -s STRING, --system-top-bit-path=STRING   Path to system_top.bit
   -u STRING, --uimagepath=STRING            Path to kernel image.
   -y STRING, --yamlfilename=STRING          Path to yaml config file. Default: /etc/default/nebula
@@ -428,7 +422,8 @@ Options:
                                      yaml config exist, it will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 </pre></div>
@@ -443,7 +438,8 @@ Options:
                                      yaml config exist is will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 </pre></div>
@@ -458,7 +454,8 @@ Options:
                                      yaml config exist, it will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 </pre></div>
@@ -473,7 +470,8 @@ Options:
                                      yaml config exist is will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 </pre></div>
@@ -488,7 +486,8 @@ Options:
                                      yaml config exist is will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
@@ -505,7 +504,8 @@ Options:
                                      yaml config exist it will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
 </pre></div>
@@ -520,7 +520,8 @@ Options:
                                      yaml config exist it will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -i STRING, --ip=STRING             IP Address to set NIC to
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0
@@ -539,12 +540,13 @@ Options:
                                                 config exist is will override,
                                                 if no yaml file exists and no
                                                 address provided auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING                Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                                Require for multi-device config files
   -d STRING, --devtreepath=STRING               Path to devicetree.
   -r, --reboot                                  Reboot board from linux console
                                                 to get to u-boot menu. Default
                                                 False
-  -s STRING, --system-top-bit-filename=STRING
+  -s STRING, --system-top-bit-filename=STRING   Path to system_top.bit.
   -u STRING, --uimagepath=STRING                Path to kernel image.
   -y STRING, --yamlfilename=STRING              Path to yaml config file.
                                                 Default: /etc/default/nebula
@@ -563,7 +565,8 @@ Docstring:
       dmesg_warn.log - dmesg warnings only
 
 Options:
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING   Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                   Require for multi-device config files
   -i STRING, --ip=STRING           IP address of board
   -p STRING, --password=STRING     Password for board. Default: analog
   -u STRING, --user=STRING         Board username. Default: root
@@ -575,10 +578,12 @@ Docstring:
   Reboot development system over IP
 
 Options:
-  -b STRING, --board-name=STRING
-  -i STRING, --ip=STRING           IP address of board
-  -p STRING, --password=STRING     Password for board. Default: analog
-  -u STRING, --user=STRING         Board username. Default: root
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
+  -i STRING, --ip=STRING             IP address of board
+  -p STRING, --password=STRING       Password for board. Default: analog
+  -u STRING, --user=STRING           Board username. Default: root
+  -y STRING, --yamlfilename=STRING   Path to yaml config file. Default: /etc/default/nebula
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Usage: nebula [--core-opts] net.update-boot-files [--options] [other tasks here ...]
@@ -591,7 +596,8 @@ Options:
   -d STRING, --devtreepath=STRING   Path to devicetree. Optional
   -i STRING, --ip=STRING            IP address of board. Default from yaml
   -m STRING, --uimagepath=STRING    Path to kernel image. Optional
-  -o STRING, --board-name=STRING
+  -o STRING, --board-name=STRING    Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                    Require for multi-device config files
   -p STRING, --password=STRING      Password for board. Default: analog
   -u STRING, --user=STRING          Board username. Default: root
 </pre></div>
@@ -605,18 +611,9 @@ Docstring:
   Download bootfiles for a specific development system
 
 Options:
-  -a STRING, --board-name=STRING
-  -b STRING, --branch=STRING         Name of branches to get related files. It can
-                                     be from Linux+HDL folders or from the
-                                     boot partition folder.
-                                     For Linx+HDL, enterstring [&lt;linuxbranch&gt;, &lt;hdlbranch&gt;].
-                                     For boot partition, enter [boot_partition, &lt;bootpartitionbranch&gt;].
-                                     This is only used for http and artifactory sources.
-                                     Default is [boot_partition, master]
-  -f, --firmware                     No arguments required. If set Pluto
-                                     firmware is downloaded from GitHub. Branch
-                                     name is used as release name. Design name
-                                     must be pluto or m2k
+  -a STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
+  -b STRING, --branch=STRING         Name of branches to get related files. Default: release
   -o STRING, --source-root=STRING    Location of source boot files. Dependent on source.
                                      For http and artifactory sources this is a IP or domain name (no http://)
   -s STRING, --source=STRING         Boot file download source. Options are:
@@ -624,6 +621,14 @@ Options:
                                      Default: local_fs
   -y STRING, --yamlfilename=STRING   Path to yaml config file. Default:
                                      /etc/default/nebula
+  -f STRING, --filetype=STRING       Selects type of related files to be downloaded. Options:
+                                     boot_partition (boot_partition files),
+                                     hdl_linux (old: separate hdl and linux),
+                                     noos (no-OS files),
+                                     microblaze (microblaze files),
+                                     rpi (rpi files), firmware .
+                                     Default: boot
+  -u STRING, --urel-template=STRING  Custom URL template for Artifactory sources
 </pre></div>
 </div>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Usage: nebula [--core-opts] dl.sdcard [--options] [other tasks here ...]
@@ -645,7 +650,8 @@ Docstring:
 
 Options:
   -a STRING, --password=STRING       Password of PDU service (optional)
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -d STRING, --pduip=STRING          IP address of PDU (optional)
   -o STRING, --outlet=STRING         Outlet index of which dev board is
                                      connected
@@ -666,10 +672,11 @@ Docstring:
 
 
 Options:
-  -b STRING, --board_name=STRING
+  -b STRING, --board_name=STRING           Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                           Require for multi-device config files
   -c STRING, --custom-vivado-path=STRING   Full path to vivado settings64 file.
                                            When set ignores vivado version
-  -v STRING, --vivado-version=STRING       Set vivado version. Defaults to 2019.1
+  -v STRING, --vivado-version=STRING       Set vivado version. Defaults to 2021.2
   -y STRING, --yamlfilename=STRING         Path to yaml config file. Default:
                                            /etc/default/nebula
 </pre></div>
@@ -697,7 +704,8 @@ Docstring:
   Exception is raised otherwise
 
 Options:
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING         Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                         Require for multi-device config files
   -i STRING, --iio-device-names=STRING   List of IIO driver names to check on board
   -u STRING, --uri=STRING                URI of board running iiod with drivers
                                          to check

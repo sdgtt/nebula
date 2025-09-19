@@ -12,4 +12,4 @@ Boot Flow
 
 Below is the logic used to effectively load a boot files (bitstream, kernel, device tree) and test if the board is ready for driver specific or other tests that require a booted board.
 
-.. graphviz:: updateboot.dot
+.. uml:: manager_recovery.pu
