@@ -9,12 +9,13 @@ Options:
                                                 config exist is will override,
                                                 if no yaml file exists and no
                                                 address provided auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING                Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                                Require for multi-device config files
   -d STRING, --devtreepath=STRING               Path to devicetree.
   -r, --reboot                                  Reboot board from linux console
                                                 to get to u-boot menu. Default
                                                 False
-  -s STRING, --system-top-bit-filename=STRING
+  -s STRING, --system-top-bit-filename=STRING   Path to system_top.bit.
   -u STRING, --uimagepath=STRING                Path to kernel image.
   -y STRING, --yamlfilename=STRING              Path to yaml config file.
                                                 Default: /etc/default/nebula

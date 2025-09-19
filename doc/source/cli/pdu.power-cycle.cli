@@ -5,7 +5,8 @@ Docstring:
 
 Options:
   -a STRING, --password=STRING       Password of PDU service (optional)
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -d STRING, --pduip=STRING          IP address of PDU (optional)
   -o STRING, --outlet=STRING         Outlet index of which dev board is
                                      connected

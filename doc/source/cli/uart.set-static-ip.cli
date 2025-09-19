@@ -8,7 +8,8 @@ Options:
                                      yaml config exist it will override, if no
                                      yaml file exists and no address provided
                                      auto is used
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                     Require for multi-device config files
   -i STRING, --ip=STRING             IP Address to set NIC to
   -n STRING, --nic=STRING            Network interface name to set. Default is
                                      eth0

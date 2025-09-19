@@ -22,6 +22,9 @@ jobs:
           pip install -r requirements_doc.txt
           pip install ".[cli,web]"
 
+      - name: Download PlantUML jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+
       - name: Build doc
         run: |
           cd doc && make html
@@ -45,6 +48,9 @@ jobs:
           pip install -r requirements_dev.txt
           pip install -r requirements_doc.txt
           pip install ".[cli,web]"
+
+      - name: Download PlantUML jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
 
       - name: Check doc build
         run: |
@@ -88,6 +94,9 @@ jobs:
           pip install -r requirements_doc.txt
           pip install ".[cli,web]"
 
+      - name: Download PlantUML jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+
       - name: Build doc and release
         run: |
           cd doc && make html
@@ -120,6 +129,9 @@ jobs:
           pip install -r requirements_dev.txt
           pip install -r requirements_doc.txt
           pip install ".[cli,web]"
+
+      - name: Download PlantUML jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
 
       - name: Build doc and release
         run: |
@@ -156,6 +168,9 @@ jobs:
           pip install -r requirements_doc.txt
           pip install setuptools wheel twine build
           pip install ".[cli,web]"
+
+      - name: Download PlantUML jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
 
       - name: Build doc and release
         run: |

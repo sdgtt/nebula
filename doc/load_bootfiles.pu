@@ -1,0 +1,41 @@
+@startuml Nebula Manager  Boot Flow
+start
+title Nebula Manager Boot Flow
+:POWERUP BOARD;
+
+switch (GET IP(UART))
+  case (No IP)
+    :Network Broken;
+    kill
+  case (Found IP)
+    :Update BOOT From Linux (NET);
+    :Restart (NET);
+  case (Not Accessible)
+    :Power Cycle (PDU);
+    if (Enter UBOOT Menu (UART)) then (passed)
+      :Load Bootfiles (UART/TFTP);
+    else (failed)
+      :UBOOT Broken;
+      kill
+    endif
+endswitch
+
+if (Check PING (NET)) then (passed)
+  :Check SSH (NET);
+else (failed)
+  if (Update IP (UART)) then (passed)
+    :Check SSH (NET);
+  else (failed)
+    :Kernel/Bitstream Failed;
+    kill
+  endif
+endif
+
+if (Check SSH (NET)) then (passed)
+  :Run pytest;
+  kill
+else (failed)
+  :Kernel/Bitstream Failed;
+  kill
+endif
+@enduml

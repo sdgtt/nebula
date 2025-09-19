@@ -8,7 +8,8 @@ Docstring:
       dmesg_warn.log - dmesg warnings only
 
 Options:
-  -b STRING, --board-name=STRING
+  -b STRING, --board-name=STRING   Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                   Require for multi-device config files
   -i STRING, --ip=STRING           IP address of board
   -p STRING, --password=STRING     Password for board. Default: analog
   -u STRING, --user=STRING         Board username. Default: root

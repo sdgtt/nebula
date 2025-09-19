@@ -8,6 +8,7 @@ Options:
   -d STRING, --devtreepath=STRING   Path to devicetree. Optional
   -i STRING, --ip=STRING            IP address of board. Default from yaml
   -m STRING, --uimagepath=STRING    Path to kernel image. Optional
-  -o STRING, --board-name=STRING
+  -o STRING, --board-name=STRING    Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
+                                    Require for multi-device config files
   -p STRING, --password=STRING      Password for board. Default: analog
   -u STRING, --user=STRING          Board username. Default: root
