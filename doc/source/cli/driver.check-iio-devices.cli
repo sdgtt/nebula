@@ -5,7 +5,7 @@ Docstring:
   Exception is raised otherwise
 
 Options:
-  -b STRING, --board-name=STRING         Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). 
+  -b STRING, --board-name=STRING         Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
                                          Require for multi-device config files
   -i STRING, --iio-device-names=STRING   List of IIO driver names to check on board
   -u STRING, --uri=STRING                URI of board running iiod with drivers

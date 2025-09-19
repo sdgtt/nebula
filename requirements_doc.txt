@@ -9,3 +9,4 @@ sphinxcontrib-mermaid
 sphinx-simplepdf
 pillow
 sphinx-click
+sphinxcontrib-plantuml

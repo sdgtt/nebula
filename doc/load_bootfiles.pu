@@ -1,11 +1,11 @@
 @startuml Nebula Manager  Boot Flow
 start
-title Nebula Manager Boot Flow 
+title Nebula Manager Boot Flow
 :POWERUP BOARD;
 
 switch (GET IP(UART))
   case (No IP)
-    :Network Broken; 
+    :Network Broken;
     kill
   case (Found IP)
     :Update BOOT From Linux (NET);

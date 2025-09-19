@@ -4,7 +4,7 @@ Docstring:
   Download bootfiles for a specific development system
 
 Options:
-  -a STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). 
+  -a STRING, --board-name=STRING     Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2).
                                      Require for multi-device config files
   -b STRING, --branch=STRING         Name of branches to get related files. Default: release
   -o STRING, --source-root=STRING    Location of source boot files. Dependent on source.
@@ -20,5 +20,5 @@ Options:
                                      noos (no-OS files),
                                      microblaze (microblaze files),
                                      rpi (rpi files), firmware .
-                                     Default: boot      
-  -u STRING, --urel-template=STRING  Custom URL template for Artifactory sources                            
+                                     Default: boot
+  -u STRING, --urel-template=STRING  Custom URL template for Artifactory sources
