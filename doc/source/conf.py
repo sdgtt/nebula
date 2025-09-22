@@ -39,7 +39,10 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx_rtd_theme",
     "sphinx.ext.graphviz",
+    "myst_parser",
 ]
+
+myst_enable_extensions = ["colon_fence"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]

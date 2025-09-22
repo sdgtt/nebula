@@ -23,6 +23,7 @@ There are two main interfaces for nebula:
    cli
    pytest
    yml
+   find_config_settings
    hw_devs
    tests/index
    examples
