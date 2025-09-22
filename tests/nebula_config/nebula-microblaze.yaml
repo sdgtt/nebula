@@ -1,0 +1,29 @@
+vcu118:
+  board-config:
+  - board-name: vcu118
+  - carrier: VCU118
+  - daughter: AD9084-EBZ
+  - monitoring-interface: uart
+  - allow-jtag: True
+  driver-config:
+  - iio_device_names:
+    - xadc
+  jtag-config:
+  - vivado_version: '2023.2'
+  - jtag_cable_id: 210308A3BB8D
+  - jtag_cpu_target_name: MicroBlaze*#0
+  network-config:
+  - dutip: 192.168.10.111
+  - dhcp: False
+  - nic: eth0
+  - nicip: 192.168.10.111
+  # pdu-config:
+  # - pdu_type: cyberpower
+  # - pduip: 192.168.10.23
+  # - outlet: '5'
+  # - username: cyberpower
+  # - password: cyberpower
+  uart-config:
+  - address: /dev/serial/by-path/pci-0000:00:14.0-usb-0:8.1.1:1.0-port0
+  - baudrate: '115200'
+  - logfilename: vcu118.log
