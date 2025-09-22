@@ -221,3 +221,28 @@ class jtag(utils):
         # Must not overwrite memory locations
 
         self.run_xsdb(cmd)
+
+    def microblaze_boot_linux(self, bitstream, strip):
+        """Boot microblaze over JTAG
+
+        Args:
+            bitstream (str): Path to bitstream file
+            strip (str): Path to stripped ELF file
+
+        Raises:
+            Exception: If bitstream or stripped ELF file not found
+        """
+        assert os.path.isfile(bitstream), f"Bitstream file not found: {bitstream}"
+        assert os.path.isfile(strip), f"Stripped ELF file not found: {strip}"
+
+        cmd = "connect; "
+        cmd += "after 3000; "
+        cmd += "puts {Loading Bitstream}; "
+        cmd += f"fpga -file {bitstream}; "
+        cmd += "after 3000; "
+        cmd += "puts {Loading Stripped ELF}; "
+        cmd += f"dow {strip}; "
+        cmd += "con; "
+        cmd += "after 3000; "
+
+        self.run_xsdb(cmd)
