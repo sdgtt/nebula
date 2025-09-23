@@ -1,0 +1,14 @@
+vesync-test:
+  board-config:
+  - board-name: vesync_test
+  - carrier: NA
+  - daughter: NA
+  # uart-config:
+  # - address: /dev/ttyUSB1
+  # - baudrate: '115200'
+  # - logfilename: vesync.log
+  pdu-config:
+  - pdu_type: vesync
+  - outlet: 'Office Outlet'
+  - username: user@gmail.com
+  - password: password

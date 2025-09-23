@@ -1,7 +1,7 @@
 import logging
 import time
 
-from pyvesync_v2 import VeSync
+from pyvesync import VeSync
 
 from nebula import cyberpower as cpdu
 from nebula.common import utils
@@ -41,7 +41,7 @@ class pdu(utils):
                 raise Exception("username must be set for vesync config")
             if not self.password:
                 raise Exception("password must be set for vesync config")
-            self.pdu_dev = VeSync(self.username, self.password)
+            self.pdu_dev = VeSync(self.username, self.password, redact=True)
             self.pdu_dev.login()
             self.pdu_dev.update()
         else:
@@ -53,12 +53,28 @@ class pdu(utils):
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
-            self.pdu_dev.outlets[self.outlet].turn_off()
+            if isinstance(self.outlet, str):
+                found = False
+                for o in self.pdu_dev.outlets:
+                    if o.device_name == self.outlet:
+                        o.turn_off()
+                        found = True
+                        break
+                if not found:
+                    log.warning(f"Outlet {self.outlet} not found")
+            else:
+                self.pdu_dev.outlets[self.outlet].turn_off()
         time.sleep(5)
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
-            self.pdu_dev.outlets[self.outlet].turn_on()
+            if isinstance(self.outlet, str):
+                for o in self.pdu_dev.outlets:
+                    if o.device_name == self.outlet:
+                        o.turn_on()
+                        break
+            else:
+                self.pdu_dev.outlets[self.outlet].turn_on()
 
     def power_down_board(self):
         """Power Down Board"""
@@ -66,7 +82,17 @@ class pdu(utils):
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
-            self.pdu_dev.outlets[self.outlet].turn_off()
+            if isinstance(self.outlet, str):
+                found = False
+                for o in self.pdu_dev.outlets:
+                    if o.device_name == self.outlet:
+                        o.turn_off()
+                        found = True
+                        break
+                if not found:
+                    log.warning(f"Outlet {self.outlet} not found")
+            else:
+                self.pdu_dev.outlets[self.outlet].turn_off()
 
     def power_up_board(self):
         """Power On Board"""
@@ -74,4 +100,14 @@ class pdu(utils):
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
-            self.pdu_dev.outlets[self.outlet].turn_on()
+            if isinstance(self.outlet, str):
+                found = False
+                for o in self.pdu_dev.outlets:
+                    if o.device_name == self.outlet:
+                        o.turn_on()
+                        found = True
+                        break
+                if not found:
+                    log.warning(f"Outlet {self.outlet} not found")
+            else:
+                self.pdu_dev.outlets[self.outlet].turn_on()
