@@ -32,6 +32,9 @@ class pdu(utils):
             if eval(prop) is not None:
                 setattr(self, prop, eval(prop))
 
+        if not isinstance(self.outlet, list):
+            self.outlet = [self.outlet]
+
         if self.pdu_type == "cyberpower":
             if not self.pduip:
                 raise Exception("pduip must be set for cyberpower config")
@@ -46,68 +49,86 @@ class pdu(utils):
             self.pdu_dev.update()
         else:
             raise Exception("Unknown PDU type")
+        
+    def _get_outlet_vesync(self, name):
+        """Get VeSync outlet by name or index"""
+        if isinstance(name, str):
+            for o in self.pdu_dev.outlets:
+                if o.device_name == name:
+                    return o
+            raise Exception(f"Outlet {name} not found")
+        elif isinstance(name, int):
+            if name < 0 or name >= len(self.pdu_dev.outlets):
+                raise Exception(f"Outlet index {name} out of range")
+            return self.pdu_dev.outlets[name]
+        else:
+            raise Exception("Outlet must be a string or integer")
 
-    def power_cycle_board(self):
+    def power_cycle_board(self, name=None):
         """Power Cycle Board: OFF, wait 5 seconds, ON"""
         log.info(f"Power cycling {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
-            if isinstance(self.outlet, str):
-                found = False
-                for o in self.pdu_dev.outlets:
-                    if o.device_name == self.outlet:
-                        o.turn_off()
-                        found = True
-                        break
-                if not found:
-                    log.warning(f"Outlet {self.outlet} not found")
-            else:
-                self.pdu_dev.outlets[self.outlet].turn_off()
+            if name and name not in self.outlet:
+                raise Exception(
+                    "Must provide outlet name or index to power cycle.\n"+
+                    f"Valid outlets: {self.outlet}")
+            if name:
+                outlet = self._get_outlet_vesync(name)
+                outlet.turn_off()
+            for o_name in self.outlet:
+                outlet = self._get_outlet_vesync(o_name)
+                outlet.turn_off()
+                time.sleep(2)
         time.sleep(5)
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
-            if isinstance(self.outlet, str):
-                for o in self.pdu_dev.outlets:
-                    if o.device_name == self.outlet:
-                        o.turn_on()
-                        break
-            else:
-                self.pdu_dev.outlets[self.outlet].turn_on()
+            if name and name not in self.outlet:
+                raise Exception(
+                    "Must provide outlet name or index to power cycle.\n"+
+                    f"Valid outlets: {self.outlet}")
+            if name:
+                outlet = self._get_outlet_vesync(name)
+                outlet.turn_on()
+            for o_name in self.outlet:
+                outlet = self._get_outlet_vesync(o_name)
+                outlet.turn_on()
+                time.sleep(2)
 
-    def power_down_board(self):
+    def power_down_board(self, name=None):
         """Power Down Board"""
         log.info(f"Powering off {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, False)
         elif self.pdu_type == "vesync":
-            if isinstance(self.outlet, str):
-                found = False
-                for o in self.pdu_dev.outlets:
-                    if o.device_name == self.outlet:
-                        o.turn_off()
-                        found = True
-                        break
-                if not found:
-                    log.warning(f"Outlet {self.outlet} not found")
-            else:
-                self.pdu_dev.outlets[self.outlet].turn_off()
+            if name and name not in self.outlet:
+                raise Exception(
+                    "Must provide outlet name or index to power off.\n"+
+                    f"Valid outlets: {self.outlet}")
+            if name:
+                outlet = self._get_outlet_vesync(name)
+                outlet.turn_off()
+            for o_name in self.outlet:
+                outlet = self._get_outlet_vesync(o_name)
+                outlet.turn_off()
+                time.sleep(2)
 
-    def power_up_board(self):
+    def power_up_board(self, name=None):
         """Power On Board"""
         log.info(f"Powering on {self.board_name}")
         if self.pdu_type == "cyberpower":
             self.pdu_dev.set_outlet_on(self.outlet, True)
         elif self.pdu_type == "vesync":
-            if isinstance(self.outlet, str):
-                found = False
-                for o in self.pdu_dev.outlets:
-                    if o.device_name == self.outlet:
-                        o.turn_on()
-                        found = True
-                        break
-                if not found:
-                    log.warning(f"Outlet {self.outlet} not found")
-            else:
-                self.pdu_dev.outlets[self.outlet].turn_on()
+            if name and name not in self.outlet:
+                raise Exception(
+                    "Must provide outlet name or index to power on.\n"+
+                    f"Valid outlets: {self.outlet}")
+            if name:
+                outlet = self._get_outlet_vesync(name)
+                outlet.turn_on()
+            for o_name in self.outlet:
+                outlet = self._get_outlet_vesync(o_name)
+                outlet.turn_on()
+                time.sleep(2)
