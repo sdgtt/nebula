@@ -3,6 +3,7 @@ import os
 import shutil
 import subprocess
 import time
+import sys
 
 from nebula.common import utils
 
@@ -33,23 +34,25 @@ class jtag(utils):
         )
 
         # Check target device available
-        jtag_connected = False
-        for c in range(self.jtag_connect_retries):
-            cmd = "connect; after 1000; " + self.target_set_str(
-                self.jtag_cpu_target_name
-            )
-            jtag_connected = self.run_xsdb(cmd)
-            if jtag_connected:
-                log.info(
-                    "JTAG {} connection attempt successful".format(self.jtag_cable_id)
-                )
-                break
-            log.warning(
-                "JTAG {} connection attempt failed.  Attempt {}".format(
-                    self.jtag_cable_id, c + 1
-                )
-            )
-            time.sleep(1)
+        # jtag_connected = False
+        # for c in range(self.jtag_connect_retries):
+        #     cmd = "connect; after 1000; " + self.target_set_str(
+        #         self.jtag_cpu_target_name
+        #     )
+        #     jtag_connected = self.run_xsdb(cmd)
+        #     if jtag_connected:
+        #         log.info(
+        #             "JTAG {} connection attempt successful".format(self.jtag_cable_id)
+        #         )
+        #         break
+        #     log.warning(
+        #         "JTAG {} connection attempt failed.  Attempt {}".format(
+        #             self.jtag_cable_id, c + 1
+        #         )
+        #     )
+        #     time.sleep(1)
+
+        jtag_connected = True
 
         if not jtag_connected:
             raise Exception(
@@ -74,6 +77,66 @@ class jtag(utils):
         # logging.info(output.decode("utf-8"))
         # return output.decode("utf-8")
 
+    def run_command_realtime(self, command, shell=True):
+        """
+        Run a shell command and print output in real-time as it's generated.
+        
+        Args:
+            command (str or list): The command to run. Can be a string (if shell=True) 
+                                or a list of arguments (if shell=False)
+            shell (bool): Whether to run the command through the shell
+        
+        Returns:
+            int: The return code of the command
+        """
+        if isinstance(command, str) and not shell:
+            raise ValueError("If command is a string, shell must be True")
+        if isinstance(command, list) and shell:
+            raise ValueError("If command is a list, shell must be False")
+        
+        # command = "bash -c '{}'".format(command) if shell else command
+        try:
+            # log.info(f"Running command: {command.replace(';', ';\n')}")
+            # Start the process
+            process = subprocess.Popen(
+                command,
+                shell=shell,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,  # Combine stderr with stdout
+                universal_newlines=True,   # Handle text mode
+                bufsize=1,                 # Line buffered
+                executable="/bin/bash"     # Use bash shell
+            )
+            
+            # Read and print output line by line as it comes
+            log.info("Reading lines...")
+            while True:
+                output = process.stdout.readline()
+                
+                # If output is empty and process has finished, break
+                if output == '' and process.poll() is not None:
+                    log.info("Process finished.")
+                    break
+                    
+                # Print the line if it's not empty
+                if output:
+                    print(output.strip())
+                    sys.stdout.flush()  # Force immediate output
+            log.info("Done...")
+            
+            # Wait for the process to complete and get return code
+            return_code = process.wait()
+            
+            return return_code
+            
+        except KeyboardInterrupt:
+            print("\nProcess interrupted by user")
+            process.terminate()
+            return -1
+        except Exception as e:
+            print(f"Error running command: {e}")
+            return -1
+
     def run_xsdb(self, cmd):
         if not self.custom_vivado_path:
             vivado = (
@@ -88,7 +151,8 @@ class jtag(utils):
 
         cmd = vivado + '; xsdb -eval "{}"'.format(cmd)
         # cmd = [vivado + '; xsdb',' -eval "{}"'.format(cmd)]
-        return self._shell_out2(cmd)
+        # return self._shell_out2(cmd)
+        return self.run_command_realtime(cmd, shell=True) == 0
 
     def restart_board(self):
         cmd = "connect; "
@@ -237,12 +301,18 @@ class jtag(utils):
 
         cmd = "connect; "
         cmd += "after 3000; "
+        cmd += f"target 1;"
         cmd += "puts {Loading Bitstream}; "
-        cmd += f"fpga -file {bitstream}; "
+        cmd += f"fpga -f {bitstream}; "
         cmd += "after 3000; "
         cmd += "puts {Loading Stripped ELF}; "
+        cmd += self.target_set_str("MicroBlaze*#0")
+        cmd += "targets; "
+        cmd += "after 3000; "
         cmd += f"dow {strip}; "
         cmd += "con; "
         cmd += "after 3000; "
 
+        # self.run_command_realtime(cmd, shell=True)
         self.run_xsdb(cmd)
+        # 210308A3BB8D
