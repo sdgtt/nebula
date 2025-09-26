@@ -144,7 +144,7 @@ class jtag(utils):
             )
         else:
             vivado = os.path.join(self.custom_vivado_path, "settings64.sh")
-        if not os.path.isfile(vivado[2:]):
+        if not os.path.isfile(vivado):
             raise Exception(
                 "Vivado not found at: " + vivado[: -(len("settings64.sh") + 1)]
             )
