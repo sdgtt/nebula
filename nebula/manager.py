@@ -694,8 +694,10 @@ class manager:
         # stop uart logging first
         try:
             self.monitor[0].stop_log()
+            del self.monitor[0]  # Release uart file descriptor lock
             self.power.power_cycle_board()
             log.info("Waiting for boot to complete")
+            self.monitor[0].reinitialize_uart()
             results = self.monitor[0]._read_until_done_multi(
                 done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
             )
