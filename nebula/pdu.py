@@ -68,7 +68,9 @@ class pdu(utils):
         """Power Cycle Board: OFF, wait 5 seconds, ON"""
         log.info(f"Power cycling {self.board_name}")
         if self.pdu_type == "cyberpower":
-            self.pdu_dev.set_outlet_on(self.outlet, False)
+            outlets = self.outlet if isinstance(self.outlet, list) else [self.outlet]
+            for outlet in outlets:
+                self.pdu_dev.set_outlet_on(outlet, False)
         elif self.pdu_type == "vesync":
             if name and name not in self.outlet:
                 raise Exception(
@@ -83,7 +85,9 @@ class pdu(utils):
                 time.sleep(2)
         time.sleep(5)
         if self.pdu_type == "cyberpower":
-            self.pdu_dev.set_outlet_on(self.outlet, True)
+            outlets = self.outlet if isinstance(self.outlet, list) else [self.outlet]
+            for outlet in outlets:
+                self.pdu_dev.set_outlet_on(outlet, True)
         elif self.pdu_type == "vesync":
             if name and name not in self.outlet:
                 raise Exception(
@@ -101,7 +105,9 @@ class pdu(utils):
         """Power Down Board"""
         log.info(f"Powering off {self.board_name}")
         if self.pdu_type == "cyberpower":
-            self.pdu_dev.set_outlet_on(self.outlet, False)
+            outlets = self.outlet if isinstance(self.outlet, list) else [self.outlet]
+            for outlet in outlets:
+                self.pdu_dev.set_outlet_on(outlet, False)
         elif self.pdu_type == "vesync":
             if name and name not in self.outlet:
                 raise Exception(
@@ -119,7 +125,9 @@ class pdu(utils):
         """Power On Board"""
         log.info(f"Powering on {self.board_name}")
         if self.pdu_type == "cyberpower":
-            self.pdu_dev.set_outlet_on(self.outlet, True)
+            outlets = self.outlet if isinstance(self.outlet, list) else [self.outlet]
+            for outlet in outlets:
+                self.pdu_dev.set_outlet_on(outlet, True)
         elif self.pdu_type == "vesync":
             if name and name not in self.outlet:
                 raise Exception(
