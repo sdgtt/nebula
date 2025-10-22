@@ -284,105 +284,46 @@
 <h2>Boot Flow<a class="headerlink" href="#boot-flow" title="Permalink to this heading"></a></h2>
 <p>Below is the logic used to effectively load a boot files (bitstream, kernel, device tree) and test if the board is ready for driver specific or other tests that require a booted board.</p>
 <p class="plantuml">
-<img src="_images/plantuml-dd99e5a8e7cada42c33c557b88e033025ff1d0d9.png" alt="&#64;startuml Nebula Manager Device Recovery
+<img src="_images/plantuml-6baa458813e6dd7ac44deb1bdf2e7d1294fd7971.png" alt="&#64;startuml Nebula Manager  Boot Flow
 start
-title Nebula Manager Device Recovery
-if (Is Linux is accessible?) then (yes)
-  partition &quot;Verify IP Address&quot; {
-    :(1)get ip address via uart,
-        if none assign one via dhcp
-     (2)if address is not expected,
-        update nebula config to new address;
-  }
-  #palegreen: Home sweet home;
-  kill
-else (no)
+title Nebula Manager Boot Flow
+:POWERUP BOARD;
 
-  if (usbsdmux enabled) then (yes)
-    partition #yellow &quot;SD Card Mux&quot;{
-      : power down board using PDU
-      __power.power_down_board()__;
-      if (SD card mode) then (yes)
-        : update boot files
-        from within sdcard
-        via usb-sd-mux;
-      else (no)
-        : update boot files
-        from external sources
-        via usb-sd-mux;
-      endif
-      : Update device tree
-      via usb-sd-mux;
-    }
-    #Gray: Power cycle using PDU;
+switch (GET IP(UART))
+  case (No IP)
+    :Network Broken;
     kill
-  else
-    if (JTAG enabled) then (yes)
-      : Restart board via JTAG;
-    else (no)
-    : Restart board via PDU;
-    endif
-
-    if (if uboot menu reached) then (yes)
-      if (if tftp enabled) then (yes)
-        : load boot files
-        from tftp via uart;
-        #Gray: Power cycle using PDU;
-        kill
-      else (no)
-        if (SD card mode) then (yes)
-          : copy bootfiles
-          from within sdcard via uart;
-        else (no)
-          : copy bootfiles
-          from external sources via uart;
-        endif
-        #Gray: Power cycle using PDU;
-        kill
-      endif
-    else (no)
-      #orange: Second Stage;
+  case (Found IP)
+    :Update BOOT From Linux (NET);
+    :Restart (NET);
+  case (Not Accessible)
+    :Power Cycle (PDU);
+    if (Enter UBOOT Menu (UART)) then (passed)
+      :Load Bootfiles (UART/TFTP);
+    else (failed)
+      :UBOOT Broken;
       kill
     endif
-  endif
+endswitch
 
-  #Gray: Power cycle using PDU;
-  if (Linux prompt reached) then (yes)
-    partition &quot;Network check&quot;{
-      if (is Network (IP) functional) then (yes)
-        if (is SSH  functional) then (yes)
-          #palegreen: Home sweet home;
-          kill
-        else (no)
-          #orange: Second Stage;
-          kill
-        endif
-      else (no)
-        #orange: Second Stage;
-        kill
-      endif
-    }
-  else (no)
-    #orange: Second Stage;
+if (Check PING (NET)) then (passed)
+  :Check SSH (NET);
+else (failed)
+  if (Update IP (UART)) then (passed)
+    :Check SSH (NET);
+  else (failed)
+    :Kernel/Bitstream Failed;
     kill
-  endif
-  #orange :Second Stage;
-  : TO FIX JTAG Recovery
-  __manager.board_reboot_jtag_uart()__;
-  :__manager.power_cycle_to_boot()__;
-  if (power_cycle_to_boot ok) then (yes)
-    :__manager.network_check()__;
-    if (network check ok) then (yes)
-      #palegreen: Home sweet home;
-      kill
-    else (no)
-      #red: Recovery Failed;
-    endif
-  else (no)
-    #red: Recovery Failed;
   endif
 endif
-end
+
+if (Check SSH (NET)) then (passed)
+  :Run pytest;
+  kill
+else (failed)
+  :Kernel/Bitstream Failed;
+  kill
+endif
 &#64;enduml
 "/>
 </p>
