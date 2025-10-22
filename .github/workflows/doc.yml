@@ -23,11 +23,11 @@ jobs:
           pip install ".[cli,web]"
 
       - name: Download PlantUML jar
-        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 
       - name: Build doc
         run: |
-          cd doc && make html
+          cd doc && rm -rf build && make html
           cd ..
 
   CheckDocs:
@@ -50,11 +50,12 @@ jobs:
           pip install ".[cli,web]"
 
       - name: Download PlantUML jar
-        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 
       - name: Check doc build
         run: |
           cd doc
+          rm -rf build
           make html SPHINXOPTS="-W"
           cd ..
 
@@ -95,11 +96,11 @@ jobs:
           pip install ".[cli,web]"
 
       - name: Download PlantUML jar
-        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 
       - name: Build doc and release
         run: |
-          cd doc && make html
+          cd doc && rm -rf build && make html
           cd ..
 
       - name: Publish doc
@@ -131,13 +132,13 @@ jobs:
           pip install ".[cli,web]"
 
       - name: Download PlantUML jar
-        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 
       - name: Build doc and release
         run: |
           export GIT_BRANCH=${{ github.head_ref }}
           export DEV_BUILD=1
-          cd doc && make html
+          cd doc && rm -rf build && make html
           cd ..
 
       - name: Publish doc
@@ -170,11 +171,11 @@ jobs:
           pip install ".[cli,web]"
 
       - name: Download PlantUML jar
-        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/latest/download/plantuml.jar
+        run: curl -L -o plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.7/plantuml-1.2024.7.jar
 
       - name: Build doc and release
         run: |
-          cd doc && make html
+          cd doc && rm -rf build && make html
           cd ..
           python -m build
 
