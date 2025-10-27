@@ -41,7 +41,7 @@ class coverage:
             + GCDA
             + " -type d -exec mkdir -p "
             + tmp_folder
-            + "/\{\} \;"  # noqa: W605
+            + r"/\{\} \;"
         )
         self._crun(cmd)
         cmd = (
@@ -49,7 +49,7 @@ class coverage:
             + GCDA
             + " -name '*.gcda' -exec sh -c 'cat < $0 > '"
             + tmp_folder
-            + "'/$0' {} \;"  # noqa: W605
+            + r"'/$0' {} \;"
         )
         self._crun(cmd)
         cmd = (
@@ -57,7 +57,7 @@ class coverage:
             + GCDA
             + " -name '*.gcno' -exec sh -c 'cp -d $0 '"
             + tmp_folder
-            + "'/$0' {} \;"  # noqa: W605
+            + r"'/$0' {} \;"
         )
         self._crun(cmd)
         dest = (
