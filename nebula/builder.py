@@ -16,9 +16,8 @@ class builder:
         pass
 
     def shell_out(self, cmd):
-        cmd = cmd.split(" ")
         logging.info("Running command: " + cmd)
-        subprocess.run(cmd)
+        subprocess.run(cmd.split(" "))
 
     def shell_out2(self, script):
         logging.info("Running command: " + script)
