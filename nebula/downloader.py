@@ -136,11 +136,13 @@ def get_gitsha(url, daily=False, linux=False, hdl=False, build_info=None):
 
 
 def gen_url(ip, branch, folder, filename, addl, url_template):
-    if branch == "master":
+    if branch == "main":
         if bool(re.search("boot_partition", url_template)):
             url = url_template.format(ip, branch, "", "")
             # folder = BUILD_DATE/PROJECT_FOLDER
-            folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+            folder = (
+                get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
+            )
             return url_template.format(ip, branch, folder, filename)
         elif bool(re.search("hdl", url_template)):
             url = url_template.format(ip, addl, "", "")
@@ -361,7 +363,7 @@ class downloader(utils):
             raise Exception("Unknown device " + device)
 
         if source == "github":
-            if release == "master" or release == "release":
+            if release == "main" or release == "release":
                 release = None
             if not release:
                 # Get latest
@@ -557,9 +559,9 @@ class downloader(utils):
         output = "hdl_output" if hdl_output else "boot_files"
         # set hdl url template
         if source == "artifactory":
-            if branch == "master":
+            if branch == "main":
                 url_template = (
-                    "https://{}/artifactory/sdg-generic-development/hdl/master/{}/{}/{}"
+                    "https://{}/artifactory/sdg-generic-development/hdl/main/{}/{}/{}"
                 )
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/hdl/releases/{}/{}/{}"
@@ -627,13 +629,13 @@ class downloader(utils):
         microblaze=False,
     ):
         url_template = None
-        kernel_root = "zynq" if kernel_root == "zynq-common" else "zynq_u"
+        kernel_root = "zynq" if kernel_root == "zynq-common" else "zynqmp"
         if source == "artifactory":
             design_source_root = arch + "/" + kernel_root
             # set linux url template
-            if branch == "master":
+            if branch == "main":
                 url_template = (
-                    "https://{}/artifactory/sdg-generic-development/linux/master/{}/{}"
+                    "https://{}/artifactory/sdg-generic-development/linux/main/{}/{}"
                 )
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
@@ -918,7 +920,7 @@ class downloader(utils):
         design_name,
         source="local_fs",
         source_root="/var/lib/tftpboot",
-        branch="master",
+        branch="main",
         firmware=None,
         boot_partition=None,
         noos=None,
@@ -939,7 +941,7 @@ class downloader(utils):
             For artifactory this is a domain name of the artifactory server
             (ex. artifactory.analog.com, no http://)
             branch: Name of branch to get related files. This is only used for
-            http and artifactory sources. Default is master
+            http and artifactory sources. Default is main
 
         Returns:
             A folder with name outs is created with the downloaded boot files
