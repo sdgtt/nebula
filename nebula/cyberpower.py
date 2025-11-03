@@ -1,13 +1,25 @@
-from pysnmp.hlapi import (
-    CommunityData,
-    ContextData,
-    Integer32,
-    ObjectIdentity,
-    ObjectType,
-    SnmpEngine,
-    UdpTransportTarget,
-    setCmd,
-)
+from packaging.version import Version
+from pysnmp import __version__ as __pysnmp_version__
+
+if Version(__pysnmp_version__) < Version("7.0.0"):
+    from pysnmp.hlapi import (
+        CommunityData,
+        ContextData,
+        Integer32,
+        ObjectIdentity,
+        ObjectType,
+        SnmpEngine,
+        UdpTransportTarget,
+        setCmd,
+    )
+else:
+    from pysnmp.entity.engine import SnmpEngine
+    from pysnmp.hlapi.v1arch import CommunityData
+    from pysnmp.hlapi.v1arch.asyncio.transport import UdpTransportTarget
+    from pysnmp.hlapi.v3arch.asyncio.cmdgen import setCmd
+    from pysnmp.hlapi.v3arch.asyncio.context import ContextData
+    from pysnmp.proto.api.v2c import Integer32
+    from pysnmp.smi.rfc1902 import ObjectIdentity, ObjectType
 
 
 class CyberPowerPduException(Exception):
