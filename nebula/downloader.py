@@ -693,18 +693,19 @@ class downloader(utils):
             os.mkdir(dest)
         # download properties.txt
         if source == "artifactory":
+            arch = "32bit"
             url_template = (
                 "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}"
             )
             url = url_template.format(source_root, branch, "")
             build_date = get_newest_folder(listFD(url))
             url = url_template.format(
-                source_root, branch, build_date + "/rpi_git_properties.txt"
+                source_root, branch, build_date + "/" + arch + "/version_rpi.txt"
             )
             file = os.path.join(dest, "properties.txt")
             self.download(url, file)
 
-        url_template = url_template.format(source_root, branch, "{}/{}")
+        url_template = url_template.format(source_root, branch, "{}/" + arch + "/{}")
 
         if devicetree:
             if "dtb" not in devicetree:
@@ -739,7 +740,7 @@ class downloader(utils):
             file = os.path.join(dest, k)
             self.download(url, file)
 
-        tar_file = "rpi_modules.tar.gz"
+        tar_file = "rpi_modules_32bit.tar.gz"
         log.info("Get modules " + tar_file)
         url = url_template.format(build_date, tar_file)
         file = os.path.join(dest, tar_file)

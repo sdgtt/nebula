@@ -106,7 +106,7 @@ def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
 
 
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
-@pytest.mark.parametrize("branch", ["rpi-5.10.y"])
+@pytest.mark.parametrize("branch", ["rpi-6.6.y"])
 @pytest.mark.parametrize("filetype", ["rpi"])
 def test_rpi_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
