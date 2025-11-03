@@ -36,6 +36,7 @@ class coverage:
         tmp_folder = "".join(random.choice(string.ascii_lowercase) for i in range(16))
         tmp_folder = "/tmp/" + tmp_folder
         GCDA = "/sys/kernel/debug/gcov"
+        # fmt: off
         cmd = (
             "find "
             + GCDA
@@ -65,6 +66,7 @@ class coverage:
             + ".tar.gz"
         )
         cmd = "tar czf " + dest + " -C " + tmp_folder + " sys"
+        # fmt: on
         self._crun(cmd)
         self.conn.get(dest)
         # Unpack
