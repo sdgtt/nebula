@@ -814,7 +814,7 @@ class downloader(utils):
             dt = "system.dtb"
             arch = "arm64"
         elif (
-            details["carrier"] in ["Zed-Board", "ZC702", "ZC706"]
+            details["carrier"] in ["Zed-Board", "ZC702", "ZC706", "CORAZ7S"]
             or "ADRV936" in design_name.upper()
         ):
             kernel = "uImage"
