@@ -36,12 +36,13 @@ class coverage:
         tmp_folder = "".join(random.choice(string.ascii_lowercase) for i in range(16))
         tmp_folder = "/tmp/" + tmp_folder
         GCDA = "/sys/kernel/debug/gcov"
+        # fmt: off
         cmd = (
             "find "
             + GCDA
             + " -type d -exec mkdir -p "
             + tmp_folder
-            + "/\{\} \;"  # noqa: W605
+            + r"/\{\} \;"
         )
         self._crun(cmd)
         cmd = (
@@ -49,7 +50,7 @@ class coverage:
             + GCDA
             + " -name '*.gcda' -exec sh -c 'cat < $0 > '"
             + tmp_folder
-            + "'/$0' {} \;"  # noqa: W605
+            + r"'/$0' {} \;"
         )
         self._crun(cmd)
         cmd = (
@@ -57,7 +58,7 @@ class coverage:
             + GCDA
             + " -name '*.gcno' -exec sh -c 'cp -d $0 '"
             + tmp_folder
-            + "'/$0' {} \;"  # noqa: W605
+            + r"'/$0' {} \;"
         )
         self._crun(cmd)
         dest = (
@@ -65,6 +66,7 @@ class coverage:
             + ".tar.gz"
         )
         cmd = "tar czf " + dest + " -C " + tmp_folder + " sys"
+        # fmt: on
         self._crun(cmd)
         self.conn.get(dest)
         # Unpack

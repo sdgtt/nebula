@@ -1,43 +1,49 @@
-[tool.poetry]
+[build-system]
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
+
+[project]
 name = "nebula"
 version = "v1.2.1"
 description = "FPGA Development Board Testing Harness"
-authors = ["Travis F. Collins <travis.collins@analog.com>"]
+authors = [
+    {name = "Travis F. Collins", email="travis.collins@analog.com"},
+]
 
-[tool.poetry.dependencies]
-python = "^3.6"
-pyfiglet = "^0.8.post1"
-fabric = "^3.2.2"
-pyyaml = "^6.0.0"
-pyserial = "^3.5"
-pytest = "^7.4.4"
-pyvesync_v2 = "^1.1.0"
-pysnmp = "^4.4.12"
-pyasn1 = "^0.4.8"
-xmodem = "^0.4.7"
-click = "^8.0.0"
-usbsdmux = "^0.2.1"
-tqdm = "^4.62.3"
-beautifulsoup4 = "^4.12.3"
-requests = "^2.25.1"
-pygithub = "^2.2.0"
-dohq-artifactory = "^1.0.1"
-pynetbox = "^7.3.3"
-pyudev = "^0.24.1"
-decorator = "^5.1.1"
-urllib3 = "^2.2.1"
-pyasyncore = "^1.0.4"
-invoke = "^2.2.0"
+dependencies = [
+    "pyfiglet >= 0.8.post1",
+    "fabric >= 3.2.2",
+    "pyyaml >= 6.0.0",
+    "pyserial >= 3.5",
+    "pytest >= 7.4.4",
+    "pytest-dependency",
+    "pyvesync_v2 >= 1.1.0",
+    "pysnmp >= 4.4.12",
+    "pyasn1 >= 0.4.8",
+    "xmodem >= 0.4.7",
+    "click >= 8.0.0",
+    "usbsdmux >= 0.2.1",
+    "tqdm >= 4.62.3",
+    "beautifulsoup4 >= 4.12.3",
+    "requests >= 2.25.1",
+    "pygithub >= 2.2.0",
+    "dohq-artifactory >= 1.0.1",
+    "pynetbox >= 7.3.3",
+    "pyudev >= 0.24.1",
+    "decorator >= 5.1.1",
+    "urllib3 >= 2.2.1",
+    "pyasyncore >= 1.0.4",
+    "invoke >= 2.2.0",
+]
+requires-python = ">=3.7"
 
-[tool.poetry.dev-dependencies]
-sphinx = "^3.0.1"
+[project.optional-dependencies]
+doc = [
+    "sphinx"
+]
 
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
-
-[tool.poetry.plugins.pytest11]
+[project.entry-points."pytest11"]
 nebula = "nebula.fixtures"
 
-[tool.poetry.scripts]
+[project.scripts]
 nebula = "nebula.main:program.run"
