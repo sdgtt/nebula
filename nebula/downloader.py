@@ -169,7 +169,21 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
                 release_folder = branch.upper()
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
+<<<<<<< HEAD
         folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+=======
+        if branch == "main" and "boot_partition" in url_template:
+
+            if "microblaze_images" in str (folder):
+                folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+                print(f"debug: microblaze folder constructed: {folder}")
+            else:
+                folder = (
+                    get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
+                )
+        else:
+            folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+>>>>>>> 7b9597d (microblaze bootfiles downloader update)
         return url_template.format(ip, release_folder, folder, filename)
 
 
@@ -642,11 +656,27 @@ class downloader(utils):
                 url_template = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
 
         if microblaze:
-            design_source_root = arch
+            if branch == "main":
+                url_template = (
+                    "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}")
+            design_source_root = f"microblaze_images/{design_name}"
+            print(f"DEBUG: MicroBlaze design_source_root: {design_source_root}")
+            # get simpleImage
             log.info("Getting simpleimage")
-            simpleimage = "simpleImage." + design_name + ".strip"
+            simpleimage = "simpleImage.strip"
             self._get_file(
                 simpleimage,
+                source,
+                design_source_root,
+                source_root,
+                branch,
+                url_template=url_template,
+            )
+            # get bitstream
+            log.info("Getting bitstream")
+            bitstream = "system_top.bit"
+            self._get_file(
+                bitstream,
                 source,
                 design_source_root,
                 source_root,
@@ -859,9 +889,10 @@ class downloader(utils):
                 )
 
             if microblaze:
-                self._get_files_hdl(
-                    hdl_folder, source, source_root, branch, hdl_output=True
-                )
+                hdl_branch = "master" if branch == "main" else branch
+                #self._get_files_hdl(
+                #    hdl_folder, source, source_root, hdl_branch, hdl_output=True
+                #)
                 self._get_files_linux(
                     design_name,
                     source,
@@ -966,7 +997,7 @@ class downloader(utils):
         noos_project = self.no_os_project
         platform = self.platform
 
-        assert design_name in board_configs, "Invalid design name"
+        assert design_name in board_configs, f"Invalid design name {design_name}"
 
         if not firmware:
             matched = re.match("v[0-1].[0-9][0-9]", branch)
