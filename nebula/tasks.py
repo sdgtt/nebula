@@ -752,7 +752,7 @@ def gen_config_netbox(
     netbox_baseurl=None,
     jenkins_agent=None,
     board_name=None,
-    include_variants=True,
+    include_variants=False,
     include_children=True,
     devices_status="active",
     devices_role="fpga-dut",
