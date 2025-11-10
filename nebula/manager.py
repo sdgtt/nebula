@@ -694,10 +694,8 @@ class manager:
         # stop uart logging first
         try:
             self.monitor[0].stop_log()
-            del self.monitor[0]  # Release uart file descriptor lock
             self.power.power_cycle_board()
             log.info("Waiting for boot to complete")
-            self.monitor[0].reinitialize_uart()
             results = self.monitor[0]._read_until_done_multi(
                 done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
             )
@@ -706,10 +704,16 @@ class manager:
             log.warning("UART is unavailable.")
             log.warning(str(ex))
             # wait longer and restart board using jtag
-            time.sleep(60)
-            self.monitor[0].reinitialize_uart()
-            self.monitor[0].start_log(logappend=True)
-            self.jtag.restart_board()
+            try:
+                time.sleep(5)
+                self.monitor[0].reinitialize_uart()
+                self.monitor[0].start_log(logappend=True)
+            except Exception as ex:
+                if self.jtag:
+                    time.sleep(55)
+                    self.jtag.restart_board()
+                else:
+                    raise Exception("UART not reachable after powercycle: " + str(ex))
             log.info("Waiting for boot to complete")
             results = self.monitor[0]._read_until_done_multi(
                 done_strings=["U-Boot", "Starting kernel", "root@analog"], max_time=100
