@@ -161,19 +161,15 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
             else:
                 release_folder = get_latest_release(listFD(url))
         else:
-            release_folder = (
-                branch
-                if not bool(re.search("hdl", url_template))
-                else branch + "/" + addl
-            )
+            if bool(re.search("boot_partition", url_template)):
+                release_folder = branch.lower()
+            elif bool(re.search("hdl", url_template)):
+                release_folder = "hdl_" + branch.lower() + "/" + addl
+            else:
+                release_folder = branch.upper()
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
-        if branch == "main" and "boot_partition" in url_template:
-            folder = (
-                get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
-            )
-        else:
-            folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+        folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
         return url_template.format(ip, release_folder, folder, filename)
 
 
