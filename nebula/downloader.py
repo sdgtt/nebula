@@ -169,9 +169,6 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
                 release_folder = branch.upper()
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
-<<<<<<< HEAD
-        folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
-=======
         if branch == "main" and "boot_partition" in url_template:
 
             if "microblaze_images" in str (folder):
@@ -183,7 +180,6 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
                 )
         else:
             folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
->>>>>>> 7b9597d (microblaze bootfiles downloader update)
         return url_template.format(ip, release_folder, folder, filename)
 
 
@@ -508,7 +504,7 @@ class downloader(utils):
                 )
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
-
+                
             if microblaze:
                 design_source_root = f"microblaze_images/{design_name}"
                 print(f"DEBUG: MicroBlaze design_source_root: {design_source_root}")
@@ -543,8 +539,6 @@ class downloader(utils):
                 self._get_file(
                     kernel, source, kernel_root, source_root, branch, url_template=url_template
                 )
-
-
                 if boot_subfolder is not None:
                     design_source_root = os.path.join(reference_boot_folder, boot_subfolder)
                 else:
@@ -921,20 +915,23 @@ class downloader(utils):
                 )
 
             if microblaze:
-                hdl_branch = "master" if branch == "main" else branch
+                #hdl_branch = "master" if branch == "main" else branch
                 #self._get_files_hdl(
                 #    hdl_folder, source, source_root, hdl_branch, hdl_output=True
                 #)
-                self._get_files_linux(
-                    design_name,
+                self._get_files_boot_partition(
+                    reference_boot_folder,
+                    devicetree_subfolder,
+                    boot_subfolder,
                     source,
                     source_root,
                     branch,
                     kernel,
                     kernel_root,
                     dt,
-                    arch,
+                    design_name,
                     microblaze,
+                    url_template,
                 )
 
             if rpi:

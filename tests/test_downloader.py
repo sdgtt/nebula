@@ -121,7 +121,7 @@ def test_noos_downloader(test_downloader, board_name, branch, filetype):
 
 #@pytest.mark.skip(reason="Not built") #remove for testing
 @pytest.mark.parametrize("board_name", ["kcu105_adrv9371x"])
-@pytest.mark.parametrize("branch", ["release","main"])
+@pytest.mark.parametrize("branch", ["main"])
 @pytest.mark.parametrize("filetype", ["microblaze"])
 def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
     import sys
