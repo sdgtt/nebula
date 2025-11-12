@@ -67,30 +67,46 @@ def test_downloader():
         shutil.rmtree("outs")
 
 
-@pytest.mark.parametrize("board_name", ["zynq-zc706-adv7511-fmcomms11"])
+@pytest.mark.parametrize(
+    "board_name",
+    ["zynq-zc706-adv7511-fmcomms11", "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos"],
+)
 @pytest.mark.parametrize("branch", ["release", "main", "2023_r2"])
 @pytest.mark.parametrize("filetype", ["boot_partition"])
 def test_boot_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
     assert os.path.isfile("outs/BOOT.BIN")
-    assert os.path.isfile("outs/uImage")
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
-    assert os.path.isfile("outs/devicetree.dtb")
     assert os.path.isfile("outs/properties.yaml")
     assert os.path.isfile("outs/hashes.txt")
 
+    if board_name == "zynq-zc706-adv7511-fmcomms11":
+        assert os.path.isfile("outs/uImage")
+        assert os.path.isfile("outs/devicetree.dtb")
+    if board_name == "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos":
+        assert os.path.isfile("outs/Image")
+        assert os.path.isfile("outs/system.dtb")
 
-@pytest.mark.parametrize("board_name", ["zynq-zc706-adv7511-fmcomms11"])
+
+@pytest.mark.parametrize(
+    "board_name",
+    ["zynq-zc706-adv7511-fmcomms11", "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos"],
+)
 @pytest.mark.parametrize("branch", ["release", "main", "2022_r2", "2023_R2"])
 @pytest.mark.parametrize("filetype", ["hdl_linux"])
 def test_hdl_linux_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
     assert os.path.isfile("outs/BOOT.BIN")
-    assert os.path.isfile("outs/uImage")
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
-    assert os.path.isfile("outs/devicetree.dtb")
     assert os.path.isfile("outs/properties.yaml")
     assert os.path.isfile("outs/hashes.txt")
+
+    if board_name == "zynq-zc706-adv7511-fmcomms11":
+        assert os.path.isfile("outs/uImage")
+        assert os.path.isfile("outs/devicetree.dtb")
+    if board_name == "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos":
+        assert os.path.isfile("outs/Image")
+        assert os.path.isfile("outs/system.dtb")
 
 
 @pytest.mark.parametrize("board_name", ["max32650_adxl355"])

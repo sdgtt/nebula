@@ -625,7 +625,12 @@ class downloader(utils):
         microblaze=False,
     ):
         url_template = None
-        kernel_root = "zynq" if kernel_root == "zynq-common" else "zynqmp"
+        if kernel_root == "zynq-common":
+            kernel_root = "zynq"
+        elif kernel_root == "zynqmp-common" and branch < "2023_R2":
+            kernel_root = "zynq_u"
+        else:
+            kernel_root = "zynqmp"
         if source == "artifactory":
             design_source_root = arch + "/" + kernel_root
             # set linux url template

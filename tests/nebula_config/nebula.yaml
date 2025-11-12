@@ -94,3 +94,23 @@ kc705_fmcomms4:
     - ad9361-phy
     - cf-ad9361-dds-core-lpc
     - cf-ad9361-lpc
+zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos:
+  board-config:
+  - board-name: zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos
+  - carrier: ZCU102
+  - daughter: ADRV9002-RX2TX2-CMOS
+  - monitoring-interface: uart
+  - allow-jtag: True
+  - serial: ''
+  - instr-serial: NA
+  downloader-config:
+  - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
+  - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
+  - boot_subfolder: boot_bin_CMOS
+  - hdl_folder: adrv9001_zcu102
+  driver-config:
+  - iio_device_names:
+    - adrv9002-phy
+    - axi-adrv9002-rx-lpc
+    - axi-core-tdd
+    - axi-adrv9002-tx-lpc
