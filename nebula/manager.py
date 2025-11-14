@@ -953,8 +953,12 @@ class manager:
                 # exclude some files
                 if fname in ["bootgen_sysfiles.tgz"]:
                     continue
-                if fname == self.board_name + ".dtb":
-                    fname = "devicetree.dtb"
+                if ".dtb" in fname:
+                    fname = (
+                        "system.dtb"
+                        if "zynqmp" in self.board_name
+                        else "devicetree.dtb"
+                    )
                 self.net.verify_checksum(
                     file_path=os.path.join("/boot", fname), reference=hash
                 )
