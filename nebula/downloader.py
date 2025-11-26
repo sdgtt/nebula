@@ -169,7 +169,17 @@ def gen_url(ip, branch, folder, filename, addl, url_template):
                 release_folder = branch.upper()
         url = url_template.format(ip, release_folder, "", "")
         # folder = BUILD_DATE/PROJECT_FOLDER
-        folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+        if branch == "main" and "boot_partition" in url_template:
+
+            if "microblaze_images" in str (folder):
+                folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
+                print(f"debug: microblaze folder constructed: {folder}")
+            else:
+                folder = (
+                    get_newest_folder(listFD(url[:-1])) + "/boot_partition/" + str(folder)
+                )
+        else:
+            folder = get_newest_folder(listFD(url[:-1])) + "/" + str(folder)
         return url_template.format(ip, release_folder, folder, filename)
 
 
@@ -483,6 +493,8 @@ class downloader(utils):
         kernel,
         kernel_root,
         dt,
+        design_name=None,
+        microblaze=False,
         url_template=None,
     ):
         if source == "artifactory":
@@ -492,53 +504,80 @@ class downloader(utils):
                 )
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}"
+                
+            if microblaze:
+                design_source_root = f"microblaze_images/{design_name}"
+                print(f"DEBUG: MicroBlaze design_source_root: {design_source_root}")
 
-        log.info("Getting standard boot files")
-        # Get kernel
-        log.info("Getting " + kernel)
-        self._get_file(
-            kernel, source, kernel_root, source_root, branch, url_template=url_template
-        )
+                # get simpleImage
+                log.info("Getting simpleimage")
+                simpleimage = "simpleImage.strip"
+                self._get_file(
+                    simpleimage,
+                    source,
+                    design_source_root,
+                    source_root,
+                    branch,
+                    url_template=url_template,
+                )
+                # get bitstream
+                log.info("Getting bitstream")
+                bitstream = "system_top.bit"
+                self._get_file(
+                    bitstream,
+                    source,
+                    design_source_root,
+                    source_root,
+                    branch,
+                    url_template=url_template,
+                )
+            else:
 
-        if boot_subfolder is not None:
-            design_source_root = os.path.join(reference_boot_folder, boot_subfolder)
-        else:
-            design_source_root = reference_boot_folder
-        # Get BOOT.BIN
-        log.info("Getting BOOT.BIN")
-        self._get_file(
-            "BOOT.BIN",
-            source,
-            design_source_root,
-            source_root,
-            branch,
-            url_template=url_template,
-        )
-        # Get support files (bootgen_sysfiles.tgz)
-        log.info("Getting support files")
-        self._get_file(
-            "bootgen_sysfiles.tgz",
-            source,
-            design_source_root,
-            source_root,
-            branch,
-            url_template=url_template,
-        )
-
-        # Get device tree
-        log.info("Getting " + dt)
-        if devicetree_subfolder is not None:
-            design_source_root = reference_boot_folder + "/" + devicetree_subfolder
-        else:
-            design_source_root = reference_boot_folder
-        self._get_file(
-            dt,
-            source,
-            design_source_root,
-            source_root,
-            branch,
-            url_template=url_template,
-        )
+                log.info("Getting standard boot files")
+                # Get kernel
+                log.info("Getting " + kernel)
+                self._get_file(
+                    kernel, source, kernel_root, source_root, branch, url_template=url_template
+                )
+                if boot_subfolder is not None:
+                    design_source_root = os.path.join(reference_boot_folder, boot_subfolder)
+                else:
+                    design_source_root = reference_boot_folder
+                # Get BOOT.BIN
+                log.info("Getting BOOT.BIN")
+                self._get_file(
+                    "BOOT.BIN",
+                    source,
+                    design_source_root,
+                    source_root,
+                    branch,
+                    url_template=url_template,
+                )
+                # Get support files (bootgen_sysfiles.tgz)
+                log.info("Getting support files")
+                self._get_file(
+                    "bootgen_sysfiles.tgz",
+                    source,
+                    design_source_root,
+                    source_root,
+                    branch,
+                    url_template=url_template,
+                )
+    
+                # Get device tree
+                log.info("Getting " + dt)
+                if devicetree_subfolder is not None:
+                    design_source_root = reference_boot_folder + "/" + devicetree_subfolder
+                else:
+                    design_source_root = reference_boot_folder
+                self._get_file(
+                    dt,
+                    source,
+                    design_source_root,
+                    source_root,
+                    branch,
+                    url_template=url_template,
+                )
 
         if source == "artifactory":
             # check if info_txt is present
@@ -641,42 +680,59 @@ class downloader(utils):
             else:
                 url_template = "https://{}/artifactory/sdg-generic-development/linux/releases/{}/{}/{}"
 
-        if microblaze:
-            design_source_root = arch
-            log.info("Getting simpleimage")
-            simpleimage = "simpleImage." + design_name + ".strip"
-            self._get_file(
-                simpleimage,
-                source,
-                design_source_root,
-                source_root,
-                branch,
-                url_template=url_template,
-            )
-        else:
-            # Get files from linux folder
-            # Get kernel
-            log.info("Getting " + kernel)
-            self._get_file(
-                kernel,
-                source,
-                design_source_root,
-                source_root,
-                branch,
-                url_template=url_template,
-            )
-            # Get device tree
-            dt_dl = design_name + ".dtb"
-            log.info("Getting " + dt_dl)
-            design_source_root = arch
-            self._get_file(
-                dt_dl,
-                source,
-                design_source_root,
-                source_root,
-                branch,
-                url_template=url_template,
-            )
+        #if microblaze:
+        #    if branch == "main":
+        #        url_template = (
+        #            "https://{}/artifactory/sdg-generic-development/boot_partition/{}/{}/{}")
+        #    design_source_root = f"microblaze_images/{design_name}"
+        #    print(f"DEBUG: MicroBlaze design_source_root: {design_source_root}")
+        #    # get simpleImage
+        #    log.info("Getting simpleimage")
+        #    simpleimage = "simpleImage.strip"
+        #    self._get_file(
+        #        simpleimage,
+        #        source,
+        #        design_source_root,
+        #        source_root,
+        #        branch,
+        #        url_template=url_template,
+        #    )
+        #    # get bitstream
+        #    log.info("Getting bitstream")
+        #    bitstream = "system_top.bit"
+        #    self._get_file(
+        #        bitstream,
+        #        source,
+        #        design_source_root,
+        #        source_root,
+        #        branch,
+        #        url_template=url_template,
+        #    )
+        #else:
+        
+        # Get files from linux folder
+        # Get kernel
+        log.info("Getting " + kernel)
+        self._get_file(
+            kernel,
+            source,
+            design_source_root,
+            source_root,
+            branch,
+            url_template=url_template,
+        )
+        # Get device tree
+        dt_dl = design_name + ".dtb"
+        log.info("Getting " + dt_dl)
+        design_source_root = arch
+        self._get_file(
+            dt_dl,
+            source,
+            design_source_root,
+            source_root,
+            branch,
+            url_template=url_template,
+        )
 
         if source == "artifactory":
             get_gitsha(self.url, daily=True, linux=True)
@@ -859,19 +915,23 @@ class downloader(utils):
                 )
 
             if microblaze:
-                self._get_files_hdl(
-                    hdl_folder, source, source_root, branch, hdl_output=True
-                )
-                self._get_files_linux(
-                    design_name,
+                #hdl_branch = "master" if branch == "main" else branch
+                #self._get_files_hdl(
+                #    hdl_folder, source, source_root, hdl_branch, hdl_output=True
+                #)
+                self._get_files_boot_partition(
+                    reference_boot_folder,
+                    devicetree_subfolder,
+                    boot_subfolder,
                     source,
                     source_root,
                     branch,
                     kernel,
                     kernel_root,
                     dt,
-                    arch,
+                    design_name,
                     microblaze,
+                    url_template,
                 )
 
             if rpi:
@@ -897,6 +957,8 @@ class downloader(utils):
                         kernel,
                         kernel_root,
                         dt,
+                        design_name,
+                        microblaze,
                         url_template,
                     )
                 elif folder == "hdl_linux":
@@ -966,7 +1028,7 @@ class downloader(utils):
         noos_project = self.no_os_project
         platform = self.platform
 
-        assert design_name in board_configs, "Invalid design name"
+        assert design_name in board_configs, f"Invalid design name {design_name}"
 
         if not firmware:
             matched = re.match("v[0-1].[0-9][0-9]", branch)
