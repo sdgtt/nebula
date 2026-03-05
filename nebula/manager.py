@@ -753,6 +753,8 @@ class manager:
         files = os.listdir(folder)
         res = []
         for file in files:
+            if file == "properties.yaml": #to skip checking of properties.yaml file
+                continue
             path = os.path.join(folder, file)
             filesize = os.stat(path).st_size
             if filesize <= 80:
@@ -963,3 +965,4 @@ class manager:
                 self.net.verify_checksum(
                     file_path=os.path.join("/boot", fname), reference=hash
                 )
+
