@@ -336,6 +336,7 @@ class uart(utils):
         cmd = password
         self._write_data(cmd)
         data = self._read_for_time(period=2)
+        time.sleep(5)
         # Check
         cmd = ""
         self._write_data(cmd)
@@ -459,6 +460,63 @@ class uart(utils):
         """Read MAC Address of enumerated NIC on host from DUT (Pluto/M2K only)"""
         cmd = "cat /www/index.html | grep '00:' | grep -v `cat /sys/class/net/usb0/address` | sed 's/ *<[^>]*> */ /g'"
         return self.get_uart_command_for_linux(cmd, "00")
+
+    def request_ip_dhcp_microblaze(self, nic="eth0"):
+        self._read_until_stop()  # Flush
+        self._write_data(
+            f"ifconfig {nic} down; ifconfig {nic} up; udhcpc -r {nic}; sleep 5"
+        )
+        time.sleep(5)
+        self._read_until_stop()  # Flush
+        time.sleep(5)
+        self._write_data(f"udhcpc {nic}; sleep 5")
+        address = self.get_ip_address_microblaze()
+        log.debug(f"Got IP address: {address}")
+        return None
+
+    def get_ip_address_microblaze(self):
+        """Read IP address of DUT using ifconfig from UART for MicroBlaze"""
+        cmd = "ifconfig eth0 | grep -v 127 | awk '$1 == \"inet\" {print $2}' | awk -F'/' '{print $1}'"
+        restart = False
+        if self.listen_thread_run:
+            restart = True
+            self.stop_log()
+        # Check if we need to login to the console
+        if not self._check_for_login():
+            raise Exception("Console inaccessible due to login failure")
+        log.info("We seem to be logged in...")
+        self._write_data(cmd)
+        data = self._read_for_time(period=2)
+        log.info("Data read: " + str(data))
+        if restart:
+            self.start_log(logappend=True)
+        for d in data:
+            if isinstance(d, list):
+                for c in d:
+                    if "ifconfig eth0" in c:
+                        continue
+                    c = escape_ansi(c.replace("\r", ""))
+                    c = c.replace("addr:", "").strip()
+                    log.info("Checking: " + str(c))
+                    try:
+                        ipaddress.ip_address(c)
+                        log.info("Found IP: " + str(c))
+                        return c
+                    except Exception:
+                        continue
+            else:
+                try:
+                    if "ifconfig eth0" in d:
+                        continue
+                    d = escape_ansi(d)
+                    d = d.replace("addr:", "").strip()
+                    log.info("Checking: " + str(d))
+                    ipaddress.ip_address(d)
+                    log.info("Found IP: " + str(d))
+                    return d
+                except Exception:
+                    continue
+        return None
 
     def get_ip_address(self):
         """Read IP address of DUT using ip command from UART"""
@@ -610,6 +668,68 @@ class uart(utils):
         if restart:
             self.start_log(logappend=True)
         return out
+
+    def _wait_for_boot_complete_microblaze(self, max_time=10, prompt="#"):
+        """Wait for MicroBlaze to boot by waiting for prompt, spamming ENTER if needed."""
+
+        # Spam ENTER until "Welcome to Buildroot" is found or timeout
+        for _ in range(max_time):
+            self._write_data("\n")  # Spam ENTER
+            time.sleep(5)
+            found = self._read_until_done(
+                done_string="Welcome to Buildroot", max_time=1
+            )
+            log.info("UART read after ENTER: {}".format(found))
+            if found:
+                log.info(
+                    "---buildroot welcome message found, waiting for login prompt---"
+                )
+                break
+            time.sleep(1)
+        else:
+            log.warning("Buildroot welcome message not found after spamming ENTER")
+            return False
+
+        # Waiting for login prompt and attempt login
+        login_success = False
+        for attempt in range(15):
+            self._write_data("\n")
+            time.sleep(1)
+            lines = self._read_until_stop()
+            log.debug("UART lines: {}".format(lines))
+            for line in lines:
+                if "buildroot login:" in line:
+                    log.info("Buildroot login prompt found")
+                    login_success = self._check_for_login()
+                    if not login_success:
+                        log.warning("Login failed")
+                        return False
+                    break
+            if login_success:
+                break
+            time.sleep(1)
+        if not login_success:
+            log.warning("Login failed")
+            return False
+
+        # wait for MicroBlaze shell prompt
+        isRootLevel = False
+        for attempt in range(5):
+            self._write_data("\n")
+            time.sleep(1)
+            lines = self._read_until_stop()
+            log.debug("UART lines: {}".format(lines))
+            for uart_line in lines:
+                if prompt in uart_line:
+                    log.info("Microblaze prompt found, boot complete")
+                    isRootLevel = True
+                    break
+            if isRootLevel:
+                break
+            time.sleep(1)
+        if not isRootLevel:
+            log.warning("Microblaze prompt not found")
+            return False
 
     def _enter_uboot_menu_from_power_cycle(self):
         log.info("Spamming ENTER to get UART console")

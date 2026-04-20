@@ -1,0 +1,44 @@
+@startuml Microblaze Boot and Test Flow
+start
+:Boot Downloader;
+partition "Boot Downloader (MicroBlaze)" {
+  :Check if source is "artifactory";
+  :Set URL template for boot partition;
+  :Download required files (simpleImage.strip, system_top.bit);
+  :Transfer files to target machine (machine02);
+}
+:Netbox - Add Parameter;
+:Generate Config Template;
+
+partition "Load Bootfile (MicroBlaze)" {
+  :source /opt/Xilinx/Vivado/2021.1/settings64.sh;
+  :cd to project folder;
+  :Run xsdb;
+  :connect;
+  :power on board;
+  :targets (check device);
+  :target <n> (select board target);
+  :fpga -f system_top.bit;
+  :targets;
+  :target <n> (select microblaze target);
+  :dow simpleImage.strip;
+  :Open UART terminal (2nd terminal);
+  :screen <uart address> 115200;
+  :Record log;
+  :con (continue microblaze in xsdb);
+  :enter;
+  :root;
+  :analog;
+}
+
+:Linux Tests;
+partition linux {
+  :dmesg | grep sysid;
+  :dmesg | grep failed;
+  :dmesg | grep error;
+  :iio_info;
+  :iio_info | grep iio:device;
+  :ifconfig;
+}
+stop
+@enduml

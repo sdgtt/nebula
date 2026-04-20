@@ -33,6 +33,7 @@ class manager:
         board_name=None,
         vivado_version=None,
         extras=None,
+        microblaze=False,
     ):
         # Check if config info exists in yaml
         self.configfilename = configfilename
@@ -184,9 +185,12 @@ class manager:
         ref = ref + "/" + str(target)
         self.monitor[0].copy_reference(ref, target)
 
-    def network_check(self):
+    def network_check(self, microblaze=False):
         if not self.net.ping_board():
-            ip = self.monitor[0].get_ip_address()
+            if microblaze:
+                ip = self.monitor[0].get_ip_address_microblaze()
+            else:
+                ip = self.monitor[0].get_ip_address()
             if ip and ip != self.net.dutip:
                 log.info("DUT IP changed to: " + str(ip))
                 self.net.dutip = ip
@@ -196,8 +200,12 @@ class manager:
                     self.configfilename, "network-config", "dutip", ip, self.board_name
                 )
             if not ip:
-                self.monitor[0].request_ip_dhcp()
-                ip = self.monitor[0].get_ip_address()
+                if microblaze:
+                    self.monitor[0].request_ip_dhcp_microblaze()
+                    ip = self.monitor[0].get_ip_address_microblaze()
+                else:
+                    self.monitor[0].request_ip_dhcp()
+                    ip = self.monitor[0].get_ip_address()
                 if not ip:
                     self.monitor[0].stop_log()
                     raise ne.NetworkNotFunctionalAfterBootFileUpdate
@@ -433,6 +441,33 @@ class manager:
             # Check is networking is working
             self.network_check()
             self.monitor[0].stop_log()
+
+    @_release_thread_lock  # type: ignore
+    def board_boot_microblaze_jtag_uart(
+        self,
+        system_top_bit_path,
+        strip_path,
+    ):
+        """Reset board and load microblaze bitstream
+        over JTAG. Then over UART boot
+        """
+        self.monitor[0]._read_until_stop()  # Flush
+
+        log.info("Booting microblaze via JTAG")
+        self._check_files_exist(system_top_bit_path, strip_path)
+        self.jtag.microblaze_boot_linux(system_top_bit_path, strip_path)
+        time.sleep(15)
+        self.monitor[0].stop_log()
+        self.monitor[0]._wait_for_boot_complete_microblaze()
+
+        self.monitor[0].start_log(logappend=True)
+        ip = self.monitor[0].get_ip_address_microblaze()
+        log.info("ip got:" + str(ip))
+        if not ip:
+            self.monitor[0].request_ip_dhcp_microblaze()
+            ip = self.monitor[0].get_ip_address_microblaze()
+        self.network_check(microblaze=True)
+        self.monitor[0].stop_log()
 
     @_release_thread_lock  # type: ignore
     def board_reboot_uart_net_pdu(
@@ -747,12 +782,14 @@ class manager:
         for mon in self.monitor:
             mon.stop_log()
 
-    def _find_boot_files(self, folder):
+    def _find_boot_files(self, folder, microblaze=False):
         if not os.path.isdir(folder):
             raise Exception("Boot files folder not found")
         files = os.listdir(folder)
         res = []
         for file in files:
+            if file == "properties.yaml":  # to skip checking of properties.yaml file
+                continue
             path = os.path.join(folder, file)
             filesize = os.stat(path).st_size
             if filesize <= 80:
@@ -770,6 +807,7 @@ class manager:
 
         targets = {
             "bit": ["system_top.bit"],
+            "strip": ["simpleImage.strip"],
             "bootbin": ["BOOT.BIN", "soc_system.rbf"],
             "kernel": ["uImage", "Image", "zImage"],
             "dt": ["devicetree.dtb", "system.dtb", "socfpga.dtb"],
@@ -782,7 +820,11 @@ class manager:
                 "u-boot_xilinx_zynqmp_zcu102_revA.elf",
             ],
         }
-        required = ["bootbin", "dt", "kernel"]
+
+        if microblaze:
+            required = ["bit", "strip"]
+        else:
+            required = ["bootbin", "dt", "kernel"]
         found_files = {}
         for filetype in targets.keys():
             for pattern in targets[filetype]:
@@ -794,20 +836,31 @@ class manager:
                     raise Exception(f"{filetype} - {pattern} not found")
                 else:
                     found_files.update({filetype: None})
-
-        return (
-            found_files["bit"],
-            found_files["bootbin"],
-            found_files["kernel"],
-            found_files["dt"],
-            found_files["ext"],
-            found_files["scr"],
-            found_files["preloader"],
-            found_files["uboot"],
-        )
+        if microblaze:
+            return (
+                found_files["bit"],
+                found_files["strip"],
+            )
+        else:
+            return (
+                found_files["bit"],
+                found_files["bootbin"],
+                found_files["kernel"],
+                found_files["dt"],
+                found_files["ext"],
+                found_files["scr"],
+                found_files["preloader"],
+                found_files["uboot"],
+            )
 
     def board_reboot_auto_folder(
-        self, folder, sdcard=False, design_name=None, recover=False, jtag_mode=False
+        self,
+        folder,
+        sdcard=False,
+        design_name=None,
+        recover=False,
+        jtag_mode=False,
+        microblaze=False,
     ):
         """Automatically select loading mechanism
         based on current class setup and automatically find boot
@@ -833,6 +886,20 @@ class manager:
 
         else:
             log.info("SD-Card/microblaze based device selected")
+            if microblaze:
+                files = os.listdir(folder)
+                if "simpleImage.strip" not in files:
+                    raise Exception("simpleImage.strip not found in folder")
+                bit, strip = self._find_boot_files(folder, microblaze=True)
+                log.info("Found microblaze boot files:")
+                for file in [bit, strip]:
+                    if file:
+                        log.info(file)
+                self.board_boot_microblaze_jtag_uart(
+                    system_top_bit_path=bit,
+                    strip_path=strip,
+                )
+                return
             (
                 bit,
                 bootbin,

@@ -1,0 +1,17 @@
+@startuml MicroBlaze Downloader Flow
+start
+:Check if source is "artifactory";
+:Prepare URL template for boot partition;
+:Check if microblaze is True;
+if (microblaze?) then (yes)
+  :Set design_source_root to microblaze_images/{design_name};
+  :Download simpleImage.strip using _get_file;
+  :Download system_top.bit using _get_file;
+  :Files saved to outs directory;
+  :(Optional) Fetch build info and git SHA;
+  stop
+else (no)
+  :[Other flow not shown];
+  stop
+endif
+@enduml

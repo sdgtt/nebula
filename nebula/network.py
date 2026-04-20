@@ -30,6 +30,7 @@ class network(utils):
         yamlfilename=None,
         board_name=None,
     ):
+
         props = ["dutip", "dutusername", "dutpassword", "dhcp", "nic", "nicip"]
         for prop in props:
             setattr(self, prop, None)
@@ -49,6 +50,10 @@ class network(utils):
         self.ssh_timeout = 30
         self.board_name = board_name
 
+        self.microblaze_enable = any(
+            keyword in self.board_name.lower() for keyword in ["vc", "kc"]
+        )
+
     def ping_board(self, tries=10):
         """Ping board and check if any received
 
@@ -66,8 +71,10 @@ class network(utils):
                 )
                 out, error = ping.communicate()
                 if "0 received" in str(out):
+                    log.error("Ping failed")
                     raise Exception("Ping failed")
                 pinged = True
+                log.info("Ping successful")
                 break
             except Exception:
                 log.warn("Retrying ping")
@@ -118,7 +125,6 @@ class network(utils):
 
     def reboot_board(self, bypass_sleep=False):
         """Reboot board over SSH, otherwise raise exception"""
-        log.info("Rebooting board over SSH")
         # Try to reboot board with SSH if possible
         retries = 3
         for t in range(retries):
@@ -133,7 +139,7 @@ class network(utils):
                         time.sleep(30)
                     break
                 else:
-                    # Use PDU
+                    # TODO:  Use PDU
                     raise Exception("PDU reset not implemented yet")
 
             except Exception as ex:
@@ -167,6 +173,7 @@ class network(utils):
                     pty=True,
                     in_stream=False,
                 )
+
                 if result.failed:
                     raise Exception("Failed to run command:", command)
 
@@ -330,7 +337,23 @@ class network(utils):
         tmp_filename_err = "/tmp/" + tmp_filename_root + "_err"
         tmp_filename_war = "/tmp/" + tmp_filename_root + "_warn"
 
-        if self.board_name == "pluto" or self.board_name == "m2k":
+        if self.microblaze_enable:
+            max_retries = 3
+            for attempt in range(max_retries):
+                log.info("dmesg command attempt: " + str(attempt + 1))
+                try:
+                    self.run_ssh_command("dmesg > " + tmp_filename)
+                    self._dl_file(tmp_filename)
+                    self.run_ssh_command(
+                        'dmesg | grep -E "failed|error" > ' + tmp_filename_err
+                    )
+                    self._dl_file(tmp_filename_err)
+                    break
+                except Exception as e:
+                    log.warning(f"attempt {attempt + 1} failed with exception: {e}")
+                    if attempt == max_retries - 1:
+                        raise e
+        elif self.board_name == "pluto" or self.board_name == "m2k":
             with open(tmp_filename_root, "w") as outfile:
                 outfile.write(self.run_ssh_command("dmesg").stdout)
             with open(tmp_filename_root + "_warn", "w") as outfile:
@@ -350,18 +373,21 @@ class network(utils):
             self._dl_file(tmp_filename_err)
 
         os.rename(tmp_filename_root, "dmesg.log")
-        os.rename(tmp_filename_root + "_warn", "dmesg_warn.log")
         os.rename(tmp_filename_root + "_err", "dmesg_err.log")
-        logging.info("dmesg logs collected")
+        warn_log = []
 
-        # Process
-        with open("dmesg.log", "r") as f:
-            all_log = f.readlines()
-        with open("dmesg_warn.log", "r") as f:
-            warn_log = f.readlines()
+        if not self.microblaze_enable:
+            os.rename(tmp_filename_root + "_warn", "dmesg_warn.log")
+            with open("dmesg_warn.log", "r") as f:
+                warn_log = f.readlines()
+
         with open("dmesg_err.log", "r") as f:
             error_log = f.readlines()
+        with open("dmesg.log", "r") as f:
+            all_log = f.readlines()
+        logging.info("dmesg logs collected")
 
+        # filtering known errors
         path = pathlib.Path(__file__).parent.absolute()
         res = os.path.join(path, "resources", "err_rejects.txt")
         with open(res) as f:
@@ -369,12 +395,10 @@ class network(utils):
         error_rejects_no_ws = [
             s.replace(" ", "").replace("\n", "") for s in error_rejects
         ]
-
         error_log_filetered = []
         for i in error_log:
             msg_log = re.sub(r"^\[[\s\.\d]*\] ", "", i)
             log_no_ws = msg_log.replace(" ", "").replace("\n", "")
-
             if log_no_ws not in error_rejects_no_ws:
                 error_log_filetered.append(i)
 
@@ -386,7 +410,11 @@ class network(utils):
         if len(error_log_filetered) > 0:
             log.info("Errors found in dmesg logs")
 
-        logs = {"log": all_log, "warn": warn_log, "error": error_log_filetered}
+        logs = {"log": all_log, "error": error_log_filetered}
+        if (
+            not self.microblaze_enable
+        ):  # subject for change, need to identify what are the warnings and the errors for microblaze
+            logs.update({"warn": warn_log})
         return len(error_log_filetered) > 0, logs
 
     def run_diagnostics(self):
@@ -412,7 +440,7 @@ class network(utils):
 
     def verify_checksum(self, file_path, reference, algo="sha256"):
         if algo == "sha256":
-            ssh_command = 'python -c "import hashlib;'
+            ssh_command = 'python3 -c "import hashlib;'
             ssh_command += f" print(hashlib.sha256(open('{file_path}', 'rb').read()).hexdigest())\""
             result = self.run_ssh_command(
                 command=ssh_command, print_result_to_file=False, show_log=False

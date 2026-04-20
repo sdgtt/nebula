@@ -2,6 +2,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import time
 
 from nebula.common import utils
@@ -21,10 +22,12 @@ class jtag(utils):
         jtag_cable_id=None,
         jtag_cpu_target_name=None,
         jtag_connect_retries=3,
+        jtag_board_target_name=None,
     ):
         self.vivado_version = vivado_version
         self.custom_vivado_path = custom_vivado_path
         self.jtag_cable_id = jtag_cable_id
+        self.jtag_board_target_name = jtag_board_target_name
         self.jtag_cpu_target_name = jtag_cpu_target_name
         self.jtag_connect_retries = jtag_connect_retries
 
@@ -87,7 +90,6 @@ class jtag(utils):
             )
 
         cmd = vivado + '; xsdb -eval "{}"'.format(cmd)
-        # cmd = [vivado + '; xsdb',' -eval "{}"'.format(cmd)]
         return self._shell_out2(cmd)
 
     def restart_board(self):
@@ -219,5 +221,34 @@ class jtag(utils):
 
         # u-boot takes over from here
         # Must not overwrite memory locations
+
+        self.run_xsdb(cmd)
+
+    def microblaze_boot_linux(self, bitstream, strip):
+        """Boot microblaze over JTAG
+
+        Args:
+            bitstream (str): Path to bitstream file
+            strip (str): Path to stripped ELF file
+
+        Raises:
+            Exception: If bitstream or stripped ELF file not found
+        """
+        assert os.path.isfile(bitstream), f"Bitstream file not found: {bitstream}"
+        assert os.path.isfile(strip), f"Stripped ELF file not found: {strip}"
+
+        cmd = "connect; "
+        cmd += "after 3000; "
+        cmd += self.target_set_str(self.jtag_board_target_name)
+        cmd += "puts {Loading Bitstream}; "
+        cmd += f"fpga -f {bitstream}; "
+        cmd += "after 3000; "
+        cmd += "puts {Loading Stripped ELF}; "
+        cmd += self.target_set_str(self.jtag_cpu_target_name)
+        cmd += "targets; "
+        cmd += "after 3000; "
+        cmd += f"dow {strip}; "
+        cmd += "con; "
+        cmd += "after 3000; "
 
         self.run_xsdb(cmd)
