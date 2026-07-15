@@ -1,116 +1,193 @@
 max32650_adxl355:
   board-config:
-  - board-name: max32650_adxl355
-  - carrier: Maxim
-  - daughter: ADXL355
-  - monitoring-interface: uart
-  - example: iio_example
+    - board-name: max32650_adxl355
+    - carrier: Maxim
+    - daughter: ADXL355
+    - monitoring-interface: uart
+    - example: iio_example
   downloader-config:
-  - no_os_project: eval-adxl355-pmdz
-  - platform: Maxim
+    - no_os_project: eval-adxl355-pmdz
+    - platform: Maxim
 zynq-zc702-adv7511-ad9361-fmcomms2-3:
   board-config:
-  - board-name: zynq-zc702-adv7511-ad9361-fmcomms2-3
-  - monitoring_interface: uart
-  - allow_jtag: True
+    - board-name: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    - monitoring_interface: uart
+    - allow_jtag: True
   downloader-config:
-  - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
-  - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
-  - hdl_folder: fmcomms2_zc702
-  - no_os_project: ad9361
-  - platform: Xilinx
+    - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
+    - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    - hdl_folder: fmcomms2_zc702
+    - no_os_project: ad9361
+    - platform: Xilinx
   driver-config:
-  - iio_device_names:
-    - ad7291
-    - ad9361-phy
-    - adf4351-udc-tx-pmod
-    - adf4351-udc-rx-pmod
-    - cf-ad9361-dds-core-lpc
-    - cf-ad9361-lpc
+    - iio_device_names:
+        - ad7291
+        - ad9361-phy
+        - adf4351-udc-tx-pmod
+        - adf4351-udc-rx-pmod
+        - cf-ad9361-dds-core-lpc
+        - cf-ad9361-lpc
 zynq-zc706-adv7511-fmcomms11:
   board-config:
-  - board-name: zynq-zc706-adv7511-fmcomms11
-  - monitoring-interface: uart
-  - allow-jtag: True
+    - board-name: zynq-zc706-adv7511-fmcomms11
+    - monitoring-interface: uart
+    - allow-jtag: True
   downloader-config:
-  - reference_boot_folder: zynq-zc706-adv7511-fmcomms11
-  - hdl_folder: fmcomms11_zc706
+    - reference_boot_folder: zynq-zc706-adv7511-fmcomms11
+    - hdl_folder: fmcomms11_zc706
   driver-config:
-  - iio_device_names:
-    - ad7291
-    - adl5240
-    - hmc1119
-    - adf4355
-    - axi-ad9625-hpc
-    - axi-ad9162-hpc
+    - iio_device_names:
+        - ad7291
+        - adl5240
+        - hmc1119
+        - adf4355
+        - axi-ad9625-hpc
+        - axi-ad9162-hpc
 zynq-zed-adv7511-ad7768-1-evb:
   board-config:
-  - board-name: zynq-zed-adv7511-ad7768-1-evb
-  - carrier: ZED
-  - daughter: AD7768-1-EVB
-  - monitoring-interface: uart
-  - allow-jtag: True
-  - serial: ''
-  - instr-serial: NA
+    - board-name: zynq-zed-adv7511-ad7768-1-evb
+    - carrier: ZED
+    - daughter: AD7768-1-EVB
+    - monitoring-interface: uart
+    - allow-jtag: True
+    - serial: ""
+    - instr-serial: NA
   downloader-config:
-  - reference_boot_folder: zynq-zed-adv7511-ad7768-1-evb
-  - hdl_folder: ad77681evb_zed
+    - reference_boot_folder: zynq-zed-adv7511-ad7768-1-evb
+    - hdl_folder: ad77681evb_zed
 eval-adxrs290-pmdz:
   board-config:
-  - board-name: eval-adxrs290-pmdz
-  - carrier: RPI
-  - daughter: EVAL-ADXRS290-PMDZ
-  - monitoring-interface: NA
-  - serial: 11a43152
-  - dtoverlay-config: null
+    - board-name: eval-adxrs290-pmdz
+    - carrier: RPI
+    - daughter: EVAL-ADXRS290-PMDZ
+    - monitoring-interface: NA
+    - serial: 11a43152
+    - dtoverlay-config: null
   downloader-config:
-  - devicetree: bcm2711-rpi-4-b.dtb
-  - devicetree_overlay: rpi-adxrs290.dtbo
+    - devicetree: bcm2711-rpi-4-b.dtb
+    - devicetree_overlay: rpi-adxrs290.dtbo
   driver-config:
-  - iio_device_names:
-    - adxrs290
+    - iio_device_names:
+        - adxrs290
+rpi5-adis16480bmlz:
+  board-config:
+    - board-name: rpi5-adis16480bmlz
+    - carrier: RPI
+    - serial: 6472208b
+    - daughter: RPI5-ADIS16480BMLZ
+    - dtoverlay-config: dtoverlay=adis16480,dtparam=device="adi,adis16480",dtparam=drdy_dio2
+  downloader-config:
+    - devicetree_overlay: adis16480.dtbo
+    - kernel: kernel_2712.img
+    - modules: 6.12.77-v8-16k+
+  driver-config:
+    - iio_device_names:
+        - adis16480
 pluto:
   board-config:
-  - board-name: pluto
-  - carrier:  xxx
-  - daughter: Pluto
-  - reference-boot-folder: plutosdr-fw
-  - monitoring-interface: uart
+    - board-name: pluto
+    - carrier: xxx
+    - daughter: Pluto
+    - reference-boot-folder: plutosdr-fw
+    - monitoring-interface: uart
   driver-config:
-  - iio_device_names:
-    - adm1177-iio
-    - ad9361-phy
-    - cf-ad9361-dds-core-lpc
-    - cf-ad9361-lpc
+    - iio_device_names:
+        - adm1177-iio
+        - ad9361-phy
+        - cf-ad9361-dds-core-lpc
+        - cf-ad9361-lpc
 kc705_fmcomms4:
   board-config:
-  - board-name: kc705_fmcomms4
-  - monitoring-interface: uart
+    - board-name: kc705_fmcomms4
+    - monitoring-interface: uart
   downloader-config:
     - hdl_folder: fmcomms2_kc705
   driver-config:
-  - iio_device_names:
-    - adm1177-iio
-    - ad9361-phy
-    - cf-ad9361-dds-core-lpc
-    - cf-ad9361-lpc
+    - iio_device_names:
+        - adm1177-iio
+        - ad9361-phy
+        - cf-ad9361-dds-core-lpc
+        - cf-ad9361-lpc
 zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos:
   board-config:
-  - board-name: zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos
-  - carrier: ZCU102
-  - daughter: ADRV9002-RX2TX2-CMOS
-  - monitoring-interface: uart
-  - allow-jtag: True
-  - serial: ''
-  - instr-serial: NA
+    - board-name: zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos
+    - carrier: ZCU102
+    - daughter: ADRV9002-RX2TX2-CMOS
+    - monitoring-interface: uart
+    - allow-jtag: True
+    - serial: ""
+    - instr-serial: NA
   downloader-config:
-  - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
-  - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
-  - boot_subfolder: boot_bin_CMOS
-  - hdl_folder: adrv9001_zcu102
+    - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
+    - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
+    - boot_subfolder: boot_bin_CMOS
+    - hdl_folder: adrv9001_zcu102
   driver-config:
-  - iio_device_names:
-    - adrv9002-phy
-    - axi-adrv9002-rx-lpc
-    - axi-core-tdd
-    - axi-adrv9002-tx-lpc
+    - iio_device_names:
+        - adrv9002-phy
+        - axi-adrv9002-rx-lpc
+        - axi-core-tdd
+        - axi-adrv9002-tx-lpc
+zynqmp-zcu102-rev10-adrv9002:
+  board-config:
+    - board-name: zynqmp-zcu102-rev10-adrv9002
+    - carrier: ZCU102
+    - daughter: ADRV9002-RX2TX2-LVDS
+    - monitoring-interface: uart
+    - allow-jtag: True
+  downloader-config:
+    - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
+    - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002
+    - boot_subfolder: boot_bin_CMOS
+    - hdl_folder: adrv9001_zcu102
+  driver-config:
+    - iio_device_names:
+        - adrv9002-phy
+        - axi-adrv9002-rx-lpc
+        - axi-core-tdd
+        - axi-adrv9002-tx-lpc
+zynqmp-zcu102-rev10-adrv9002-rx2tx2-vlvds:
+  board-config:
+    - board-name: zynqmp-zcu102-rev10-adrv9002-rx2tx2-vlvds
+    - carrier: ZCU102
+    - daughter: ADRV9002-RX2TX2-LVDS
+    - monitoring-interface: uart
+    - allow-jtag: True
+  downloader-config:
+    - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
+    - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
+    - boot_subfolder: boot_bin_LVDS
+    - hdl_folder: adrv9001_zcu102
+  driver-config:
+    - iio_device_names:
+        - adrv9002-phy
+        - axi-adrv9002-rx-lpc
+        - axi-core-tdd
+        - axi-adrv9002-tx-lpc
+zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4:
+  board-config:
+    - board-name: zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4
+    - carrier: ZCU102
+    - daughter: EVAL-AD9172
+    - monitoring-interface: uart
+    - allow-jtag: True
+  downloader-config:
+    - reference_boot_folder: zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4
+    - hdl_folder: ad9172_fmc_zcu102
+zynqmp-zcu102-rev10-ad9081:
+  board-config:
+    - board-name: zynqmp-zcu102-rev10-ad9081
+    - carrier: ZCU102
+    - daughter: AD9081-M4-L8
+    - monitoring-interface: uart
+    - allow-jtag: True
+  downloader-config:
+    - reference_boot_folder: zynqmp-zcu102-rev10-ad9081
+    - devicetree_subfolder: m4_l8
+    - boot_subfolder: m4_l8
+    - hdl_folder: ad9081_fmca_ebz_zcu102_m4_l8
+  driver-config:
+    - iio_device_names:
+        - hmc7044
+        - axi-ad9081-rx-hpc
+        - axi-ad9081-tx-hpc

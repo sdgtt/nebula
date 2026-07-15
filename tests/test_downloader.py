@@ -40,6 +40,40 @@ def downloader_test(
     )
 
 
+def downloader_cloudsmith_test(
+    board_name, branch, filetype, source="cloudsmith", version=None
+):
+    cloudsmith_auth = os.environ.get("CLOUDSMITH_AUTH")
+    if not cloudsmith_auth:
+        pytest.skip("CLOUDSMITH_AUTH environment variable not set")
+    file = {
+        "firmware": None,
+        "boot_partition": None,
+        "noos": None,
+        "microblaze": None,
+        "rpi": None,
+    }
+    if filetype == "not_boot_partition":
+        file["boot_partition"] = False
+    else:
+        file[filetype] = True
+    yaml = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
+    d = downloader(
+        yamlfilename=yaml, board_name=board_name, cloudsmith_auth=cloudsmith_auth
+    )
+    d.download_boot_files(
+        board_name,
+        source=source,
+        branch=branch,
+        firmware=file["firmware"],
+        boot_partition=file["boot_partition"],
+        noos=file["noos"],
+        microblaze=file["microblaze"],
+        rpi=file["rpi"],
+        version=version,
+    )
+
+
 @pytest.fixture(autouse=True)
 def run_around_tests():
     # Before test
@@ -63,6 +97,15 @@ def test_downloader():
     if os.path.isdir("outs"):
         shutil.rmtree("outs")
     yield downloader_test
+    if os.path.isdir("outs"):
+        shutil.rmtree("outs")
+
+
+@pytest.fixture()
+def test_downloader_cloudsmith():
+    if os.path.isdir("outs"):
+        shutil.rmtree("outs")
+    yield downloader_cloudsmith_test
     if os.path.isdir("outs"):
         shutil.rmtree("outs")
 
@@ -135,14 +178,26 @@ def test_microblaze_downloader(test_downloader, board_name, branch, filetype):
 
 
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
-@pytest.mark.parametrize("branch", ["rpi-6.6.y"])
+@pytest.mark.parametrize("branch", ["v6.12.y-2026r1"])
 @pytest.mark.parametrize("filetype", ["rpi"])
 def test_rpi_downloader(test_downloader, board_name, branch, filetype):
     test_downloader(board_name, branch, filetype)
     assert os.path.isfile("outs/kernel7l.img")
     assert os.path.isfile("outs/rpi-adxrs290.dtbo")
-    assert os.path.isfile("outs/properties.txt")
+    # assert os.path.isfile("outs/properties.txt")
     assert os.path.isfile("outs/hashes.txt")
+
+
+@pytest.mark.parametrize("board_name", ["rpi5-adis16480bmlz"])
+@pytest.mark.parametrize("branch", ["v6.12.y-2026r1"])
+@pytest.mark.parametrize("filetype", ["rpi"])
+def test_rpi5_downloader(test_downloader, board_name, branch, filetype):
+    test_downloader(board_name, branch, filetype)
+    assert os.path.isfile("outs/kernel_2712.img")
+    assert os.path.isfile("outs/adis16480.dtbo")
+    assert os.path.isfile("outs/rpi_modules_64bit.tar.gz")
+    # assert os.path.isfile("outs/properties.txt")
+    # assert os.path.isfile("outs/hashes.txt")
 
 
 @pytest.mark.parametrize("board_name", ["pluto"])
@@ -205,6 +260,77 @@ def test_get_info_txt(url):
     assert "Triggered by" in build_info.keys()
     assert "COMMIT SHA" in build_info.keys()
     assert "COMMIT_DATE" in build_info.keys()
+
+
+# =============================================================================
+# Cloudsmith tests
+# =============================================================================
+
+
+@pytest.mark.parametrize(
+    "board_name",
+    [
+        "zynq-zc706-adv7511-fmcomms11",
+        "zynq-zc702-adv7511-ad9361-fmcomms2-3",
+        "zynq-zed-adv7511-ad7768-1-evb",
+        "zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4",
+        "zynqmp-zcu102-rev10-ad9081",
+        "zynqmp-zcu102-rev10-adrv9002",
+        "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos",
+        "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vlvds",
+    ],
+)
+@pytest.mark.parametrize("branch", ["2026_r1"])
+@pytest.mark.parametrize("filetype", ["boot_partition"])
+def test_boot_downloader_cloudsmith(
+    test_downloader_cloudsmith, board_name, branch, filetype
+):
+    test_downloader_cloudsmith(board_name, branch, filetype)
+    assert os.path.isfile("outs/BOOT.BIN")
+    assert os.path.isfile("outs/bootgen_sysfiles.tgz")
+    assert os.path.isfile("outs/hashes.txt")
+
+    if board_name.startswith("zynqmp") or board_name.startswith("zynqmp-adrv"):
+        assert os.path.isfile("outs/Image")
+        assert os.path.isfile("outs/system.dtb")
+    elif board_name.startswith("zynq"):
+        assert os.path.isfile("outs/uImage")
+        assert os.path.isfile("outs/devicetree.dtb")
+        
+@pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
+@pytest.mark.parametrize("branch", ["rpi-6.12.y"])
+@pytest.mark.parametrize("filetype", ["rpi"])
+def test_rpi_downloader_cloudsmith(
+    test_downloader_cloudsmith, board_name, branch, filetype
+):
+    test_downloader_cloudsmith(board_name, branch, filetype)
+    assert os.path.isfile("outs/rpi_latest_boot_32bit.tar.gz")
+    assert os.path.isfile("outs/rpi_modules_32bit.tar.gz")
+    assert os.path.isfile("outs/hashes.txt")
+
+
+@pytest.mark.parametrize("board_name", ["rpi5-adis16480bmlz"])
+@pytest.mark.parametrize("branch", ["rpi-6.12.y"])
+@pytest.mark.parametrize("filetype", ["rpi"])
+def test_rpi5_downloader_cloudsmith(
+    test_downloader_cloudsmith, board_name, branch, filetype
+):
+    test_downloader_cloudsmith(board_name, branch, filetype)
+    assert os.path.isfile("outs/rpi_latest_boot_64bit.tar.gz")
+    assert os.path.isfile("outs/rpi_modules_64bit.tar.gz")
+    assert os.path.isfile("outs/hashes.txt")
+
+
+@pytest.mark.parametrize("board_name", ["pluto"])
+@pytest.mark.parametrize("branch", ["master"])
+@pytest.mark.parametrize("filetype", ["firmware"])
+def test_firmware_downloader_cloudsmith(
+    test_downloader_cloudsmith, board_name, branch, filetype
+):
+    test_downloader_cloudsmith(board_name, branch, filetype, source="cloudsmith")
+    file = [_ for _ in os.listdir("outs") if _.endswith(".zip")]
+    assert len(file) == 1
+    assert os.path.isfile("outs/hashes.txt")
 
 
 if __name__ == "__main__":

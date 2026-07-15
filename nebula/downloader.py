@@ -20,6 +20,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from tqdm import tqdm
 
+from nebula.cloudsmith import CloudsmithDownloader
 from nebula.common import utils
 
 log = logging.getLogger(__name__)
@@ -410,10 +411,19 @@ class downloader(utils):
                     "Cloudsmith authentication format error, must be user:token"
                 )
 
+        self._cloudsmith = None
+
         # update from config
         self.update_defaults_from_yaml(
             yamlfilename, __class__.__name__, board_name=board_name
         )
+
+    @property
+    def cloudsmith(self):
+        """Lazily instantiate the CloudsmithDownloader."""
+        if self._cloudsmith is None:
+            self._cloudsmith = CloudsmithDownloader(self.username, self.cloudsmith_token)
+        return self._cloudsmith
 
     def _download_firmware(self, device, source="github", release=None, version=None):
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
@@ -465,29 +475,7 @@ class downloader(utils):
             filename = os.path.join(dest, ver)
             self.download(url, filename)
         elif source == "cloudsmith":
-            api_key = self.cloudsmith_token
-            username = self.username
-            if not api_key or not username:
-                log.error(
-                    "Cloudsmith credentials missing. Pass --cloudsmith-auth user:token or set CLOUDSMITH_AUTH."
-                )
-                raise Exception("Cloudsmith credentials missing.")
-
-            # Use the version (date string or 'latest' ex. 27-10-2025_08-52-03) to build URL
-            if version:
-                url = f"https://dl.cloudsmith.io/basic/adi/{dev}-fw/raw/versions/{version}/{fw_filename}"
-                log.info(
-                    f"Downloading {fw_filename} version {version} from Cloudsmith: {url}"
-                )
-            else:
-                # url = f"https://dl.cloudsmith.io/basic/adi/m2k-fw/raw/versions/latest/m2k-fw-v0.33-1-gdce1.zip"
-                url = f"https://dl.cloudsmith.io/basic/adi/{dev}-fw/raw/versions/latest/{fw_filename}"
-                log.info(f"Downloading latest {fw_filename} from Cloudsmith: {url}")
-            dest = "outs"
-            if not os.path.isdir(dest):
-                os.mkdir(dest)
-            filename = os.path.join(dest, fw_filename)
-            self.download(url, filename, username=username, cloudsmith_token=api_key)
+            self.cloudsmith.download_firmware(device, version=version)
 
     def _get_file(
         self,
@@ -572,249 +560,19 @@ class downloader(utils):
         dt,
         board_name,
         kernel_root,
+        reference_boot_folder=None,
+        boot_subfolder=None,
+        devicetree_subfolder=None,
         version=None,
     ):
-        """
-        Fetch and process files from Cloudsmith.
-        """
-        log.info("Getting standard boot files (Cloudsmith)")
-        api_key = self.cloudsmith_token
-        if not api_key:
-            raise Exception(
-                "Cloudsmith API key missing. Set CLOUDSMITH_API_KEY environment variable."
-            )
-
-        headers = self._get_cloudsmith_headers(api_key)
-        query = self._construct_combined_query(
-            branch, kernel, dt, board_name, kernel_root, version=version
+        """Fetch and process boot files from Cloudsmith."""
+        self.cloudsmith.download_boot_files(
+            branch, kernel, dt, board_name, kernel_root,
+            reference_boot_folder=reference_boot_folder,
+            boot_subfolder=boot_subfolder,
+            devicetree_subfolder=devicetree_subfolder,
+            version=version
         )
-        boot_files = [kernel, "BOOT.BIN", "bootgen_sysfiles.tgz", dt]
-
-        all_packages = self._fetch_all_packages(headers, query, "boot_files")
-        filtered_packages = self._filter_packages(all_packages)
-
-        # Match each required file from the combined results
-        for filename in boot_files:
-            matched = self._match_package_by_filename(filtered_packages, filename)
-            if matched:
-                self._download_and_verify_file(matched, filename)
-            else:
-                raise Exception(
-                    f"No package found for {filename} with version {branch} and board {board_name}"
-                )
-
-    def _get_cloudsmith_headers(self, api_key):
-        """Generate headers for Cloudsmith API requests."""
-        return {
-            "Authorization": f"Bearer {api_key}",
-            "Accept": "application/json",
-        }
-
-    def _construct_combined_query(
-        self, branch, kernel, dt, board_name, kernel_root, version=None
-    ):
-        """Construct a single combined query for fetching all boot files from Cloudsmith."""
-        if version:
-            log.info(f"Using specified version path for Cloudsmith query: {version}")
-            version_prefix = self._get_initial_metadata(
-                branch, kernel, version.rstrip("/") + "/", kernel_root
-            )
-        else:
-            package_version = f"boot_partition/{branch}/"
-            version_prefix = self._get_initial_metadata(
-                branch, kernel, package_version, kernel_root
-            )
-
-        # Single query: match both version paths (board-specific OR kernel-common)
-        # AND filter to only the 4 needed file types
-        query = (
-            f"(version:{version_prefix}/{board_name}*"
-            f"%20OR%20version:{version_prefix}/{kernel_root})"
-            f"%20AND%20"
-            f"(name:^BOOT.BIN$%20OR%20name:^bootgen_sysfiles.tgz$%20OR%20name:*.dtb$%20OR%20name:*mage$)"
-        )
-        # log.info(f"Combined Cloudsmith query: {query}")
-        return query
-
-    def _match_package_by_filename(self, packages, filename):
-        """Find the best matching package for a given filename from combined results."""
-        for pkg in packages:
-            pkg_name = pkg.get("name", "")
-            if filename == "BOOT.BIN" and pkg_name == "BOOT.BIN":
-                return pkg
-            elif (
-                filename == "bootgen_sysfiles.tgz"
-                and pkg_name == "bootgen_sysfiles.tgz"
-            ):
-                return pkg
-            elif filename.endswith(".dtb") and pkg_name.endswith(".dtb"):
-                return pkg
-            elif filename in ("Image", "uImage") and (
-                pkg_name.endswith("mage") or pkg_name in ("Image", "uImage")
-            ):
-                return pkg
-        return None
-
-    def _fetch_all_packages(self, headers, query, filename, max_pages=3):
-        """Fetch all packages from Cloudsmith based on the query."""
-        all_packages = []
-        page = 1
-        page_size = 500
-        url = f"https://api.cloudsmith.io/v1/packages/adi/sdg-boot-partition/?query={query}&page={page}&page_size={page_size}"
-        log.info(f"Fetching Cloudsmith metadata for {filename} via REST API: {url}")
-
-        while url and page <= max_pages:
-            log.info(f"Fetching page {page} for {filename}")
-            resp = self.retry_session().get(url, headers=headers)
-            resp.raise_for_status()
-            page_data = resp.json()
-
-            if isinstance(page_data, dict) and "results" in page_data:
-                all_packages.extend(page_data["results"])
-                url = page_data.get("next")
-            elif isinstance(page_data, list):
-                all_packages.extend(page_data)
-                if len(page_data) >= page_size:
-                    page += 1
-                    url = f"https://api.cloudsmith.io/v1/packages/adi/sdg-boot-partition/?query={query}&page={page}&page_size={page_size}"
-                else:
-                    url = None
-            else:
-                log.error("Unexpected response format from Cloudsmith API")
-                raise Exception("Unexpected response format from Cloudsmith API")
-
-        if page > max_pages and url:
-            log.warning(
-                f"Reached max page limit ({max_pages}) for {filename}, stopping pagination"
-            )
-
-        # Log the total number of packages found
-        if len(all_packages) == 0:
-            raise Exception(f"No packages found for {filename} with query: {query}")
-        else:
-            log.info(f"Total packages found for {filename}: {len(all_packages)}")
-
-        return all_packages
-
-    def _filter_packages(self, all_packages):
-        """Filter packages based on status and format."""
-        return [
-            {
-                "name": pkg.get("name"),
-                "cdn_url": pkg.get("cdn_url"),
-                "version": pkg.get("version"),
-                "checksum_sha256": pkg.get("checksum_sha256"),
-            }
-            for pkg in all_packages
-            if pkg.get("status_str") == "Completed" and pkg.get("format") == "raw"
-        ]
-
-    def _download_and_verify_file(self, package, filename):
-        """Download and verify a file from Cloudsmith."""
-        cdn_url = package["cdn_url"]
-        sha256 = package["checksum_sha256"]
-        dest = "outs"
-        os.makedirs(dest, exist_ok=True)
-        out_path = os.path.join(dest, filename)
-
-        log.info(f"Downloading {filename} from {cdn_url}")
-        self.download(cdn_url, out_path)
-        if sha256:
-            self.check(out_path, sha256, hash_type="sha256")
-        log.info(f"Downloaded and verified: {out_path}")
-
-    def _get_initial_metadata(
-        self, branch, filename, package_version, kernel_root=None
-    ):
-        """
-        Query Cloudsmith for packages matching the branch and filename, then return
-        the full version prefix (everything before the board/kernel subfolder) for
-        the latest build date found.
-
-        Returning the full prefix rather than just the date string means any extra
-        intermediate directories that exist in some branches (e.g. an extra
-        'boot_partition' segment in the main branch) are captured automatically.
-        """
-        log.info(f"Fetching initial metadata with branch {branch}")
-        headers = self._get_cloudsmith_headers(self.cloudsmith_token)
-        # Derive the query from package_version so it works for any root prefix
-        # (legacy "boot_partition/" or new "sdg-generic-development/boot_partition/")
-        query = f"version:{package_version.rstrip('/')}*"
-        page = 1
-        page_size = 500
-        url = f"https://api.cloudsmith.io/v1/packages/adi/sdg-boot-partition/?query={query}&page={page}&page_size={page_size}"
-        log.info(f"Initial metadata query URL: {url}")
-
-        max_pages = 3
-        all_packages = []
-        while url and page <= max_pages:
-            log.info(f"Fetching page {page} for initial metadata (branch: {branch})")
-            resp = requests.get(url, headers=headers)
-            resp.raise_for_status()
-            page_data = resp.json()
-
-            if isinstance(page_data, dict) and "results" in page_data:
-                all_packages.extend(page_data["results"])
-                url = page_data.get("next")
-            elif isinstance(page_data, list):
-                all_packages.extend(page_data)
-                if len(page_data) >= page_size:
-                    page += 1
-                    url = f"https://api.cloudsmith.io/v1/packages/adi/sdg-boot-partition/?query={query}&page={page}&page_size={page_size}"
-                else:
-                    url = None
-            else:
-                log.error("Unexpected response format from Cloudsmith API")
-                raise Exception("Unexpected response format from Cloudsmith API")
-
-        if page > max_pages and url:
-            log.warning(
-                f"Reached max page limit ({max_pages}) for initial metadata, stopping pagination"
-            )
-
-        log.info(f"Total packages fetched for initial metadata: {len(all_packages)}")
-
-        date_pattern = re.compile(r"^20\d{2}_\d{2}_\d{2}-\d{2}_\d{2}_\d{2}$")
-        pkg_version_base = package_version.rstrip("/")
-        date_to_prefix = {}
-        for pkg in all_packages:
-            version = pkg.get("version", "").rstrip("/")
-            if not version.startswith(pkg_version_base):
-                continue
-            segments = version.split("/")
-            for i, segment in enumerate(segments):
-                if date_pattern.match(segment):
-                    try:
-                        date_obj = datetime.strptime(segment, "%Y_%m_%d-%H_%M_%S")
-                        # Build prefix: everything before the kernel_root/board subfolder.
-                        # This captures any extra intermediate directories (e.g. an extra
-                        # 'boot_partition' segment present in some branches).
-                        if kernel_root and kernel_root in segments[i + 1 :]:
-                            kr_idx = segments.index(kernel_root, i + 1)
-                            prefix = "/".join(segments[:kr_idx])
-                        else:
-                            # Fallback: include up to and including the date segment
-                            prefix = "/".join(segments[: i + 1])
-                        if date_obj not in date_to_prefix:
-                            date_to_prefix[date_obj] = prefix
-                    except ValueError:
-                        pass
-                    break  # at most one date per version string
-
-        log.info(
-            f"Dates found: {[d.strftime('%Y_%m_%d-%H_%M_%S') for d in date_to_prefix]}"
-        )
-
-        if not date_to_prefix:
-            raise Exception(f"No valid dates found in metadata for {filename}")
-
-        latest_date = max(date_to_prefix.keys())
-        latest_prefix = date_to_prefix[latest_date]
-        log.info(
-            f"Latest date: {latest_date.strftime('%Y_%m_%d-%H_%M_%S')}, "
-            f"version prefix: {latest_prefix}"
-        )
-        return latest_prefix
 
     def _get_files_boot_partition(
         self,
@@ -832,7 +590,11 @@ class downloader(utils):
     ):
         if source == "cloudsmith":
             self._get_cloudsmith_file(
-                branch, kernel, dt, self.board_name, kernel_root, version=version
+                branch, kernel, dt, self.board_name, kernel_root,
+                reference_boot_folder=reference_boot_folder,
+                boot_subfolder=boot_subfolder,
+                devicetree_subfolder=devicetree_subfolder,
+                version=version
             )
 
         elif source == "artifactory":
@@ -1042,6 +804,23 @@ class downloader(utils):
         if source == "artifactory":
             get_gitsha(self.url, daily=True, linux=True)
 
+    def _detect_rpi_arch(self, kernel):
+        if self.board_name and "rpi5" in self.board_name.lower():
+            return "64bit"
+        if kernel:
+            kernel_name = (
+                kernel if isinstance(kernel, str) else (kernel[0] if kernel else "")
+            )
+            if "2712" in kernel_name:
+                return "64bit"
+        if self.modules and "v8" in str(self.modules).lower():
+            return "64bit"
+        return "32bit"
+
+    def _get_cloudsmith_rpi_files(self, branch, kernel, version=None):
+        arch = self._detect_rpi_arch(kernel)
+        self.cloudsmith.download_rpi_files(branch, kernel, arch, version=version)
+
     def _get_files_rpi(
         self,
         source,
@@ -1051,18 +830,27 @@ class downloader(utils):
         devicetree,
         devicetree_overlay,
         modules,
+        version=None,
     ):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
+
+        if source == "cloudsmith":
+            self._get_cloudsmith_rpi_files(branch, kernel, version=version)
+            return
+
         # download properties.txt
         if source == "artifactory":
-            arch = "32bit"
             url_template = (
                 "https://{}/artifactory/sdg-generic-development/linux_rpi/{}/{}"
             )
             url = url_template.format(source_root, branch, "")
             build_date = get_newest_folder(listFD(url))
+
+            arch = self._detect_rpi_arch(kernel)
+            log.info(f"Detected RPi architecture: {arch}")
+
             url = url_template.format(
                 source_root, branch, build_date + "/" + arch + "/version_rpi.txt"
             )
@@ -1089,7 +877,17 @@ class downloader(utils):
             self.download(url, file)
 
         if not kernel:
-            kernel = ["kernel.img", "kernel7.img", "kernel7l.img"]
+            if arch == "64bit":
+                kernel = [
+                    "kernel_2712.img",
+                    "kernel8.img",
+                ]
+            else:
+                kernel = [
+                    "kernel.img",
+                    "kernel7.img",
+                    "kernel7l.img",
+                ]
         else:
             kernel = [kernel]
 
@@ -1104,7 +902,7 @@ class downloader(utils):
             file = os.path.join(dest, k)
             self.download(url, file)
 
-        tar_file = "rpi_modules_32bit.tar.gz"
+        tar_file = f"rpi_modules_{arch}.tar.gz"
         log.info("Get modules " + tar_file)
         url = url_template.format(build_date, tar_file)
         file = os.path.join(dest, tar_file)
@@ -1245,6 +1043,7 @@ class downloader(utils):
                     devicetree,
                     devicetree_overlay,
                     modules,
+                    version=version,
                 )
 
             if folder:
@@ -1316,9 +1115,10 @@ class downloader(utils):
         res = os.path.join(path, "resources", "board_table.yaml")
         with open(res) as f:
             board_configs = yaml.load(f, Loader=yaml.FullLoader)
-
-        if re.search(r"-v\d+$", design_name):
-            design_name = re.sub(r"-v\d+$", "", design_name)
+        if design_name not in board_configs:
+            stripped = re.sub(r"-v[a-z0-9]+$", "", design_name)
+            if stripped in board_configs:
+                design_name = stripped
 
         reference_boot_folder = self.reference_boot_folder
         devicetree_subfolder = self.devicetree_subfolder
