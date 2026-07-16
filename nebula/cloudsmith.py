@@ -13,7 +13,6 @@ log = logging.getLogger(__name__)
 
 
 class CloudsmithDownloader:
-    """Handles all Cloudsmith-related download operations."""
 
     BOOT_PARTITION_REPO = "sdg-boot-partition"
     LINUX_RPI_REPO = "sdg-linux-rpi"
@@ -27,6 +26,7 @@ class CloudsmithDownloader:
             )
         self.username = username
         self.token = token
+        self._session = None
 
     def _get_headers(self):
         return {
@@ -34,28 +34,23 @@ class CloudsmithDownloader:
             "Accept": "application/json",
         }
 
-    def _retry_session(
-        self,
-        retries=3,
-        backoff_factor=0.3,
-        status_forcelist=(429, 500, 502, 504),
-    ):
-        session = requests.Session()
-        retry = Retry(
-            total=retries,
-            read=retries,
-            connect=retries,
-            backoff_factor=backoff_factor,
-            status_forcelist=status_forcelist,
-        )
-        adapter = HTTPAdapter(max_retries=retry)
-        session.mount("http://", adapter)
-        session.mount("https://", adapter)
-        return session
+    def _get_session(self):
+        if self._session is None:
+            self._session = requests.Session()
+            retry = Retry(
+                total=3,
+                read=3,
+                connect=3,
+                backoff_factor=0.3,
+                status_forcelist=(429, 500, 502, 504),
+            )
+            adapter = HTTPAdapter(max_retries=retry)
+            self._session.mount("http://", adapter)
+            self._session.mount("https://", adapter)
+        return self._session
 
     def _download_file(self, url, fname):
-        """Download a file with progress bar and hash computation."""
-        resp = self._retry_session().get(
+        resp = self._get_session().get(
             url, stream=True, auth=(self.username, self.token)
         )
         resp.raise_for_status()
@@ -78,7 +73,6 @@ class CloudsmithDownloader:
         return file_hash
 
     def _verify_hash(self, fname, expected, hash_type="sha256"):
-        """Verify file integrity against an expected hash."""
         if hash_type == "md5":
             hash_obj = hashlib.md5()
         elif hash_type == "sha256":
@@ -103,7 +97,6 @@ class CloudsmithDownloader:
         log.info(f"{hash_type.upper()} Check: PASSED")
 
     def _download_and_verify(self, package, filename):
-        """Download a package and verify its SHA256 checksum."""
         cdn_url = package["cdn_url"]
         sha256 = package["checksum_sha256"]
         dest = "outs"
@@ -116,12 +109,7 @@ class CloudsmithDownloader:
             self._verify_hash(out_path, sha256)
         log.info(f"Downloaded and verified: {out_path}")
 
-    # -------------------------------------------------------------------------
-    # API query helpers
-    # -------------------------------------------------------------------------
-
     def _paginated_query(self, query, repo, label="packages", max_pages=3):
-        """Execute a paginated Cloudsmith API query and return all packages."""
         headers = self._get_headers()
         all_packages = []
         page = 1
@@ -134,7 +122,7 @@ class CloudsmithDownloader:
 
         while url and page <= max_pages:
             log.info(f"Fetching page {page} for {label}")
-            resp = self._retry_session().get(url, headers=headers)
+            resp = self._get_session().get(url, headers=headers)
             resp.raise_for_status()
             page_data = resp.json()
 
@@ -163,7 +151,6 @@ class CloudsmithDownloader:
 
     @staticmethod
     def _filter_completed(packages):
-        """Return only completed raw-format packages with essential fields."""
         return [
             {
                 "name": pkg.get("name"),
@@ -176,19 +163,17 @@ class CloudsmithDownloader:
         ]
 
     def _get_latest_version_prefix(
-        self, package_version, repo,
-        date_format="%Y_%m_%d-%H_%M_%S", kernel_root=None,
+        self,
+        package_version,
+        repo,
+        date_format="%Y_%m_%d-%H_%M_%S",
+        kernel_root=None,
     ):
-        """Find the latest build date and return the full version prefix path."""
         query = f"version:{package_version.rstrip('/')}*"
-        all_packages = self._paginated_query(
-            query, repo, label="version metadata"
-        )
+        all_packages = self._paginated_query(query, repo, label="version metadata")
 
         if not all_packages:
-            raise Exception(
-                f"No packages found for version: {package_version}"
-            )
+            raise Exception(f"No packages found for version: {package_version}")
 
         date_pattern = self._build_date_pattern(date_format)
         pkg_version_base = package_version.rstrip("/")
@@ -205,17 +190,15 @@ class CloudsmithDownloader:
                         date_obj = datetime.strptime(segment, date_format)
                     except ValueError:
                         break
-                    if kernel_root and kernel_root in segments[i + 1:]:
+                    if kernel_root and kernel_root in segments[i + 1 :]:
                         kr_idx = segments.index(kernel_root, i + 1)
                         date_to_prefix[date_obj] = "/".join(segments[:kr_idx])
                     elif date_obj not in date_to_prefix:
-                        date_to_prefix[date_obj] = "/".join(segments[:i + 1])
+                        date_to_prefix[date_obj] = "/".join(segments[: i + 1])
                     break
 
         if not date_to_prefix:
-            raise Exception(
-                f"No valid dates found in metadata for {package_version}"
-            )
+            raise Exception(f"No valid dates found in metadata for {package_version}")
 
         latest_date = max(date_to_prefix.keys())
         latest_prefix = date_to_prefix[latest_date]
@@ -227,7 +210,6 @@ class CloudsmithDownloader:
 
     @staticmethod
     def _build_date_pattern(date_format):
-        """Convert a strftime format into a compiled regex pattern."""
         regex = date_format
         regex = regex.replace("%Y", r"20\d{2}")
         regex = regex.replace("%m", r"\d{2}")
@@ -237,49 +219,46 @@ class CloudsmithDownloader:
         regex = regex.replace("%S", r"\d{2}")
         return re.compile(f"^{regex}$")
 
-    # -------------------------------------------------------------------------
-    # Public download methods
-    # -------------------------------------------------------------------------
-
     def download_boot_files(
-        self, branch, kernel, dt, board_name, kernel_root,
-        reference_boot_folder=None, boot_subfolder=None,
-        devicetree_subfolder=None, version=None,
+        self,
+        branch,
+        kernel,
+        dt,
+        board_name,
+        kernel_root,
+        reference_boot_folder=None,
+        boot_subfolder=None,
+        devicetree_subfolder=None,
+        version=None,
     ):
-        """Fetch boot files (BOOT.BIN, kernel, dtb, sysfiles) from Cloudsmith."""
         log.info("Getting standard boot files (Cloudsmith)")
 
         ref_folder = reference_boot_folder or board_name
-        boot_path = (
-            f"{ref_folder}/{boot_subfolder}" if boot_subfolder else ref_folder
-        )
+        boot_path = f"{ref_folder}/{boot_subfolder}" if boot_subfolder else ref_folder
         dt_path = (
             f"{ref_folder}/{devicetree_subfolder}"
-            if devicetree_subfolder else boot_path
+            if devicetree_subfolder
+            else boot_path
         )
 
         pkg_version = (
-            version.rstrip("/") + "/" if version
-            else f"boot_partition/{branch}/"
+            version.rstrip("/") + "/" if version else f"boot_partition/{branch}/"
         )
         version_prefix = self._get_latest_version_prefix(
-            pkg_version, self.BOOT_PARTITION_REPO, kernel_root=kernel_root,
+            pkg_version,
+            self.BOOT_PARTITION_REPO,
+            kernel_root=kernel_root,
         )
 
         unique_paths = {boot_path, dt_path}
-        version_clauses = [
-            f"version:{version_prefix}/{p}/*" for p in unique_paths
-        ]
+        version_clauses = [f"version:{version_prefix}/{p}/*" for p in unique_paths]
         version_clauses.append(f"version:{version_prefix}/{kernel_root}")
 
         name_filter = (
             "name:^BOOT.BIN$%20OR%20name:^bootgen_sysfiles.tgz$"
             "%20OR%20name:*.dtb$%20OR%20name:*mage$"
         )
-        query = (
-            f"({'%20OR%20'.join(version_clauses)})"
-            f"%20AND%20({name_filter})"
-        )
+        query = f"({'%20OR%20'.join(version_clauses)})" f"%20AND%20({name_filter})"
 
         all_packages = self._paginated_query(
             query, self.BOOT_PARTITION_REPO, label="boot_files"
@@ -300,16 +279,16 @@ class CloudsmithDownloader:
                 )
             self._download_and_verify(matched, filename)
 
-    def download_rpi_files(self, branch, kernel, arch, version=None):
-        """Fetch RPi boot and module tarballs from Cloudsmith."""
+    def download_rpi_files(self, branch, arch, version=None):
         log.info("Getting RPi files from Cloudsmith")
 
         pkg_version = (
-            version.rstrip("/") + "/" if version
-            else f"linux_rpi/releases/{branch}/"
+            version.rstrip("/") + "/" if version else f"linux_rpi/releases/{branch}/"
         )
         version_prefix = self._get_latest_version_prefix(
-            pkg_version, self.LINUX_RPI_REPO, date_format="%Y_%m_%d-%H_%M",
+            pkg_version,
+            self.LINUX_RPI_REPO,
+            date_format="%Y_%m_%d-%H_%M",
         )
 
         boot_tar = f"rpi_latest_boot_{arch}.tar.gz"
@@ -327,9 +306,7 @@ class CloudsmithDownloader:
 
         os.makedirs("outs", exist_ok=True)
         for filename in [boot_tar, modules_tar]:
-            matched = next(
-                (p for p in filtered if p.get("name") == filename), None
-            )
+            matched = next((p for p in filtered if p.get("name") == filename), None)
             if not matched:
                 raise Exception(
                     f"No package found for {filename} "
@@ -338,7 +315,6 @@ class CloudsmithDownloader:
             self._download_and_verify(matched, filename)
 
     def download_firmware(self, device, version=None):
-        """Download firmware (pluto/m2k) from Cloudsmith."""
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
             dev = "m2k"
             fw_filename = "m2k-fw-v0.33-1-gdce1.zip"
@@ -358,17 +334,10 @@ class CloudsmithDownloader:
         os.makedirs("outs", exist_ok=True)
         self._download_file(url, os.path.join("outs", fw_filename))
 
-    # -------------------------------------------------------------------------
-    # Internal match helpers
-    # -------------------------------------------------------------------------
-
     @staticmethod
     def _match_boot_file(packages, filename, expected_version_path=None):
-        """Find the matching package for a given boot filename.
-
-        For DTB files, uses expected_version_path with trailing slash to
-        disambiguate sibling folders (e.g. adrv9002/ vs adrv9002-rx2tx2/).
-        """
+        """Uses trailing-slash match on expected_version_path to disambiguate
+        sibling DTB folders (e.g. adrv9002/ vs adrv9002-rx2tx2/)."""
         for pkg in packages:
             name = pkg.get("name", "")
             if filename == "BOOT.BIN" and name == "BOOT.BIN":

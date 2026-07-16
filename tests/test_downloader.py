@@ -296,7 +296,8 @@ def test_boot_downloader_cloudsmith(
     elif board_name.startswith("zynq"):
         assert os.path.isfile("outs/uImage")
         assert os.path.isfile("outs/devicetree.dtb")
-        
+
+
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
 @pytest.mark.parametrize("branch", ["rpi-6.12.y"])
 @pytest.mark.parametrize("filetype", ["rpi"])

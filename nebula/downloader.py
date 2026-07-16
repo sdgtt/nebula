@@ -420,18 +420,17 @@ class downloader(utils):
 
     @property
     def cloudsmith(self):
-        """Lazily instantiate the CloudsmithDownloader."""
         if self._cloudsmith is None:
-            self._cloudsmith = CloudsmithDownloader(self.username, self.cloudsmith_token)
+            self._cloudsmith = CloudsmithDownloader(
+                self.username, self.cloudsmith_token
+            )
         return self._cloudsmith
 
     def _download_firmware(self, device, source="github", release=None, version=None):
         if "m2k" in device.lower() or "adalm-2000" in device.lower():
             dev = "m2k"
-            fw_filename = "m2k-fw-v0.33-1-gdce1.zip"
         elif "pluto" in device.lower():
             dev = "plutosdr"
-            fw_filename = "plutosdr-fw-v0.39-1-g8456.zip"
         else:
             raise Exception("Unknown device " + device)
 
@@ -565,13 +564,16 @@ class downloader(utils):
         devicetree_subfolder=None,
         version=None,
     ):
-        """Fetch and process boot files from Cloudsmith."""
         self.cloudsmith.download_boot_files(
-            branch, kernel, dt, board_name, kernel_root,
+            branch,
+            kernel,
+            dt,
+            board_name,
+            kernel_root,
             reference_boot_folder=reference_boot_folder,
             boot_subfolder=boot_subfolder,
             devicetree_subfolder=devicetree_subfolder,
-            version=version
+            version=version,
         )
 
     def _get_files_boot_partition(
@@ -590,11 +592,15 @@ class downloader(utils):
     ):
         if source == "cloudsmith":
             self._get_cloudsmith_file(
-                branch, kernel, dt, self.board_name, kernel_root,
+                branch,
+                kernel,
+                dt,
+                self.board_name,
+                kernel_root,
                 reference_boot_folder=reference_boot_folder,
                 boot_subfolder=boot_subfolder,
                 devicetree_subfolder=devicetree_subfolder,
-                version=version
+                version=version,
             )
 
         elif source == "artifactory":
@@ -663,7 +669,7 @@ class downloader(utils):
             try:
                 build_info = get_info_txt(url_template)
             except Exception as e:
-                log.warn(e)
+                log.warning(e)
                 build_info = None
             get_gitsha(self.url, daily=False, build_info=build_info)
 
@@ -819,7 +825,7 @@ class downloader(utils):
 
     def _get_cloudsmith_rpi_files(self, branch, kernel, version=None):
         arch = self._detect_rpi_arch(kernel)
-        self.cloudsmith.download_rpi_files(branch, kernel, arch, version=version)
+        self.cloudsmith.download_rpi_files(branch, arch, version=version)
 
     def _get_files_rpi(
         self,
