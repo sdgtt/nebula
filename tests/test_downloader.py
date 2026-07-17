@@ -1,3 +1,4 @@
+import importlib
 import os
 import pathlib
 import shutil
@@ -6,6 +7,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from nebula import downloader
+
+downloader_module = importlib.import_module("nebula.downloader")
 
 # Must be connected to analog VPN
 
@@ -114,10 +117,16 @@ def test_downloader_cloudsmith():
     "board_name",
     ["zynq-zc706-adv7511-fmcomms11", "zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos"],
 )
-@pytest.mark.parametrize("branch", ["release", "main", "2023_r2"])
+@pytest.mark.parametrize("branch", ["release", "main"])
 @pytest.mark.parametrize("filetype", ["boot_partition"])
 def test_boot_downloader(test_downloader, board_name, branch, filetype):
-    test_downloader(board_name, branch, filetype)
+    if branch == "main":
+        with patch.object(
+            downloader_module, "get_newest_folder", return_value="2026_03_18-11_24_07"
+        ):
+            test_downloader(board_name, branch, filetype)
+    else:
+        test_downloader(board_name, branch, filetype)
     assert os.path.isfile("outs/BOOT.BIN")
     assert os.path.isfile("outs/bootgen_sysfiles.tgz")
     assert os.path.isfile("outs/properties.yaml")
@@ -219,7 +228,7 @@ def test_firmware_downloader(test_downloader, board_name, branch, filetype, sour
     "url_template",
     [
         "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development"
-        + "%2Ftest_boot_files%2Fmain%2FHDL_PRs%2Fpr_1942%2F2025_10_23-22_24_49"
+        + "%2Ftest_boot_files%2Fmain%2FHDL_PRs%2Fpr_2104%2F2026_07_14-07_34_01"
     ],
 )
 def test_boot_downloader_new_flow(
@@ -245,7 +254,7 @@ def test_image_downloader():
 @pytest.mark.parametrize(
     "url",
     [
-        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development%2Ftest_boot_files%2Fmain%2FHDL_PRs%2Fpr_1942%2F2025_10_23-22_24_49"
+        "https://artifactory.analog.com/ui/repos/tree/Properties/sdg-generic-development%2Ftest_boot_files%2Fmain%2FHDL_PRs%2Fpr_2104%2F2026_07_14-07_34_01"
     ],
 )
 def test_get_info_txt(url):

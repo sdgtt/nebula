@@ -30,7 +30,7 @@ def test_cli_help():
 
 
 def test_update_config():
-    config = os.path.join("nebula_config", "nebula.yaml")
+    config = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
     o = c.local(
@@ -44,9 +44,9 @@ def test_update_config():
 
 
 def test_dl_bootfiles():
-    config = os.path.join("nebula_config", "nebula.yaml")
+    config = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
     board = "max32650_adxl355"
-    branch = "master"
+    branch = "main"
     file = "noos"
     source_root = "artifactory.analog.com"
     source = "artifactory"
@@ -71,7 +71,7 @@ def test_dl_bootfiles():
 
 
 def test_show_log():
-    config = os.path.join("nebula_config", "nebula.yaml")
+    config = os.path.join(os.path.dirname(__file__), "nebula_config", "nebula.yaml")
     board = "zynq-zc702-adv7511-ad9361-fmcomms2-3"
     c = con("localhost")
     o = c.local(
