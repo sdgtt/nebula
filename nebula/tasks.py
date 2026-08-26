@@ -415,7 +415,10 @@ def download_sdcard(c, release="2019_R1"):
                     Default: boot""",
         "url_template": "Custom URL template for Artifactory sources",
         "cloudsmith_auth": "cloudsmith authentication format: username:token",
-        "version": "Version string for firmware downloads from Cloudsmith. Can be date string or 'latest'",
+        "version": "Version path for Cloudsmith downloads. For firmware: date string or 'latest'. "
+        "For boot_partition: full version path used as query prefix, e.g. "
+        "'test_boot_files/main/Linux_PRs/pr_3089/2026_01_22-21_26_59'. "
+        "When omitted, the latest available build is fetched automatically.",
     },
 )
 def download_boot_files(
