@@ -7,8 +7,8 @@ from datetime import datetime
 
 import requests
 from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from tqdm import tqdm
+from urllib3.util.retry import Retry
 
 log = logging.getLogger(__name__)
 
@@ -207,8 +207,13 @@ class CloudsmithDownloader:
         ]
 
     def _query_and_filter(
-        self, query, repo, label, expected_filenames,
-        max_retries=3, retry_delay=15,
+        self,
+        query,
+        repo,
+        label,
+        expected_filenames,
+        max_retries=3,
+        retry_delay=15,
     ):
         """Query packages and filter to completed, retrying for pending files.
 
@@ -239,8 +244,7 @@ class CloudsmithDownloader:
 
             filtered_names = {pkg["name"] for pkg in filtered}
             all_names = {
-                pkg.get("name") for pkg in all_packages
-                if pkg.get("format") == "raw"
+                pkg.get("name") for pkg in all_packages if pkg.get("format") == "raw"
             }
             pending = (expected_filenames & all_names) - filtered_names
 
@@ -405,9 +409,7 @@ class CloudsmithDownloader:
         if uboot_bootloader:
             boot_files.append((kernel_root, uboot_bootloader))
 
-        parsed = [
-            f.strip() for f in (boot_filename or "").split(",") if f.strip()
-        ]
+        parsed = [f.strip() for f in (boot_filename or "").split(",") if f.strip()]
         if not parsed:
             raise Exception(
                 f"No boot_filename configured for board={board_name}. "
@@ -433,9 +435,7 @@ class CloudsmithDownloader:
         base_prefix = f"{version_prefix}/boot_partition/adi-{arch}"
 
         unique_subfolders = {subfolder for subfolder, _ in boot_files}
-        version_clauses = [
-            f"version:{base_prefix}/{sf}/*" for sf in unique_subfolders
-        ]
+        version_clauses = [f"version:{base_prefix}/{sf}/*" for sf in unique_subfolders]
 
         unique_filenames = {filename for _, filename in boot_files}
         name_clauses = [f"name:{fn}" for fn in unique_filenames]
@@ -444,7 +444,9 @@ class CloudsmithDownloader:
         query = f"({' OR '.join(version_clauses)}) AND ({name_filter})"
 
         all_packages, filtered = self._query_and_filter(
-            query, self.BOOT_PARTITION_REPO, label="boot_files",
+            query,
+            self.BOOT_PARTITION_REPO,
+            label="boot_files",
             expected_filenames=unique_filenames,
         )
         if not all_packages:
@@ -505,12 +507,13 @@ class CloudsmithDownloader:
         modules_tar = f"rpi_modules_{arch}.tar.gz"
 
         query = (
-            f"version:{version_prefix}*"
-            f" AND (name:{boot_tar} OR name:{modules_tar})"
+            f"version:{version_prefix}*" f" AND (name:{boot_tar} OR name:{modules_tar})"
         )
 
         _, filtered = self._query_and_filter(
-            query, self.LINUX_RPI_REPO, label="rpi_files",
+            query,
+            self.LINUX_RPI_REPO,
+            label="rpi_files",
             expected_filenames={boot_tar, modules_tar},
         )
 

@@ -285,9 +285,7 @@ def test_get_info_txt(url):
 )
 @pytest.mark.parametrize("branch", ["2026_r1"])
 @pytest.mark.parametrize("filetype", ["boot_partition"])
-def test_boot_downloader_cloudsmith(
-    cloudsmith_fixture, board_name, branch, filetype
-):
+def test_boot_downloader_cloudsmith(cloudsmith_fixture, board_name, branch, filetype):
     cloudsmith_fixture(board_name, branch, filetype)
     if board_name.startswith("zynqmp"):
         assert os.path.isfile("outs/Image")
@@ -319,13 +317,10 @@ def test_boot_downloader_cloudsmith(
         assert os.path.isfile("outs/hashes.txt")
 
 
-
 @pytest.mark.parametrize("board_name", ["eval-adxrs290-pmdz"])
 @pytest.mark.parametrize("branch", ["rpi-6.12.y"])
 @pytest.mark.parametrize("filetype", ["rpi"])
-def test_rpi_downloader_cloudsmith(
-    cloudsmith_fixture, board_name, branch, filetype
-):
+def test_rpi_downloader_cloudsmith(cloudsmith_fixture, board_name, branch, filetype):
     cloudsmith_fixture(board_name, branch, filetype)
     assert os.path.isfile("outs/rpi_latest_boot_32bit.tar.gz")
     assert os.path.isfile("outs/rpi_modules_32bit.tar.gz")
@@ -335,9 +330,7 @@ def test_rpi_downloader_cloudsmith(
 @pytest.mark.parametrize("board_name", ["rpi5-adis16480bmlz"])
 @pytest.mark.parametrize("branch", ["rpi-6.12.y"])
 @pytest.mark.parametrize("filetype", ["rpi"])
-def test_rpi5_downloader_cloudsmith(
-    cloudsmith_fixture, board_name, branch, filetype
-):
+def test_rpi5_downloader_cloudsmith(cloudsmith_fixture, board_name, branch, filetype):
     cloudsmith_fixture(board_name, branch, filetype)
     assert os.path.isfile("outs/rpi_latest_boot_64bit.tar.gz")
     assert os.path.isfile("outs/rpi_modules_64bit.tar.gz")

@@ -958,6 +958,75 @@ class downloader(utils):
             # unzip the files
             shutil.unpack_archive(file, dest)
 
+    def _derive_kernel_root(self):
+        """Derive the kernel_root folder name from the reference boot folder.
+
+        :returns: The ``*-common`` (or ``socfpga_*_common``) kernel root
+            folder name derived from ``self.reference_boot_folder``.
+        :rtype: str
+        """
+        parts = self.reference_boot_folder.split("_")
+        if len(parts) >= 3 and parts[0] == "socfpga":
+            return f"{parts[0]}_{parts[1]}_common"
+        return self.reference_boot_folder.rsplit("-", 1)[0] + "-common"
+
+    def _resolve_boot_params(self, design_name, details, kernel, firmware):
+        """Resolve kernel, kernel_root, devicetree and arch boot parameters
+        from the target carrier and board configuration.
+
+        Carrier-specific defaults are applied first, then any values still
+        unset fall back to the Netbox-configured ``kernel_image``,
+        ``reference_boot_folder`` and ``device_tree_blob`` attributes.
+
+        :param design_name: Target design name.
+        :type design_name: str
+        :param details: Board detail mapping (must contain ``carrier``).
+        :type details: dict
+        :param kernel: Kernel image name, or falsy to auto-resolve.
+        :type kernel: str or bool
+        :param firmware: Whether a firmware download was already requested.
+        :type firmware: bool
+        :returns: Tuple of (kernel, kernel_root, dt, arch, firmware).
+        :rtype: tuple
+        """
+        kernel_root = False
+        if not kernel:
+            kernel = False
+
+        dt = False
+        arch = None
+
+        if details["carrier"] in ["ZCU102", "ADRV2CRR-FMC"]:
+            kernel = "Image"
+            kernel_root = "zynqmp-common"
+            dt = "system.dtb"
+            arch = "arm64"
+        elif (
+            details["carrier"] in ["Zed-Board", "ZC702", "ZC706", "CORAZ7S"]
+            or "ADRV936" in design_name.upper()
+        ):
+            kernel = "uImage"
+            kernel_root = "zynq-common"
+            dt = "devicetree.dtb"
+            arch = "arm"
+        elif "ADALM" in details["carrier"]:
+            firmware = True
+        elif details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]:
+            arch = "microblaze"
+        elif "RPI" in details["carrier"]:
+            pass
+        elif details["carrier"] in ["Maxim", "ADICUP"]:
+            pass
+
+        if not kernel and self.kernel_image:
+            kernel = self.kernel_image
+        if not kernel_root and self.reference_boot_folder:
+            kernel_root = self._derive_kernel_root()
+        if dt is False and self.device_tree_blob:
+            dt = self.device_tree_blob
+
+        return kernel, kernel_root, dt, arch, firmware
+
     def _get_files(
         self,
         design_name,
@@ -983,46 +1052,9 @@ class downloader(utils):
         url_template=None,
         version=None,
     ):
-        kernel_root = False
-        if not kernel:
-            kernel = False
-
-        dt = False
-
-        if details["carrier"] in ["ZCU102", "ADRV2CRR-FMC"]:
-            kernel = "Image"
-            kernel_root = "zynqmp-common"
-            dt = "system.dtb"
-            arch = "arm64"
-        elif (
-            details["carrier"] in ["Zed-Board", "ZC702", "ZC706", "CORAZ7S"]
-            or "ADRV936" in design_name.upper()
-        ):
-            kernel = "uImage"
-            kernel_root = "zynq-common"
-            dt = "devicetree.dtb"
-            arch = "arm"
-        elif "ADALM" in details["carrier"]:
-            firmware = True
-        elif details["carrier"] in ["KC705", "KCU105", "VC707", "VCU118"]:
-            arch = "microblaze"
-        elif "RPI" in details["carrier"]:
-            kernel = kernel
-            modules = modules
-        elif details["carrier"] in ["Maxim", "ADICUP"]:
-            pass
-
-        if not kernel and self.kernel_image:
-            kernel = self.kernel_image
-        if not kernel_root and self.reference_boot_folder:
-            parts = self.reference_boot_folder.split("_")
-            if len(parts) >= 3 and parts[0] == "socfpga":
-                kernel_root = f"{parts[0]}_{parts[1]}_common"
-            else:
-                kernel_root = self.reference_boot_folder.rsplit("-", 1)[0] + "-common"
-        if dt is False and self.device_tree_blob:
-            dt = self.device_tree_blob
-
+        kernel, kernel_root, dt, arch, firmware = self._resolve_boot_params(
+            design_name, details, kernel, firmware
+        )
 
         if firmware:
             # Get firmware
