@@ -16,6 +16,7 @@ zynq-zc702-adv7511-ad9361-fmcomms2-3:
   downloader-config:
     - reference_boot_folder: zynq-zc702-adv7511-ad936x-fmcomms2-3-4
     - devicetree_subfolder: zynq-zc702-adv7511-ad9361-fmcomms2-3
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: fmcomms2_zc702
     - no_os_project: ad9361
     - platform: Xilinx
@@ -34,6 +35,7 @@ zynq-zc706-adv7511-fmcomms11:
     - allow-jtag: True
   downloader-config:
     - reference_boot_folder: zynq-zc706-adv7511-fmcomms11
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: fmcomms11_zc706
   driver-config:
     - iio_device_names:
@@ -54,6 +56,7 @@ zynq-zed-adv7511-ad7768-1-evb:
     - instr-serial: NA
   downloader-config:
     - reference_boot_folder: zynq-zed-adv7511-ad7768-1-evb
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: ad77681evb_zed
 eval-adxrs290-pmdz:
   board-config:
@@ -121,6 +124,7 @@ zynqmp-zcu102-rev10-adrv9002-rx2tx2-vcmos:
     - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
     - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
     - boot_subfolder: boot_bin_CMOS
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: adrv9001_zcu102
   driver-config:
     - iio_device_names:
@@ -139,6 +143,7 @@ zynqmp-zcu102-rev10-adrv9002:
     - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
     - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002
     - boot_subfolder: boot_bin_CMOS
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: adrv9001_zcu102
   driver-config:
     - iio_device_names:
@@ -157,6 +162,7 @@ zynqmp-zcu102-rev10-adrv9002-rx2tx2-vlvds:
     - reference_boot_folder: zynqmp-zcu102-rev10-adrv9002
     - devicetree_subfolder: zynqmp-zcu102-rev10-adrv9002-rx2tx2
     - boot_subfolder: boot_bin_LVDS
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: adrv9001_zcu102
   driver-config:
     - iio_device_names:
@@ -173,6 +179,7 @@ zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4:
     - allow-jtag: True
   downloader-config:
     - reference_boot_folder: zynqmp-zcu102-rev10-ad9172-fmc-ebz-mode4
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: ad9172_fmc_zcu102
 zynqmp-zcu102-rev10-ad9081:
   board-config:
@@ -185,7 +192,44 @@ zynqmp-zcu102-rev10-ad9081:
     - reference_boot_folder: zynqmp-zcu102-rev10-ad9081
     - devicetree_subfolder: m4_l8
     - boot_subfolder: m4_l8
+    - boot_filename: "BOOT.BIN,bootgen_sysfiles.tgz"
     - hdl_folder: ad9081_fmca_ebz_zcu102_m4_l8
+  driver-config:
+    - iio_device_names:
+        - hmc7044
+        - axi-ad9081-rx-hpc
+        - axi-ad9081-tx-hpc
+socfpga_cyclone5_de10_nano_cn0540:
+  board-config:
+    - board-name: socfpga_cyclone5_de10_nano_cn0540
+    - carrier: DE10-NANO
+    - daughter: CN0540
+    - monitoring-interface: uart
+  downloader-config:
+    - reference_boot_folder: socfpga_cyclone5_de10_nano_cn0540
+    - boot_filename: "u-boot-with-spl.sfp,soc_system.rbf,u-boot.scr"
+    - device_tree_blob: socfpga.dtb
+    - kernel_image: zImage
+    - uboot_bootloader: extlinux.conf
+  driver-config:
+    - iio_device_names:
+        - ad7768-1
+        - ltc2308
+        - one-bit-adc-dac
+        - ltc2606
+socfpga_arria10_socdk_ad9081:
+  board-config:
+    - board-name: socfpga_arria10_socdk_ad9081
+    - carrier: A10SOC
+    - daughter: AD9081
+    - monitoring-interface: uart
+  downloader-config:
+    - reference_boot_folder: socfpga_arria10_socdk_ad9081
+    - boot_filename: "u-boot-splx4.sfp,fit_spl_fpga.itb,u-boot.img"
+    - device_tree_blob: socfpga_arria10_socdk_sdmmc.dtb
+    - kernel_image: zImage
+    - uboot_bootloader: extlinux.conf
+    - hdl_folder: ad9081_fmca_ebz_a10soc
   driver-config:
     - iio_device_names:
         - hmc7044

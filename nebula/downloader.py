@@ -405,6 +405,10 @@ class downloader(utils):
         self.modules = None
         self.no_os_project = None
         self.platform = None
+        self.boot_filename = None
+        self.device_tree_blob = None
+        self.kernel_image = None
+        self.uboot_bootloader = None
         self.username = None
         self.cloudsmith_token = None
 
@@ -578,6 +582,8 @@ class downloader(utils):
             reference_boot_folder=reference_boot_folder,
             boot_subfolder=boot_subfolder,
             devicetree_subfolder=devicetree_subfolder,
+            boot_filename=self.boot_filename,
+            uboot_bootloader=self.uboot_bootloader,
             version=version,
         )
 
@@ -977,9 +983,9 @@ class downloader(utils):
         url_template=None,
         version=None,
     ):
+        kernel_root = False
         if not kernel:
             kernel = False
-            kernel_root = False
 
         dt = False
 
@@ -1005,8 +1011,18 @@ class downloader(utils):
             modules = modules
         elif details["carrier"] in ["Maxim", "ADICUP"]:
             pass
-        else:
-            raise Exception("Carrier not supported")
+
+        if not kernel and self.kernel_image:
+            kernel = self.kernel_image
+        if not kernel_root and self.reference_boot_folder:
+            parts = self.reference_boot_folder.split("_")
+            if len(parts) >= 3 and parts[0] == "socfpga":
+                kernel_root = f"{parts[0]}_{parts[1]}_common"
+            else:
+                kernel_root = self.reference_boot_folder.rsplit("-", 1)[0] + "-common"
+        if dt is False and self.device_tree_blob:
+            dt = self.device_tree_blob
+
 
         if firmware:
             # Get firmware
