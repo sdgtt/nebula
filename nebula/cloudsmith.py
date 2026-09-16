@@ -267,11 +267,17 @@ class CloudsmithDownloader:
         date_format="%Y_%m_%d-%H_%M_%S",
         kernel_root=None,
     ):
-        """Resolve the latest date-stamped version prefix from metadata.
+        """Resolve the latest version prefix, selecting by upload time.
 
-        Queries metadata marker files (``README.txt`` for boot partition,
-        ``rpi_archives_properties.txt`` for RPi) to find the most recent
-        date segment in the version path, avoiding parsing all packages.
+        Queries metadata marker files (``make_parameters.txt`` for boot
+        partition, ``rpi_archives_properties.txt`` for RPi) and selects the
+        build with the newest server-side ``uploaded_at`` timestamp, rather
+        than the date embedded in the version string. The version-string date
+        is still parsed and cross-checked: if the newest-uploaded build is not
+        also the newest by version-string date, a warning is logged (a build
+        was likely uploaded with a wrong/backdated version stamp). If
+        ``uploaded_at`` is unavailable, falls back to version-string date
+        ordering.
 
         :param package_version: Base version path to search under.
         :type package_version: str
@@ -281,12 +287,14 @@ class CloudsmithDownloader:
         :type date_format: str
         :param kernel_root: Optional kernel root to anchor prefix depth.
         :type kernel_root: str or None
-        :returns: Full version prefix up to the resolved date segment.
+        :returns: Full version prefix for the selected build.
         :rtype: str
         :raises Exception: If no packages or valid dates are found.
         """
         if repo == self.BOOT_PARTITION_REPO:
-            query = f"version:{package_version.rstrip('/')}* AND name:make_parameters.txt"
+            query = (
+                f"version:{package_version.rstrip('/')}* AND name:make_parameters.txt"
+            )
         elif repo == self.LINUX_RPI_REPO:
             query = f"version:{package_version.rstrip('/')}* AND name:rpi_archives_properties.txt"
         else:
@@ -299,7 +307,9 @@ class CloudsmithDownloader:
 
         date_pattern = self._build_date_pattern(date_format)
         pkg_version_base = package_version.rstrip("/")
-        date_to_prefix = {}
+        # One candidate per version-string date: prefix, the parsed version
+        # date, and the package's server-side upload time (may be None).
+        candidates = {}
 
         for pkg in all_packages:
             version = pkg.get("version", "").rstrip("/")
@@ -314,21 +324,79 @@ class CloudsmithDownloader:
                         break
                     if kernel_root and kernel_root in segments[i + 1 :]:
                         kr_idx = segments.index(kernel_root, i + 1)
-                        date_to_prefix[date_obj] = "/".join(segments[:kr_idx])
-                    elif date_obj not in date_to_prefix:
-                        date_to_prefix[date_obj] = "/".join(segments[: i + 1])
+                        prefix = "/".join(segments[:kr_idx])
+                    elif date_obj not in candidates:
+                        prefix = "/".join(segments[: i + 1])
+                    else:
+                        break
+                    candidates[date_obj] = {
+                        "prefix": prefix,
+                        "version_date": date_obj,
+                        "uploaded_at": self._parse_uploaded_at(pkg.get("uploaded_at")),
+                    }
                     break
 
-        if not date_to_prefix:
+        if not candidates:
             raise Exception(f"No valid dates found in metadata for {package_version}")
 
-        latest_date = max(date_to_prefix.keys())
-        latest_prefix = date_to_prefix[latest_date]
+        cand_list = list(candidates.values())
+
+        # Selection: newest by server-side upload time. Fall back to
+        # version-string date ordering when upload times are unavailable.
+        if all(c["uploaded_at"] is not None for c in cand_list):
+            selected = max(cand_list, key=lambda c: c["uploaded_at"])
+        else:
+            log.warning(
+                "uploaded_at unavailable for one or more packages; "
+                "falling back to version-string date ordering"
+            )
+            selected = max(cand_list, key=lambda c: c["version_date"])
+
+        # Cross-check: the build with the newest version-string date.
+        by_version_date = max(cand_list, key=lambda c: c["version_date"])
+        if selected["prefix"] != by_version_date["prefix"]:
+            sel_up = selected["uploaded_at"]
+            vd_up = by_version_date["uploaded_at"]
+            sel_up_str = sel_up.strftime(date_format) if sel_up else "N/A"
+            vd_up_str = vd_up.strftime(date_format) if vd_up else "N/A"
+            log.warning(
+                "Version stamps look out of order with upload times. "
+                f"The most recently uploaded build is {selected['prefix']} "
+                f"(uploaded {sel_up_str}), but its version-string date "
+                f"({selected['version_date'].strftime(date_format)}) is earlier "
+                f"than an existing, earlier-uploaded build {by_version_date['prefix']} "
+                f"(uploaded {vd_up_str}, version-string date "
+                f"{by_version_date['version_date'].strftime(date_format)}). "
+                "Using the most recently uploaded build. Check for a mis-stamped "
+                "version on Cloudsmith."
+            )
+
+        latest_prefix = selected["prefix"]
+        sel_up = selected["uploaded_at"]
         log.info(
-            f"Latest date: {latest_date.strftime(date_format)}, "
-            f"prefix: {latest_prefix}"
+            f"Selected build (by upload time): {latest_prefix} "
+            f"(uploaded {sel_up.strftime(date_format) if sel_up else 'N/A'}, "
+            f"version-string date {selected['version_date'].strftime(date_format)})"
         )
         return latest_prefix
+
+    @staticmethod
+    def _parse_uploaded_at(value):
+        """Parse a Cloudsmith ``uploaded_at`` ISO 8601 timestamp.
+
+        :param value: Raw ``uploaded_at`` value from the package dict.
+        :type value: str or None
+        :returns: Parsed timezone-aware datetime, or ``None`` if absent or
+            unparseable.
+        :rtype: datetime or None
+        """
+        if not value:
+            return None
+        try:
+            # Cloudsmith returns e.g. "2026-08-27T10:19:23.123456Z".
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None
 
     @staticmethod
     def _build_date_pattern(date_format):
