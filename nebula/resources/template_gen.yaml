@@ -191,7 +191,7 @@ downloader-config:
     optional: True
     netbox_field: devices.custom_fields.boot_subfolder
   field_5:
-    name: boot_filenames
+    name: boot_filename
     default: null
     help: "Comma separated list of boot files to download from target reference boot folder."
     optional: True
