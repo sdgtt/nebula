@@ -286,7 +286,7 @@ class CloudsmithDownloader:
         :raises Exception: If no packages or valid dates are found.
         """
         if repo == self.BOOT_PARTITION_REPO:
-            query = f"version:{package_version.rstrip('/')}* AND name:README.txt"
+            query = f"version:{package_version.rstrip('/')}* AND name:make_parameters.txt"
         elif repo == self.LINUX_RPI_REPO:
             query = f"version:{package_version.rstrip('/')}* AND name:rpi_archives_properties.txt"
         else:
