@@ -384,9 +384,9 @@ class CloudsmithDownloader:
         :type boot_subfolder: str or None
         :param devicetree_subfolder: Subfolder for device tree files.
         :type devicetree_subfolder: str or None
-        :param boot_filename: Required comma-separated boot files from the
-            board's boot path (Netbox Boot_filename field).
-        :type boot_filename: str or None
+        :param boot_filename: Required list of boot files from the board's
+            boot path (generated from the Netbox Boot_filename field).
+        :type boot_filename: list or None
         :param uboot_bootloader: Bootloader config in ``kernel_root``
             (e.g. ``"extlinux.conf"`` for Intel carriers).
         :type uboot_bootloader: str or None
@@ -409,7 +409,7 @@ class CloudsmithDownloader:
         if uboot_bootloader:
             boot_files.append((kernel_root, uboot_bootloader))
 
-        parsed = [f.strip() for f in (boot_filename or "").split(",") if f.strip()]
+        parsed = [str(f).strip() for f in (boot_filename or []) if str(f).strip()]
         if not parsed:
             raise Exception(
                 f"No boot_filename configured for board={board_name}. "
