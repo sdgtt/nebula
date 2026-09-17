@@ -412,7 +412,7 @@ class network(utils):
 
     def verify_checksum(self, file_path, reference, algo="sha256"):
         if algo == "sha256":
-            ssh_command = 'python -c "import hashlib;'
+            ssh_command = 'python3 -c "import hashlib;'
             ssh_command += f" print(hashlib.sha256(open('{file_path}', 'rb').read()).hexdigest())\""
             result = self.run_ssh_command(
                 command=ssh_command, print_result_to_file=False, show_log=False
