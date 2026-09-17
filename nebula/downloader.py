@@ -1175,9 +1175,16 @@ class downloader(utils):
         with open(res) as f:
             board_configs = yaml.load(f, Loader=yaml.FullLoader)
         if design_name not in board_configs:
-            stripped = re.sub(r"-v[a-z0-9]+$", "", design_name)
-            if stripped in board_configs:
-                design_name = stripped
+            # Netbox marks a variant with a "-v" prefix (e.g.
+            # "-v204b-txmode9-rxmode4", "-vm4-l8")
+            candidates = [
+                re.sub(r"-v([0-9a-z])", r"-\1", design_name),
+                re.sub(r"-v[a-z0-9]+$", "", design_name),
+            ]
+            for candidate in candidates:
+                if candidate in board_configs:
+                    design_name = candidate
+                    break
 
         reference_boot_folder = self.reference_boot_folder
         devicetree_subfolder = self.devicetree_subfolder
