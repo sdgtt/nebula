@@ -852,9 +852,18 @@ class downloader(utils):
         dest = "outs"
         if not os.path.isdir(dest):
             os.mkdir(dest)
-
+        arch = self._detect_rpi_arch(kernel)
+        log.info(f"Detected RPi architecture: {arch}")
         if source == "cloudsmith":
             self._get_cloudsmith_rpi_files(branch, kernel, version=version)
+            for tar_file in (
+                f"rpi_latest_boot_{arch}.tar.gz",
+                f"rpi_modules_{arch}.tar.gz",
+            ):
+                tar_file_path = os.path.join(dest, tar_file)
+                log.info("Extracting " + tar_file)
+                with tarfile.open(tar_file_path) as tf:
+                    tf.extractall(dest)
             return
 
         # download properties.txt
@@ -864,10 +873,6 @@ class downloader(utils):
             )
             url = url_template.format(source_root, branch, "")
             build_date = get_newest_folder(listFD(url))
-
-            arch = self._detect_rpi_arch(kernel)
-            log.info(f"Detected RPi architecture: {arch}")
-
             url = url_template.format(
                 source_root, branch, build_date + "/" + arch + "/version_rpi.txt"
             )
