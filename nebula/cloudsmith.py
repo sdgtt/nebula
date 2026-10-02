@@ -386,8 +386,7 @@ class CloudsmithDownloader:
 
         :param value: Raw ``uploaded_at`` value from the package dict.
         :type value: str or None
-        :returns: Parsed timezone-aware datetime, or ``None`` if absent or
-            unparseable.
+        :returns: Parsed timezone-aware datetime, or ``None`` if absent or unparsable.
         :rtype: datetime or None
         """
         if not value:
