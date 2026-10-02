@@ -39,7 +39,8 @@ class usbmux(utils):
         )
         self.board_name = board_name
         self.find_mux_device()
-        self._mux = usbsdmux.UsbSdMux(self._mux_in_use)
+        # autoselect_driver picks Classic vs Fast from the device model (usbsdmux >= 0.3.0)
+        self._mux = usbsdmux.autoselect_driver(self._mux_in_use)
 
     def find_mux_device(self):
         """Find the mux device itself."""
