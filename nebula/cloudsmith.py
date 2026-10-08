@@ -524,13 +524,14 @@ class CloudsmithDownloader:
 
         missing = []
         for subfolder, filename in boot_files:
-            expected_prefix = f"{base_prefix}/{subfolder}/"
+            # Match the folder exactly.
+            expected_folder = f"{base_prefix}/{subfolder}"
             matched = next(
                 (
                     pkg
                     for pkg in filtered
                     if pkg.get("name") == filename
-                    and expected_prefix in pkg.get("version", "")
+                    and pkg.get("version", "").rstrip("/") == expected_folder
                 ),
                 None,
             )
