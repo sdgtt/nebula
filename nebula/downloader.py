@@ -572,6 +572,8 @@ class downloader(utils):
         boot_subfolder=None,
         devicetree_subfolder=None,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         self.cloudsmith.download_boot_files(
             branch,
@@ -585,6 +587,8 @@ class downloader(utils):
             boot_filename=self.boot_filename,
             uboot_bootloader=self.uboot_bootloader,
             version=version,
+            cloudsmith_repo=cloudsmith_repo,
+            cloudsmith_marker=cloudsmith_marker,
         )
 
     def _get_files_boot_partition(
@@ -600,6 +604,8 @@ class downloader(utils):
         dt,
         url_template=None,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         if source == "cloudsmith":
             self._get_cloudsmith_file(
@@ -612,6 +618,8 @@ class downloader(utils):
                 boot_subfolder=boot_subfolder,
                 devicetree_subfolder=devicetree_subfolder,
                 version=version,
+                cloudsmith_repo=cloudsmith_repo,
+                cloudsmith_marker=cloudsmith_marker,
             )
 
         elif source == "artifactory":
@@ -834,9 +842,17 @@ class downloader(utils):
             return "64bit"
         return "32bit"
 
-    def _get_cloudsmith_rpi_files(self, branch, kernel, version=None):
+    def _get_cloudsmith_rpi_files(
+        self, branch, kernel, version=None, cloudsmith_repo=None, cloudsmith_marker=None
+    ):
         arch = self._detect_rpi_arch(kernel)
-        self.cloudsmith.download_rpi_files(branch, arch, version=version)
+        self.cloudsmith.download_rpi_files(
+            branch,
+            arch,
+            version=version,
+            cloudsmith_repo=cloudsmith_repo,
+            cloudsmith_marker=cloudsmith_marker,
+        )
 
     def _get_files_rpi(
         self,
@@ -848,6 +864,8 @@ class downloader(utils):
         devicetree_overlay,
         modules,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         dest = "outs"
         if not os.path.isdir(dest):
@@ -855,7 +873,13 @@ class downloader(utils):
         arch = self._detect_rpi_arch(kernel)
         log.info(f"Detected RPi architecture: {arch}")
         if source == "cloudsmith":
-            self._get_cloudsmith_rpi_files(branch, kernel, version=version)
+            self._get_cloudsmith_rpi_files(
+                branch,
+                kernel,
+                version=version,
+                cloudsmith_repo=cloudsmith_repo,
+                cloudsmith_marker=cloudsmith_marker,
+            )
             for tar_file in (
                 f"rpi_latest_boot_{arch}.tar.gz",
                 f"rpi_modules_{arch}.tar.gz",
@@ -1056,6 +1080,8 @@ class downloader(utils):
         rpi=False,
         url_template=None,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         kernel, kernel_root, dt, arch, firmware = self._resolve_boot_params(
             design_name, details, kernel, firmware
@@ -1108,6 +1134,8 @@ class downloader(utils):
                     devicetree_overlay,
                     modules,
                     version=version,
+                    cloudsmith_repo=cloudsmith_repo,
+                    cloudsmith_marker=cloudsmith_marker,
                 )
 
             if folder:
@@ -1124,6 +1152,8 @@ class downloader(utils):
                         dt,
                         url_template=url_template,
                         version=version,
+                        cloudsmith_repo=cloudsmith_repo,
+                        cloudsmith_marker=cloudsmith_marker,
                     )
                 elif folder == "hdl_linux":
                     self._get_files_hdl(
@@ -1155,6 +1185,8 @@ class downloader(utils):
         rpi=None,
         url_template=None,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         """download_boot_files Download bootfiles for target design.
         This method can download or move files from different locations
@@ -1242,6 +1274,8 @@ class downloader(utils):
             rpi,
             url_template,
             version,
+            cloudsmith_repo,
+            cloudsmith_marker,
         )
 
     def download_sdcard_release(self, release="2019_R1"):

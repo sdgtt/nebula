@@ -21,8 +21,8 @@ class CloudsmithDownloader:
     logic for packages still being processed.
     """
 
-    BOOT_PARTITION_REPO = "sdg-boot-partition"
-    LINUX_RPI_REPO = "sdg-linux-rpi"
+    # Firmware repos are keyed by device (pluto/m2k); boot_partition and rpi
+    # repos are supplied by the caller via --cloudsmith-repo, never inferred.
     M2K_FIRMWARE_REPO = "m2k-fw"
     PLUTOSDR_FIRMWARE_REPO = "plutosdr-fw"
     API_BASE = "https://api.cloudsmith.io/v1/packages/adi"
@@ -264,17 +264,17 @@ class CloudsmithDownloader:
         self,
         package_version,
         repo,
+        marker,
         date_format="%Y_%m_%d-%H_%M_%S",
         kernel_root=None,
     ):
         """Resolve the latest version prefix, selecting by upload time.
 
-        Queries metadata marker files (``make_parameters.txt`` for boot
-        partition, ``rpi_archives_properties.txt`` for RPi) and selects the
-        build with the newest server-side ``uploaded_at`` timestamp, rather
-        than the date embedded in the version string. The version-string date
-        is still parsed and cross-checked: if the newest-uploaded build is not
-        also the newest by version-string date, a warning is logged (a build
+        Queries the caller-supplied ``marker`` metadata file (one per build) and
+        selects the build with the newest server-side ``uploaded_at`` timestamp,
+        rather than the date embedded in the version string. The version-string
+        date is still parsed and cross-checked: if the newest-uploaded build is
+        not also the newest by version-string date, a warning is logged (a build
         was likely uploaded with a wrong/backdated version stamp). If
         ``uploaded_at`` is unavailable, falls back to version-string date
         ordering.
@@ -283,6 +283,8 @@ class CloudsmithDownloader:
         :type package_version: str
         :param repo: Repository slug.
         :type repo: str
+        :param marker: Marker filename to query. Required; not inferred.
+        :type marker: str
         :param date_format: strftime format of the date segment.
         :type date_format: str
         :param kernel_root: Optional kernel root to anchor prefix depth.
@@ -291,15 +293,7 @@ class CloudsmithDownloader:
         :rtype: str
         :raises Exception: If no packages or valid dates are found.
         """
-        if repo == self.BOOT_PARTITION_REPO:
-            query = (
-                f"version:{package_version.rstrip('/')}* AND name:make_parameters.txt"
-            )
-        elif repo == self.LINUX_RPI_REPO:
-            query = f"version:{package_version.rstrip('/')}* AND name:rpi_archives_properties.txt"
-        else:
-            log.info(f"unknown cloudsmith repo: {repo}, using generic query")
-            query = f"version:{package_version.rstrip('/')}* "
+        query = f"version:{package_version.rstrip('/')}* AND name:{marker}"
         all_packages = self._paginated_query(query, repo, label="version metadata")
 
         if not all_packages:
@@ -428,6 +422,8 @@ class CloudsmithDownloader:
         boot_filename=None,
         uboot_bootloader=None,
         version=None,
+        cloudsmith_repo=None,
+        cloudsmith_marker=None,
     ):
         """Download boot partition files for a given board from Cloudsmith.
 
@@ -459,9 +455,26 @@ class CloudsmithDownloader:
         :type uboot_bootloader: str or None
         :param version: Explicit version path override.
         :type version: str or None
-        :raises Exception: If ``boot_filename`` is empty or packages are missing.
+        :param cloudsmith_repo: Repo slug to query. Required; not inferred.
+        :type cloudsmith_repo: str
+        :param cloudsmith_marker: Marker filename to query. Required; not inferred.
+        :type cloudsmith_marker: str
+        :raises Exception: If repo/marker/boot_filename missing or no packages.
         """
         log.info("Getting standard boot files (Cloudsmith)")
+
+        if not cloudsmith_repo:
+            raise Exception(
+                "cloudsmith_repo is required for cloudsmith boot_partition "
+                "downloads (e.g. sdg-test-boot-files); nebula does not infer it."
+            )
+        if not cloudsmith_marker:
+            raise Exception(
+                "cloudsmith_marker is required for cloudsmith boot_partition "
+                "downloads (e.g. make_parameters.txt); nebula does not infer it."
+            )
+        repo = cloudsmith_repo
+        marker = cloudsmith_marker
 
         ref_folder = reference_boot_folder or board_name
         boot_path = f"{ref_folder}/{boot_subfolder}" if boot_subfolder else ref_folder
@@ -494,7 +507,8 @@ class CloudsmithDownloader:
         )
         version_prefix = self._get_latest_version_prefix(
             pkg_version,
-            self.BOOT_PARTITION_REPO,
+            repo,
+            marker=marker,
         )
 
         arch = kernel_root.replace("_common", "").replace("-common", "")
@@ -512,7 +526,7 @@ class CloudsmithDownloader:
 
         all_packages, filtered = self._query_and_filter(
             query,
-            self.BOOT_PARTITION_REPO,
+            repo,
             label="boot_files",
             expected_filenames=unique_filenames,
         )
@@ -523,13 +537,14 @@ class CloudsmithDownloader:
 
         missing = []
         for subfolder, filename in boot_files:
-            expected_prefix = f"{base_prefix}/{subfolder}/"
+            # Match the folder exactly.
+            expected_folder = f"{base_prefix}/{subfolder}"
             matched = next(
                 (
                     pkg
                     for pkg in filtered
                     if pkg.get("name") == filename
-                    and expected_prefix in pkg.get("version", "")
+                    and pkg.get("version", "").rstrip("/") == expected_folder
                 ),
                 None,
             )
@@ -548,7 +563,9 @@ class CloudsmithDownloader:
                 f"{', '.join(missing)}"
             )
 
-    def download_rpi_files(self, branch, arch, version=None):
+    def download_rpi_files(
+        self, branch, arch, version=None, cloudsmith_repo=None, cloudsmith_marker=None
+    ):
         """Download Raspberry Pi boot and module tarballs from Cloudsmith.
 
         :param branch: Release branch (e.g. ``"rpi-6.12.y"``).
@@ -557,17 +574,34 @@ class CloudsmithDownloader:
         :type arch: str
         :param version: Explicit version path override.
         :type version: str or None
-        :raises Exception: If expected packages are not found.
+        :param cloudsmith_repo: Repo slug to query. Required; not inferred.
+        :type cloudsmith_repo: str
+        :param cloudsmith_marker: Marker filename to query. Required; not inferred.
+        :type cloudsmith_marker: str
+        :raises Exception: If repo/marker missing or expected packages not found.
         """
         log.info("Getting RPi files from Cloudsmith")
+
+        if not cloudsmith_repo:
+            raise Exception(
+                "cloudsmith_repo is required for cloudsmith rpi downloads "
+                "(e.g. sdg-linux-rpi); nebula does not infer it."
+            )
+        if not cloudsmith_marker:
+            raise Exception(
+                "cloudsmith_marker is required for cloudsmith rpi downloads "
+                "(e.g. rpi_archives_properties.txt); nebula does not infer it."
+            )
+        repo = cloudsmith_repo
 
         pkg_version = (
             version.rstrip("/") + "/" if version else f"linux_rpi/releases/{branch}/"
         )
         version_prefix = self._get_latest_version_prefix(
             pkg_version,
-            self.LINUX_RPI_REPO,
+            repo,
             date_format="%Y_%m_%d-%H_%M",
+            marker=cloudsmith_marker,
         )
 
         boot_tar = f"rpi_latest_boot_{arch}.tar.gz"
@@ -579,7 +613,7 @@ class CloudsmithDownloader:
 
         _, filtered = self._query_and_filter(
             query,
-            self.LINUX_RPI_REPO,
+            repo,
             label="rpi_files",
             expected_filenames={boot_tar, modules_tar},
         )

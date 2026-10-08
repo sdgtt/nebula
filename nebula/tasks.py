@@ -419,6 +419,13 @@ def download_sdcard(c, release="2019_R1"):
         "For boot_partition: full version path used as query prefix, e.g. "
         "'test_boot_files/main/Linux_PRs/pr_3089/2026_01_22-21_26_59'. "
         "When omitted, the latest available build is fetched automatically.",
+        "cloudsmith_repo": "Cloudsmith repo slug to download from. REQUIRED for "
+        "cloudsmith boot_partition and rpi downloads (e.g. 'sdg-test-boot-files', "
+        "'sdg-linux-rpi'); nebula does not infer it.",
+        "cloudsmith_marker": "Metadata marker file queried to enumerate builds. "
+        "REQUIRED for cloudsmith boot_partition and rpi downloads (e.g. "
+        "'make_parameters.txt', 'rpi_archives_properties.txt'); nebula does not "
+        "infer it.",
     },
 )
 def download_boot_files(
@@ -432,9 +439,25 @@ def download_boot_files(
     url_template=None,
     cloudsmith_auth=None,
     version=None,
+    cloudsmith_repo=None,
+    cloudsmith_marker=None,
 ):
 
     """Download bootfiles for a specific development system"""
+    # The Cloudsmith repo and marker are both required (and never inferred by
+    # nebula) when downloading boot_partition or rpi files from Cloudsmith.
+    if source == "cloudsmith" and filetype in ("boot_partition", "rpi"):
+        if not cloudsmith_repo:
+            raise Exception(
+                f"--cloudsmith-repo is required for cloudsmith {filetype} "
+                "downloads (e.g. --cloudsmith-repo sdg-linux-rpi)."
+            )
+        if not cloudsmith_marker:
+            raise Exception(
+                f"--cloudsmith-marker is required for cloudsmith {filetype} "
+                "downloads (e.g. --cloudsmith-marker rpi_archives_properties.txt)."
+            )
+
     d = nebula.downloader(
         yamlfilename=yamlfilename,
         board_name=board_name,
@@ -466,6 +489,8 @@ def download_boot_files(
         rpi=file["rpi"],
         url_template=url_template,
         version=version,
+        cloudsmith_repo=cloudsmith_repo,
+        cloudsmith_marker=cloudsmith_marker,
     )
 
 
