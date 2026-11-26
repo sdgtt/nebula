@@ -1318,6 +1318,30 @@ def check_dmesg(c, ip, user="root", password="analog", board_name=None):
         "ip": "IP address of board",
         "user": "Board username. Default: root",
         "password": "Password for board. Default: analog",
+        "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
+    }
+)
+def check_systemd(c, ip, user="root", password="analog", board_name=None):
+    """Collect and parse remote board's systemd service states
+    Four log files will be produced:
+        systemd_services.log - All service units
+        systemd_failed.log - Failed services only
+        systemd_inactive.log - Inactive services only
+        systemd_enabled.log - Enabled service unit files
+    """
+    n = nebula.network(
+        dutip=ip, dutusername=user, dutpassword=password, board_name=board_name
+    )
+    (e, _) = n.check_systemd()
+    if e:
+        raise Exception("Failed systemd services found. Check systemd_failed.log file")
+
+
+@task(
+    help={
+        "ip": "IP address of board",
+        "user": "Board username. Default: root",
+        "password": "Password for board. Default: analog",
         "yamlfilename": "Path to yaml config file. Default: /etc/default/nebula",
         "board_name": "Name of DUT design (Ex: zynq-zc706-adv7511-fmcdaq2). Require for multi-device config files",
     }
@@ -1459,6 +1483,7 @@ net = Collection("net")
 net.add_task(restart_board)
 net.add_task(update_boot_files)
 net.add_task(check_dmesg)
+net.add_task(check_systemd)
 net.add_task(run_diagnostics)
 net.add_task(run_command)
 net.add_task(check_board_booted)

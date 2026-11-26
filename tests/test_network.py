@@ -1,6 +1,8 @@
 import os
 import shutil
 import time
+from types import SimpleNamespace
+from unittest import mock
 
 import pytest
 
@@ -110,6 +112,64 @@ def test_update_boot_partition_existing_files():
     n.update_boot_partition_existing_files(subfolder=board_name)
     time.sleep(60)
     n.check_board_booted()
+
+
+SYSTEMD_UNITS = (
+    "cron.service loaded active running Regular background program processing daemon\r\n"
+    "iiod.service loaded failed failed IIO Daemon\r\n"
+    "networking.service loaded active exited Raise network interfaces\r\n"
+    "rsync.service loaded inactive dead fast remote file copy program daemon\r\n"
+    "plymouth-start.service not-found inactive dead plymouth-start.service\r\n"
+)
+SYSTEMD_ENABLED = "cron.service enabled enabled\r\niiod.service enabled enabled\r\n"
+
+
+def fake_systemctl(command, **kwargs):
+    if "list-units" in command:
+        stdout = SYSTEMD_UNITS
+    elif "list-unit-files" in command:
+        stdout = SYSTEMD_ENABLED
+    else:
+        stdout = "degraded\r\n"
+    return SimpleNamespace(stdout=stdout)
+
+
+def test_check_systemd_parse(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    n = network(dutip="0.0.0.0", yamlfilename=str(tmp_path / "none.yaml"))
+    with mock.patch.object(network, "run_ssh_command", side_effect=fake_systemctl):
+        (e, logs) = n.check_systemd()
+
+    assert e
+    assert logs["state"] == "degraded"
+    assert logs["counts"] == {
+        "active": 2,
+        "running": 1,
+        "inactive": 1,
+        "failed": 1,
+        "not_found": 1,
+        "enabled": 2,
+    }
+    assert [u["unit"] for u in logs["failed"]] == ["iiod.service"]
+    assert [u["unit"] for u in logs["inactive"]] == ["rsync.service"]
+    for f in [
+        "systemd_services.log",
+        "systemd_failed.log",
+        "systemd_inactive.log",
+        "systemd_enabled.log",
+    ]:
+        assert os.path.isfile(f)
+    with open("systemd_failed.log") as f:
+        assert f.read().startswith("iiod.service")
+
+
+def test_check_systemd_skips_pluto(tmp_path):
+    n = network(
+        dutip="0.0.0.0", yamlfilename=str(tmp_path / "none.yaml"), board_name="pluto"
+    )
+    with mock.patch.object(network, "run_ssh_command") as run:
+        assert n.check_systemd() == (False, {})
+    run.assert_not_called()
 
 
 if __name__ == "__main__":

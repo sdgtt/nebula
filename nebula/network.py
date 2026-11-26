@@ -389,6 +389,93 @@ class network(utils):
         logs = {"log": all_log, "warn": warn_log, "error": error_log_filetered}
         return len(error_log_filetered) > 0, logs
 
+    def check_systemd(self):
+        """check_systemd:
+        Collect and parse remote board's systemd service states
+
+        return:
+            status: True if failed services found, False otherwise
+            logs: dict with system state, counts and per-state unit lists
+        """
+        if self.board_name in ("pluto", "m2k"):
+            log.info(f"systemd not available on {self.board_name}, skipping check")
+            return False, {}
+
+        def _run(cmd):
+            return self.run_ssh_command(
+                cmd, show_log=False, print_result_to_file=False
+            ).stdout
+
+        opts = "--type=service --plain --no-legend --no-pager"
+        units_out = _run(f"systemctl list-units --all {opts}")
+        enabled_out = _run(f"systemctl list-unit-files --state=enabled {opts}")
+        # exits non-zero unless state is "running" (e.g. "degraded" when units failed)
+        state = _run("systemctl is-system-running || true").strip()
+
+        # Process
+        units = []
+        for line in units_out.splitlines():
+            fields = line.split(None, 4)
+            if len(fields) < 4:
+                continue
+            unit, load, active, sub = fields[:4]
+            units.append(
+                {"unit": unit, "load": load, "active": active, "sub": sub, "line": line}
+            )
+        enabled = [s.split()[0] for s in enabled_out.splitlines() if s.strip()]
+
+        failed = [u for u in units if u["active"] == "failed"]
+        inactive = [
+            u for u in units if u["active"] == "inactive" and u["load"] != "not-found"
+        ]
+
+        # TODO: enable once systemd_rejects.txt is finalized
+        # path = pathlib.Path(__file__).parent.absolute()
+        # res = os.path.join(path, "resources", "systemd_rejects.txt")
+        # with open(res) as f:
+        #     systemd_rejects = [s.strip() for s in f if s.strip()]
+        # failed = [u for u in failed if u["unit"] not in systemd_rejects]
+
+        # TODO: enable once required services per board are defined
+        # required_services = []
+        # active_units = {u["unit"] for u in units if u["active"] == "active"}
+        # missing_required = [s for s in required_services if s not in active_units]
+
+        counts = {
+            "active": sum(u["active"] == "active" for u in units),
+            "running": sum(u["sub"] == "running" for u in units),
+            "inactive": len(inactive),
+            "failed": len(failed),
+            "not_found": sum(u["load"] == "not-found" for u in units),
+            "enabled": len(enabled),
+        }
+
+        with open("systemd_services.log", "w") as outfile:
+            outfile.write(units_out)
+        with open("systemd_failed.log", "w") as outfile:
+            outfile.writelines(u["line"] + "\n" for u in failed)
+        with open("systemd_inactive.log", "w") as outfile:
+            outfile.writelines(u["line"] + "\n" for u in inactive)
+        with open("systemd_enabled.log", "w") as outfile:
+            outfile.write(enabled_out)
+        logging.info("systemd logs collected")
+
+        log.info(
+            f"systemd state={state} " + " ".join(f"{k}={v}" for k, v in counts.items())
+        )
+        if failed:
+            log.info("Failed systemd services: " + ", ".join(u["unit"] for u in failed))
+
+        logs = {
+            "state": state,
+            "counts": counts,
+            "units": units,
+            "failed": failed,
+            "inactive": inactive,
+            "enabled": enabled,
+        }
+        return len(failed) > 0, logs
+
     def run_diagnostics(self):
         """run_diagnostics:
         execute and download adi_diagnostic report
