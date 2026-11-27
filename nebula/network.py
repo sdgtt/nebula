@@ -401,18 +401,39 @@ class network(utils):
             log.info(f"systemd not available on {self.board_name}, skipping check")
             return False, {}
 
-        def _run(cmd):
-            return self.run_ssh_command(
-                cmd, show_log=False, print_result_to_file=False
-            ).stdout
+        tmp_filename_root = "".join(
+            random.choice(string.ascii_lowercase) for i in range(16)
+        )
+        tmp_filename_units = "/tmp/" + tmp_filename_root + "_services"
+        tmp_filename_enabled = "/tmp/" + tmp_filename_root + "_enabled"
 
+        # Redirect to files so systemctl doesn't see the ssh pty
+        # (no colors, no width truncation, no \r\n line endings)
         opts = "--type=service --plain --no-legend --no-pager"
-        units_out = _run(f"systemctl list-units --all {opts}")
-        enabled_out = _run(f"systemctl list-unit-files --state=enabled {opts}")
+        self.run_ssh_command(f"systemctl list-units --all {opts} > {tmp_filename_units}")
+        self.run_ssh_command(
+            f"systemctl list-unit-files --state=enabled {opts} > {tmp_filename_enabled}"
+        )
         # exits non-zero unless state is "running" (e.g. "degraded" when units failed)
-        state = _run("systemctl is-system-running || true").strip()
+        state = self.run_ssh_command(
+            "systemctl is-system-running || true",
+            show_log=False,
+            print_result_to_file=False,
+        ).stdout.strip()
+        self._dl_file(tmp_filename_units)
+        self._dl_file(tmp_filename_enabled)
+        self.run_ssh_command(f"rm -f {tmp_filename_units} {tmp_filename_enabled}")
+
+        os.rename(tmp_filename_root + "_services", "systemd_services.log")
+        os.rename(tmp_filename_root + "_enabled", "systemd_enabled.log")
+        logging.info("systemd logs collected")
 
         # Process
+        with open("systemd_services.log", "r") as f:
+            units_out = f.read()
+        with open("systemd_enabled.log", "r") as f:
+            enabled_out = f.read()
+
         units = []
         for line in units_out.splitlines():
             fields = line.split(None, 4)
@@ -450,15 +471,10 @@ class network(utils):
             "enabled": len(enabled),
         }
 
-        with open("systemd_services.log", "w") as outfile:
-            outfile.write(units_out)
         with open("systemd_failed.log", "w") as outfile:
             outfile.writelines(u["line"] + "\n" for u in failed)
         with open("systemd_inactive.log", "w") as outfile:
             outfile.writelines(u["line"] + "\n" for u in inactive)
-        with open("systemd_enabled.log", "w") as outfile:
-            outfile.write(enabled_out)
-        logging.info("systemd logs collected")
 
         log.info(
             f"systemd state={state} " + " ".join(f"{k}={v}" for k, v in counts.items())

@@ -114,31 +114,47 @@ def test_update_boot_partition_existing_files():
     n.check_board_booted()
 
 
+# Files written by systemctl on the target (redirected, so no pty \r\n)
 SYSTEMD_UNITS = (
-    "cron.service loaded active running Regular background program processing daemon\r\n"
-    "iiod.service loaded failed failed IIO Daemon\r\n"
-    "networking.service loaded active exited Raise network interfaces\r\n"
-    "rsync.service loaded inactive dead fast remote file copy program daemon\r\n"
-    "plymouth-start.service not-found inactive dead plymouth-start.service\r\n"
+    "cron.service loaded active running Regular background program processing daemon\n"
+    "iiod.service loaded failed failed IIO Daemon\n"
+    "networking.service loaded active exited Raise network interfaces\n"
+    "rsync.service loaded inactive dead fast remote file copy program daemon\n"
+    "plymouth-start.service not-found inactive dead plymouth-start.service\n"
 )
-SYSTEMD_ENABLED = "cron.service enabled enabled\r\niiod.service enabled enabled\r\n"
+SYSTEMD_ENABLED = "cron.service enabled enabled\niiod.service enabled enabled\n"
+SYSTEMD_LOGS = [
+    "systemd_enabled.log",
+    "systemd_failed.log",
+    "systemd_inactive.log",
+    "systemd_services.log",
+]
 
 
-def fake_systemctl(command, **kwargs):
-    if "list-units" in command:
-        stdout = SYSTEMD_UNITS
-    elif "list-unit-files" in command:
-        stdout = SYSTEMD_ENABLED
-    else:
-        stdout = "degraded\r\n"
+def fake_run_ssh(command, **kwargs):
+    # only is-system-running is read from (pty) stdout
+    stdout = "degraded\r\n" if "is-system-running" in command else ""
     return SimpleNamespace(stdout=stdout)
+
+
+def fake_dl_file(filename):
+    # fabric get() saves the remote file under its basename in the CWD
+    content = SYSTEMD_UNITS if filename.endswith("_services") else SYSTEMD_ENABLED
+    with open(os.path.basename(filename), "w") as f:
+        f.write(content)
 
 
 def test_check_systemd_parse(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     n = network(dutip="0.0.0.0", yamlfilename=str(tmp_path / "none.yaml"))
-    with mock.patch.object(network, "run_ssh_command", side_effect=fake_systemctl):
+    with mock.patch.object(
+        network, "run_ssh_command", side_effect=fake_run_ssh
+    ) as run, mock.patch.object(network, "_dl_file", side_effect=fake_dl_file):
         (e, logs) = n.check_systemd()
+
+    commands = [c.args[0] for c in run.call_args_list]
+    assert all("> /tmp/" in c for c in commands if "systemctl list-" in c)
+    assert any(c.startswith("rm -f /tmp/") for c in commands)
 
     assert e
     assert logs["state"] == "degraded"
@@ -152,24 +168,29 @@ def test_check_systemd_parse(tmp_path, monkeypatch):
     }
     assert [u["unit"] for u in logs["failed"]] == ["iiod.service"]
     assert [u["unit"] for u in logs["inactive"]] == ["rsync.service"]
-    for f in [
-        "systemd_services.log",
-        "systemd_failed.log",
-        "systemd_inactive.log",
-        "systemd_enabled.log",
-    ]:
-        assert os.path.isfile(f)
+
+    # all four logs made, temp names renamed away
+    assert sorted(os.listdir()) == SYSTEMD_LOGS
+    with open("systemd_services.log") as f:
+        assert f.read() == SYSTEMD_UNITS
+    with open("systemd_enabled.log") as f:
+        assert f.read() == SYSTEMD_ENABLED
     with open("systemd_failed.log") as f:
         assert f.read().startswith("iiod.service")
+    with open("systemd_inactive.log") as f:
+        assert f.read().startswith("rsync.service")
 
 
 def test_check_systemd_skips_pluto(tmp_path):
     n = network(
         dutip="0.0.0.0", yamlfilename=str(tmp_path / "none.yaml"), board_name="pluto"
     )
-    with mock.patch.object(network, "run_ssh_command") as run:
+    with mock.patch.object(network, "run_ssh_command") as run, mock.patch.object(
+        network, "_dl_file"
+    ) as dl:
         assert n.check_systemd() == (False, {})
     run.assert_not_called()
+    dl.assert_not_called()
 
 
 if __name__ == "__main__":
